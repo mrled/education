@@ -35,6 +35,23 @@ def rb64(x):
     return b64(x, reverse=True)
 
 def hex_to_bin(hexstring):
+    bs = int(hexstring, 16)
+    return bs
+
+def bin_to_hex(integer):
+    return hex(integer)
+
+def b64_to_bin(b64string):
+    if type(b64string) is 'string':
+        b64string = b64string.encode() # b64decode() has to work on bytes objects, not string objects
+    srctext = base64.b64decode(b64string)
+
+    # srctext is a bytes object so we can loop over it like this and get ascii
+    numstr=""
+    for char in srctext:
+        pass
+
+def hex_to_binstring(hexstring):
     """
     convert a string containing hex to a string containing binary.
     note that a hex string will have two hexdigits per represented char i.e. 4c in hex 
@@ -52,7 +69,7 @@ def hex_to_bin(hexstring):
             character=""
     return binstring
 
-def bin_to_hex(binstring):
+def binstring_to_hex(binstring):
     hit = ""
     hexstring = ""
     for bit in binstring:
@@ -62,6 +79,8 @@ def bin_to_hex(binstring):
             hit=""
     return hexstring
 
+
+# idk if these are like cheating or something because they're using the base64 module? 
 def base64_to_hex(x):
     string = base64.b64decode(x.encode())
     hexencoding = ""
@@ -69,7 +88,7 @@ def base64_to_hex(x):
         hexencoding += hex(c)[2:]
     return hexencoding
 
-def hex_to_base64(hexstring):
+def hex_to_string(hexstring):
     # each PAIR of hex digits represents ONE character, so grab them by twos
     character=""
     decoded=""
@@ -78,12 +97,22 @@ def hex_to_base64(hexstring):
         if len(character) > 1:
             decoded+= chr(int(character, 16))
             character=""
-    return base64.b64encode(decoded.encode())
+    return decoded
 
-def hex_to_base64_nolibs(hexstring):
+def hex_to_base64(hexstring):
+    return base64.b64encode(hex_to_string(hexstring))
+
+def string_to_hex(string):
+    hexstring = ""
+    for char in string.encode()[0:-1]: # the last character os \x00 which just terminates it, ignore that
+        hexstring += '{:0>2}'.format(hex(char)[2:])
+    #print("hexstring: " + hexstring)
+    return hexstring
+
+def hex_to_base64_ugly(hexstring):
     """
     convert a hex string to a base64 string without using the python base64 library
-    this works but it's pretty ugly
+    this works and it's definitely not cheating but it's pretty ugly
     """
     character=""
     binary_string=""
@@ -134,10 +163,10 @@ if __name__=='__main__':
     print("exb " + str(exb))
     
     #print(hex_to_base64(exh))
-    #print(base64_to_hex(exb))
+    print("    " + b64_to_hex(exb))
     
     exhr2 = exh + "49"
     exhr4 = exh + "4949"
     
-    print("hex to base64: " + hex_to_base64(exhr4))
-    print("exb            " + str(exb))
+    #print("hex to base64: " + hex_to_base64(exhr4))
+    #print("exb            " + str(exb))
