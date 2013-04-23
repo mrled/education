@@ -34,39 +34,42 @@ def b64(x, reverse=False):
 def rb64(x):
     return b64(x, reverse=True)
 
-def base64_to_hex_v1(x):
+def hex_to_bin(hexstring):
+    """
+    convert a string containing hex to a string containing binary.
+    note that a hex string will have two hexdigits per represented char i.e. 4c in hex 
+    represents ascii char 'L'.
+    """
+    character=""
+    binstring=""
+    for hexdigit in hexstring:
+        character+=hexdigit
+        if len(character) is 2:
+            # convert string 'character' containing 2 hex digits into a string 'bit' 
+            # containing 8 binary digits:
+            bit = "{:0>8b}".format(int(character, 16)) 
+            binstring += bit
+            character=""
+    return binstring
+
+def bin_to_hex(binstring):
+    hit = ""
+    hexstring = ""
+    for bit in binstring:
+        hit+=bit
+        if len(hit) is 8:
+            hexstring += hex(int(hit, 2))[2:] # [2:] because hex(7) returns 0x7; we don't want the 0x
+            hit=""
+    return hexstring
+
+def base64_to_hex(x):
     string = base64.b64decode(x.encode())
     hexencoding = ""
     for c in string:
         hexencoding += hex(c)[2:]
     return hexencoding
 
-def hex_to_base64_v1(x):
-    """
-    Convert hex to base64
-    'Hex' comes in as a STRING. Each PAIR of hex characters represents ONE decoded character. 
-    """
-
-    # first convert the string to an array of two-character strings
-    # what happens if I'm not using string data?? idk agh so confused. 
-    tmp=""
-    arr=[]
-    for char in x:
-        if tmp is "":
-            tmp=char
-        else:
-            tmp+=char
-            arr+=[tmp]
-            tmp=""
-
-    # now decode to get the original string
-    s=''
-    for char in arr:
-        s += chr(int(char, 16))
-
-    base64.b64encode(s.encode())
-
-def hex_to_base64_v2(hexstring):
+def hex_to_base64(hexstring):
     # each PAIR of hex digits represents ONE character, so grab them by twos
     character=""
     decoded=""
@@ -77,43 +80,11 @@ def hex_to_base64_v2(hexstring):
             character=""
     return base64.b64encode(decoded.encode())
 
-def hex_to_base64_v3(hexstring):
-    character=""
-    decoded_string=""
-    onedecint=""
-    for hexdigit in hexstring:
-        character+=hexdigit
-        if len(character) is 2:
-            decoded_string+= chr(int(character, 16))
-            character=""
-    print("decoded_string length is {}".format(len(decoded_string)))
-    print("decoded_string = " + decoded_string)
-
-    binary_string=""
-    for character in decoded_string:
-        #bit = "{}".format(bin(ord(character)))
-        bit = "{:0>8b}".format(ord(character))
-        #print(bit)
-        binary_string += bit
-    print("binary_string length is {}".format(len(binary_string)))
-    #print("binary_string = " + binary_string)
-
-    b64enc=""
-    tmp=""
-    for bit in binary_string:
-        tmp+=bit
-        if len(tmp) is 24:
-            a=b64(int(tmp[0:6], 2))
-            b=b64(int(tmp[6:12], 2))
-            c=b64(int(tmp[12:18], 2))
-            d=b64(int(tmp[18:24], 2))
-            b64enc += a+b+c+d
-            tmp=""
-    return b64enc
-
-
-# this works, could be prettier though it's pretty ugly
-def hex_to_base64_v4(hexstring):
+def hex_to_base64_nolibs(hexstring):
+    """
+    convert a hex string to a base64 string without using the python base64 library
+    this works but it's pretty ugly
+    """
     character=""
     binary_string=""
     b64enc=""
@@ -157,21 +128,16 @@ def hex_to_base64_v4(hexstring):
     return b64enc
 
 
-def base64_to_hex(x):
-    return base64_to_hex_v1(x)
-def hex_to_base64(x):
-    return hex_to_base64_v2(x)
-
 if __name__=='__main__':
     
     print("exh " + exh)
     print("exb " + str(exb))
     
-    #print(hex_to_base64_v2(exh))
+    #print(hex_to_base64(exh))
     #print(base64_to_hex(exb))
     
     exhr2 = exh + "49"
     exhr4 = exh + "4949"
     
-    print("hex to base64: " + hex_to_base64_v4(exhr4))
+    print("hex to base64: " + hex_to_base64(exhr4))
     print("exb            " + str(exb))

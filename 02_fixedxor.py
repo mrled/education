@@ -17,12 +17,30 @@
 
 #  746865206b696420646f6e277420706c6179
 
-mrlhex = __import__("01_hex-base64")
+mrlh64 = __import__("01_hex-base64")
 
-def xor(x,y):
+ex1 = '1c0111001f010100061a024b53535009181c'
+ex2 = '686974207468652062756c6c277320657965'
+res = '746865206b696420646f6e277420706c6179'
+
+def hexxor(x,y):
     if len(x) is not len(y):
         raise Exception("You are not comparing buffers of the same length!")
-    
+    binx = mrlh64.hex_to_bin(x)
+    biny = mrlh64.hex_to_bin(y)
+    binxor=""
+    ctr=0
+    for xbit in binx:
+        ybit=biny[ctr]
+        if xbit is ybit:
+            binxor+='0'
+        else:
+            binxor+='1'
+        ctr+=1
+    # print(binx)
+    # print(biny)
+    # print(binxor)
+    print(mrlh64.bin_to_hex(binxor))
 
 if __name__ == '__main__':
-    print(mrlhex.b64table)
+    hexxor(ex1, ex2)
