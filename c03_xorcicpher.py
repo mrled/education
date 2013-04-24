@@ -11,8 +11,8 @@
 # piece of English plaintext. (Character frequency is a good metric.)
 # Evaluate each output and choose the one with the best score.
 
-mrlh64 = __import__("01_hex-base64")
-mrlxor = __import__("02_fixedxor")
+import c01_hexb64 as mrlh64
+import c02_fixedxor as mrlxor
 
 ciphertext = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
 
@@ -51,7 +51,7 @@ def score_plaintext(text):
 
 def xorloop(hextxt):
     strtxt = mrlh64.hex_to_string(hextxt)
-    print("hextxt: ({})".format(hextxt))
+    #print("hextxt: ({})".format(hextxt))
     for i in range(1, 128):
         xorchr = chr(i)
         xortxt = '{:{fill}>{width}}'.format(xorchr, fill=xorchr, width=len(strtxt)+1)
