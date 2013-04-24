@@ -21,20 +21,17 @@ solution = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a2622632427
 def repxor(plaintext, key):
     """This function does what I expect, except that the solution has "2f" at the end where mine has nothing.
     Is this because I'm chopping off the key instead of padding the plaintext at the end?"""
-    fullkey = key
-    if len(key) < len(plaintext):
+    if len(plaintext) < len(key):
+        fullkey = key[0:len(plaintext)]
+    elif len(key) < len(plaintext):
         remainder = len(plaintext) - len(key)
         iterate = int(remainder/len(key))+1 # the +1 catches a remainder, if any; I cut it down later.
         fullkey=key
         for i in range(iterate):
             fullkey += key
         fullkey = fullkey[0:len(plaintext)]
-
-    if len(plaintext) < len(fullkey):
-        remainder = len(fullkey) - len(plaintext)
-        for i in range(remainder):
-            plaintext += chr(0x00)
-
+    else:
+        fullkey = key
 
     hextxt = c01_hexb64.string_to_hex(plaintext)
     hexkey = c01_hexb64.string_to_hex(fullkey)
