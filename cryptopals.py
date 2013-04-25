@@ -39,6 +39,13 @@ def hex_to_string(hexstring):
             character=""
     return decoded
 
+def hex_to_bin(hexstring):
+    bs = int(hexstring, 16)
+    return bs
+
+def bin_to_hex(integer):
+    return hex(integer)
+
 def string_to_hex(string):
     hexstring = ""
     for char in string.encode()[0:-1]: # the last character os \x00 which just terminates it, ignore that
@@ -51,14 +58,14 @@ def hex_to_base64(hexstring):
 def hexxor(x, y):
     """Do a XOR of two hex strings of the same length"""
     if len(x) is not len(y):
-        #raise Exception("Buffers are different lengths! x is {} but y is {}".format(len(x), len(y)))
-        return False
+        raise Exception("Buffers are different lengths! x is {} but y is {}".format(len(x), len(y)))
+        #return False
     xbin = int(x, 16)
     ybin = int(y, 16)
     xorbin = xbin^ybin
-    #print(hex(xorbin))
-    #print(str(xorbin))
     return hex(xorbin)[2:]
+def strxor(x, y):
+    return hexxor(string_to_hex(x), string_to_hex(y))
 
 def char_counts(text):
     """
@@ -68,7 +75,6 @@ def char_counts(text):
     consonants = 'bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ'
     ignoreds = ''
     count={'s':0, 'v':0, 'c':0, 'o':0}
-    #spaces = vcount = ccount = ocount = 0
     for char in text:
         if char in ignoreds:
             pass
@@ -182,12 +188,66 @@ def repxor(plaintext, key):
     binxor = bintxt^binkey
     hexxor = hex(binxor)[2:]
     if len(hexxor)%2 is 1:
-        # pad the beginning with zero. 
+        # pad the beginning with zero so that the hexxor string has an even number of hex bits in it. 
         # useful because not only does it match the provided solution this way, it also 
         # means there are two hex digits per character so the ciphertext is decodable to ASCII
         # and it's consistent with how you'd encode plaintext.
         hexxor = "0"+hexxor
     return(hexxor)
+
+def hamming_code_distance(string1, string2):
+    """
+    Compute the Hamming Code distance between two strings
+    """
+    MYDEBUG=False
+    if len(string1) is not len(string2):
+        raise Exception("Buffers are different lengths!")
+    bytes1=string1.encode()
+    bytes2=string2.encode()
+    i = 0
+    hamming_distance = 0
+    while i < len(bytes1):
+        char1 = bytes1[i]
+        char2 = bytes2[i]
+        bin1 = "{:0>8}".format(bin(char1)[2:])
+        bin2 = "{:0>8}".format(bin(char2)[2:])
+        j = 0
+        thisbit_hd = 0
+        while j < 8:
+            if bin1[j] is not bin2[j]:
+                thisbit_hd +=1
+                hamming_distance += 1
+            j +=1
+        if MYDEBUG:
+            print("{} {}".format(chr(char1), bin1))
+            print("{} {}".format(chr(char2), bin2))
+            print("                   -- hamming distance: {}".format(thisbit_hd))
+        i +=1
+    return hamming_distance
+
+def hexxor_shitty(x,y):
+    if len(x) is not len(y):
+        raise Exception("Buffers are different lengths! x is {} but y is {}".format(len(x), len(y)))
+    binx = mrlh64.hex_to_bin(x)
+    biny = mrlh64.hex_to_bin(y)
+    #binxor=""
+    ctr=0
+    for xbit in binx:
+        ybit=biny[ctr]
+        if xbit is ybit:
+            binxor+='0'
+        else:
+            binxor+='1'
+        ctr+=1
+    print(mrlh64.bin_to_hex(binxor))
+
+
+def break_repkey_xor(hexstring):
+    """
+    Break a hexstring of repeating-key XOR ciphertext. 
+    """
+    keylenmin = 2
+    keylenmax = 40
 
 
 ########################################################################
@@ -234,6 +294,17 @@ def chal05():
     solution = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
     repxor(plaintext, repkey)
     print(solution)
+
+def chal06():
+    f = open("3132752.gist.txt")
+    gist = f.read().replace("\n","")
+    f.close()
+    hexcipher = base64_to_hex(gist)
+
+def chal06h():
+    ex1="this is a test"
+    ex2="wokka wokka!!!"
+    print(hamming_code_distance(ex1, ex2))
 
 
 
