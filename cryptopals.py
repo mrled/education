@@ -149,6 +149,9 @@ def find_1char_xor(hexes):
             xorchr = chr(i)
             xortxt = '{:{fill}>{width}}'.format(xorchr, fill=xorchr, width=len(strtxt)+1)
             xorhex = string_to_hex(xortxt)
+
+            debugprint("ciphertext: {}; xorhex: {}".format(h, xorhex))
+
             candidate = hexxor(h,xorhex)
             canstring = hex_to_string(candidate)
             if winnow_wordcount(canstring):
@@ -160,10 +163,17 @@ def find_1char_xor(hexes):
     for p in passed:
         if winnow_junk_chars(p['canstring']):
             passed2 += [p]
+    else:
+        debugprint("NO PLAINTEXT CANDIDATE FOR {} IN ROUND ONE".format(h))
+        return False
 
     # And finally, print the winners
     for p in passed2:
-        print("{}, {}, {}".format(p['hex'], p['xorchr'], p['canstring']))
+        debugprint("{}, {}, {}".format(p['hex'], p['xorchr'], p['canstring']))
+        return p['canstring']
+    else:
+        debugprint("NO PLAINTEXT CANDIDATE FOR {} IN ROUND TWO".format(h))
+        return False
 
 def repxor(plaintext, key):
     """
@@ -204,7 +214,6 @@ def hamming_code_distance(string1, string2):
     """
     Compute the Hamming Code distance between two strings
     """
-    MYDEBUG=False
     if len(string1) is not len(string2):
         raise Exception("Buffers are different lengths!")
     bytes1=string1.encode()
@@ -217,24 +226,22 @@ def hamming_code_distance(string1, string2):
         bin1 = "{:0>8}".format(bin(char1)[2:])
         bin2 = "{:0>8}".format(bin(char2)[2:])
         j = 0
-        thisbit_hd = 0
+        thisbyte_hd = 0
         while j < 8:
             if bin1[j] is not bin2[j]:
-                thisbit_hd +=1
+                thisbyte_hd +=1
                 hamming_distance += 1
             j +=1
-        if MYDEBUG:
-            print("{} {}".format(chr(char1), bin1))
-            print("{} {}".format(chr(char2), bin2))
-            print("                   -- hamming distance: {}".format(thisbit_hd))
+        debugprint("{} {}\n{} {}\n\t-- hamming distance: {}".format(
+                chr(char1), bin1, chr(char2), bin2, thisbyte_hd))
         i +=1
     return hamming_distance
 
 def hexxor_shitty(x,y):
     if len(x) is not len(y):
         raise Exception("Buffers are different lengths! x is {} but y is {}".format(len(x), len(y)))
-    binx = mrlh64.hex_to_bin(x)
-    biny = mrlh64.hex_to_bin(y)
+    binx = hex_to_bin(x)
+    biny = hex_to_bin(y)
     #binxor=""
     ctr=0
     for xbit in binx:
@@ -244,7 +251,7 @@ def hexxor_shitty(x,y):
         else:
             binxor+='1'
         ctr+=1
-    print(mrlh64.bin_to_hex(binxor))
+    print(bin_to_hex(binxor))
 
 def break_repkey_xor(hexstring):
     """
@@ -273,6 +280,43 @@ def break_repkey_xor(hexstring):
         for hds in hamming_distances_sorted:
             print(hds)
     
+    # pick the four keylens with the lowest hamming distance between chunks; one of these is probably right
+    for winner in hamming_distances_sorted[0:4]:
+        keylen = winner['keylen']
+
+        # break the ciphertext hexstring chunks the size of the keylen
+        winarray=[]
+        for i in range(0, int(len(hexstring)/keylen)):
+            j=i+1
+            #chunk=winner[i:j]
+            chunk=hexstring[i:j]
+            winarray+=[chunk]
+
+        # create an array containing an empty string for each transposed block,
+        # and one for candidate plaintext based on it
+        transposed_winarrays = transposed_candidates = []
+        for i in range(0, int(len(hexstring)/keylen)):
+            transposed_winarrays += [ "" ]
+            transposed_candidates += [ "" ]
+
+        # populate the transposed winner array
+        for i in range(0, len(hexstring)):
+            tw_index = i%keylen
+            transposed_winarrays[tw_index] += hexstring[i]
+
+        # solve each as if it's a 1 character xor to populate the cadidate plaintexts array
+        for i in range(0, len(transposed_winarrays)):
+            transposed_candidates[i] = find_1char_xor(transposed_winarrays[i])
+        debugprint(transposed_candidates)
+            
+        # un-transpose the candidates
+        plaintext_candidate = ""
+        for candidate in transposed_candidates:
+            for i in range(0, keylen): # i: index of the character in each string 
+                for j in range(0, len(hexstring)/keylen): # j: the index of the string in transposed_candidates
+                    plaintext_candidate += transposed_candidates[j][i]
+
+        debugprint(plaintext_candidate)
 
 
 
@@ -339,7 +383,6 @@ def chal06h():
 ########################################################################
 ## main()
 
-global CRYPTOPALS_DEBUG
 CRYPTOPALS_DEBUG=False
 
 class DebugAction(argparse.Action):
