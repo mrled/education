@@ -4,13 +4,9 @@ import argparse
 import base64
 
 
+
 ########################################################################
 ## Backend libraryish functions
-
-def debugprint(string):
-    """Print the passed string if the program is being run in debug mode."""
-    if CRYPTOPALS_DEBUG:
-        print(string)
 
 def safeprint(string):
     """
@@ -24,6 +20,11 @@ def safeprint(string):
     except UnicodeEncodeError:
         # this usually only happens on Windows
         print("WARNING: Tried to print characters that could not be displayed on this terminal. Skipping...")
+
+def debugprint(string):
+    """Print the passed string if the program is being run in debug mode."""
+    if CRYPTOPALS_DEBUG:
+        safeprint(string)
 
 # idk if these are like cheating or something because they're using the base64 module? 
 def base64_to_hex(x):
@@ -55,6 +56,10 @@ def string_to_hex(string):
     hexstring = ""
     for char in string.encode()[0:-1]: # the last character os \x00 which just terminates it, ignore that
         hexstring += '{:0>2}'.format(hex(char)[2:])
+    # i think i handled this elsewhere but I'm leaving it in to remind me if something still fails
+    #if len(hexstring)%2 is 1:
+        # add a leading zero
+    #    hextring = "0"+hexstring
     return hexstring
 
 def hex_to_base64(hexstring):
@@ -63,7 +68,8 @@ def hex_to_base64(hexstring):
 def hexxor(x, y):
     """Do a XOR of two hex strings of the same length"""
     if len(x) is not len(y):
-        raise Exception("Buffers are different lengths! x is {} but y is {}".format(len(x), len(y)))
+        raise Exception("Buffers diff lengths! '{}' is {} but '{}' is {}".format(
+                x, len(x), y, len(y)))
         #return False
     xbin = int(x, 16)
     ybin = int(y, 16)
@@ -118,7 +124,7 @@ def find_1char_xor_v1(hextxt):
     for i in range(1, 128):
         xorchr = chr(i)
         xortxt = '{:{fill}>{width}}'.format(xorchr, fill=xorchr, width=len(strtxt)+1)
-        xorhex = mrlh64.string_to_hex(xortxt)
+        xorhex = string_to_hex(xortxt)
         candidate = hexxor(hextxt,xorhex)
         if candidate:
             score = score_plaintext(hex_to_string(candidate))
@@ -142,38 +148,60 @@ def find_1char_xor(hexes):
 
     # First loop through all hexes, and generate a XOR for all ASCII characters for each hex, 
     # and cut out any that don't have at least a few words separated by spaces. 
+
     passed = []
     for h in hexes:
-        strtxt = hex_to_string(h)
-        for i in range(1, 128):
-            xorchr = chr(i)
-            xortxt = '{:{fill}>{width}}'.format(xorchr, fill=xorchr, width=len(strtxt)+1)
-            xorhex = string_to_hex(xortxt)
+        if h is "":
+            debugprint('what the fuck man')
+        else:
+            if len(h)%2 is 1:
+                # pad with zero so there's an even number of hex chars
+                # this way my other functions like hexxor() work properly
+                h = "0" + h
+            debugprint("finding 1ch xor for '{}' of len {}".format(h, len(h))) 
+            strtxt = hex_to_string(h)
+            
+            for i in range(1, 128):
+                xorhex = ""
+                xorbyte = "{:0>2x}".format(i)
+                for byte in range(0, int(len(h)/2)):
+                    xorhex += xorbyte
+    
+                candidate = hexxor(h,xorhex)
+                canstring = hex_to_string(candidate)
 
-            debugprint("ciphertext: {}; xorhex: {}".format(h, xorhex))
+                # winnowing by wordcount only works for longer strings, not short ones
+                # lik I need to use when breaking repeating-key XOR
+                #if winnow_wordcount(canstring):
 
-            candidate = hexxor(h,xorhex)
-            canstring = hex_to_string(candidate)
-            if winnow_wordcount(canstring):
-                p = {'hex':h, 'xorchr':xorchr, 'canstring':canstring}
-                passed += [p]
+                debugprint("hex: {}; xor'd against: {}; plaintext candidate: {}".format(
+                        h, xorbyte, canstring))
+                if winnow_junk_chars(canstring):
+                    p = {'hex':h, 'xorhex':xorhex, 'canstring':canstring}
+                    passed += [p]
 
-    # Now apply other winnowing methods
-    passed2=[]
-    for p in passed:
-        if winnow_junk_chars(p['canstring']):
-            passed2 += [p]
-    else:
-        debugprint("NO PLAINTEXT CANDIDATE FOR {} IN ROUND ONE".format(h))
-        return False
+    if len(passed) is 0:
+        raise Exception("NO PLAINTEXT CANDIDATE FOR {} IN ROUND ONE".format(h))
+
+
+    # # Now apply other winnowing methods
+    # passed2=[]
+    # for p in passed:
+    #     if winnow_junk_chars(p['canstring']):
+    #         passed2 += [p]
+    # else:
+    #     debugprint("NO PLAINTEXT CANDIDATE FOR {} IN ROUND ONE".format(h))
+    #     return False
 
     # And finally, print the winners
-    for p in passed2:
-        debugprint("{}, {}, {}".format(p['hex'], p['xorchr'], p['canstring']))
+
+    # TODO: i'm returning just the first one in passed, this is wrong. 
+    for p in passed:
+        debugprint("Candidate: hex: {}, xorhex: {}, plaintext: {}".format(
+                p['hex'], p['xorhex'], p['canstring']))
         return p['canstring']
     else:
-        debugprint("NO PLAINTEXT CANDIDATE FOR {} IN ROUND TWO".format(h))
-        return False
+        raise Exception("NO PLAINTEXT CANDIDATE FOR {} IN ROUND TWO".format(h))
 
 def repxor(plaintext, key):
     """
@@ -232,8 +260,8 @@ def hamming_code_distance(string1, string2):
                 thisbyte_hd +=1
                 hamming_distance += 1
             j +=1
-        debugprint("{} {}\n{} {}\n\t-- hamming distance: {}".format(
-                chr(char1), bin1, chr(char2), bin2, thisbyte_hd))
+        #debugprint("{} {}\n{} {}\n\t-- hamming distance: {}".format(
+        #        chr(char1), bin1, chr(char2), bin2, thisbyte_hd))
         i +=1
     return hamming_distance
 
@@ -257,6 +285,10 @@ def break_repkey_xor(hexstring):
     """
     Break a hexstring of repeating-key XOR ciphertext. 
     """
+    # Remember that if we're assuming that our XOR key came from ASCII, it will have an even number 
+    # of hex digits. 
+    # Throughout this function, keylen is specificed in *hex* digits. 
+
     keylenmin = 2
     keylenmax = 40
 
@@ -264,16 +296,18 @@ def break_repkey_xor(hexstring):
     # chunk2 in the for loop, but they'll be different lengths after a while.
     if keylenmax >= int(len(hexstring)/2):
         keylenmax = int(len(hexstring)/2)
-    debugprint("min key length: {} / max key length: {}".format(keylenmin, keylenmax))
+    debugprint("min key length: {} / max key length: {} / hexstring length: {}".format(
+            keylenmin, keylenmax, len(hexstring)))
 
     hamming_distances=[]
     for keylen in range(keylenmin, keylenmax):
-        chunk1 = hexstring[0:keylen]
-        chunk2 = hexstring[keylen:keylen*2]
-        debugprint("chunks 1/2: '{}'/'{}'".format(chunk1, chunk2))
-        hd = hamming_code_distance(chunk1, chunk2)
-        hd_normalized = hd/keylen
-        hamming_distances += [ {'keylen':keylen, 'distance':hd_normalized} ]
+        if keylen%2 is 0:
+            chunk1 = hexstring[0:keylen]
+            chunk2 = hexstring[keylen:keylen*2]
+            debugprint("chunks 1/2: '{}'/'{}'".format(chunk1, chunk2))
+            hd = hamming_code_distance(chunk1, chunk2)
+            hd_normalized = hd/keylen
+            hamming_distances += [ {'keylen':keylen, 'distance':hd_normalized} ]
 
     hamming_distances_sorted = sorted(hamming_distances, key=lambda hd: hd['distance'])
     if CRYPTOPALS_DEBUG:
@@ -306,8 +340,12 @@ def break_repkey_xor(hexstring):
 
         # solve each as if it's a 1 character xor to populate the cadidate plaintexts array
         for i in range(0, len(transposed_winarrays)):
-            transposed_candidates[i] = find_1char_xor(transposed_winarrays[i])
-        debugprint(transposed_candidates)
+            block_candidate = find_1char_xor(transposed_winarrays[i])
+            if not block_candidate:
+                raise Exception("No block candidate found for candidate #{}: {}".format(
+                        i, transposed_winarrays[i]))
+            transposed_candidates[i] = block_candidate
+        debugprint("Transposed candidates: " + str(transposed_candidates))
             
         # un-transpose the candidates
         plaintext_candidate = ""
@@ -316,7 +354,7 @@ def break_repkey_xor(hexstring):
                 for j in range(0, len(hexstring)/keylen): # j: the index of the string in transposed_candidates
                     plaintext_candidate += transposed_candidates[j][i]
 
-        debugprint(plaintext_candidate)
+        debugprint("Plaintext candidate: " + str(plaintext_candidate))
 
 
 
@@ -336,6 +374,7 @@ def chal01():
     print("exb->exh: " + base64_to_hex(exb))
     print("exb:      " + str(exb))
     print("exh->exb: " + hex_to_base64(exh).decode())
+    print("orig str: " + hex_to_string(exh))
 
 
 def chal02():
