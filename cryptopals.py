@@ -7,6 +7,11 @@ import base64
 ########################################################################
 ## Backend libraryish functions
 
+def debugprint(string):
+    """Print the passed string if the program is being run in debug mode."""
+    if CRYPTOPALS_DEBUG:
+        print(string)
+
 def safeprint(string):
     """
     Attempt to print the passed string, but if a UnicodeEncodeError is encountered, print a warning 
@@ -241,13 +246,34 @@ def hexxor_shitty(x,y):
         ctr+=1
     print(mrlh64.bin_to_hex(binxor))
 
-
 def break_repkey_xor(hexstring):
     """
     Break a hexstring of repeating-key XOR ciphertext. 
     """
     keylenmin = 2
     keylenmax = 40
+
+    # If you don't do this, and you pass it a too-short hexstring, it'll try to compare chunk1 with
+    # chunk2 in the for loop, but they'll be different lengths after a while.
+    if keylenmax >= int(len(hexstring)/2):
+        keylenmax = int(len(hexstring)/2)
+    debugprint("min key length: {} / max key length: {}".format(keylenmin, keylenmax))
+
+    hamming_distances=[]
+    for keylen in range(keylenmin, keylenmax):
+        chunk1 = hexstring[0:keylen]
+        chunk2 = hexstring[keylen:keylen*2]
+        debugprint("chunks 1/2: '{}'/'{}'".format(chunk1, chunk2))
+        hd = hamming_code_distance(chunk1, chunk2)
+        hd_normalized = hd/keylen
+        hamming_distances += [ {'keylen':keylen, 'distance':hd_normalized} ]
+
+    hamming_distances_sorted = sorted(hamming_distances, key=lambda hd: hd['distance'])
+    if CRYPTOPALS_DEBUG:
+        for hds in hamming_distances_sorted:
+            print(hds)
+    
+
 
 
 ########################################################################
@@ -296,10 +322,12 @@ def chal05():
     print(solution)
 
 def chal06():
-    f = open("3132752.gist.txt")
-    gist = f.read().replace("\n","")
-    f.close()
-    hexcipher = base64_to_hex(gist)
+    # f = open("3132752.gist.txt")
+    # gist = f.read().replace("\n","")
+    # f.close()
+    # hexcipher = base64_to_hex(gist)
+    ciphertext = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
+    break_repkey_xor(ciphertext)
 
 def chal06h():
     ex1="this is a test"
@@ -311,8 +339,21 @@ def chal06h():
 ########################################################################
 ## main()
 
+global CRYPTOPALS_DEBUG
+CRYPTOPALS_DEBUG=False
+
+class DebugAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        #print('%r %r %r' % (namespace, values, option_string))
+        #setattr(namespace, self.dest, values)
+        global CRYPTOPALS_DEBUG
+        CRYPTOPALS_DEBUG = True
+
+
 if __name__=='__main__':
     argparser = argparse.ArgumentParser(description='Matasano Cryptopals Yay')
+    argparser.add_argument('--debug', '-d', nargs=0, action=DebugAction,
+                           help='Show debugging information')
     subparsers = argparser.add_subparsers()
     subparser_challenges = subparsers.add_parser('challenge', aliases=['c','ch','chal'], 
                                                  help="Run one of the challenge assignments directly")
