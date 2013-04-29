@@ -54,12 +54,10 @@ def bin_to_hex(integer):
 
 def string_to_hex(string):
     hexstring = ""
-    for char in string.encode()[0:-1]: # the last character os \x00 which just terminates it, ignore that
+    for char in string.encode()[0:-1]: # the last character is \x00 which just terminates it, ignore that
         hexstring += '{:0>2}'.format(hex(char)[2:])
-    # i think i handled this elsewhere but I'm leaving it in to remind me if something still fails
-    #if len(hexstring)%2 is 1:
-        # add a leading zero
-    #    hextring = "0"+hexstring
+    if len(hexstring)%2 is 1:
+       hextring = "0"+hexstring
     return hexstring
 
 def hex_to_base64(hexstring):
@@ -291,6 +289,7 @@ def break_repkey_xor(hexstring):
 
     keylenmin = 2
     keylenmax = 40
+    cipherlen = len(hexstring)
 
     # If you don't do this, and you pass it a too-short hexstring, it'll try to compare chunk1 with
     # chunk2 in the for loop, but they'll be different lengths after a while.
@@ -298,6 +297,49 @@ def break_repkey_xor(hexstring):
         keylenmax = int(len(hexstring)/2)
     debugprint("min key length: {} / max key length: {} / hexstring length: {}".format(
             keylenmin, keylenmax, len(hexstring)))
+
+
+    #COMMENTUGH="""
+    attempts = []
+    for keylen in range(keylenmin, keylenmax):
+        if keylen%2 is 0: # only operate on even keys because two hits is one charater
+            this_attempt = {'keylen':keylen, 
+                            'hd_norm':0, 
+                            'orig_hexstring':hexstring,
+                            'hexstring':hexstring,
+                            'orig_cipherlen':cipherlen,
+                            'cipherlen':cipherlen}
+            if cipherlen%keylen is not 0:
+                for i in range(0, cipherlen%keylen):
+                    # TODO: this is ugly.
+                    # only operate on every other hit because two hits is one char
+                    if i%2 is 0: 
+                        this_attempt['hexstring'] += "00"
+                        this_attampt['cipherlen'] += 1
+
+            debugprint("cipherlen: {},".format(this_attempt['cipherlen']))
+            chunks = []
+            #this_chunk = "" #I don't think I need to predefine this because keylen%i where i==0 is 0 so
+            this_chunk=""
+            for i in range(0, this_attempt['cipherlen']):
+                try:
+                    mod = i % this_attempt['keylen'] 
+                except ZeroDivisionError:
+                    mod = 0
+                debugprint("i: {}, mod: {}, keylen: {}".format(i, mod, this_attempt['keylen']))
+                if mod is 0:
+                    this_chunk = this_attempt['hexstring'][i]
+                else:
+                    this_chunk += this_attempt['hexstring'][i]
+                if len(this_chunk) is this_attempt['keylen']:
+                    print(this_chunk)
+                    chunks += [[this_chunk]]
+
+            debugprint("----------------")
+            debugprint(chunks)
+            debugprint("----------------")
+            import pdb; pdb.set_trace()
+    #"""
 
     hamming_distances=[]
     for keylen in range(keylenmin, keylenmax):
@@ -325,10 +367,18 @@ def break_repkey_xor(hexstring):
             #chunk=winner[i:j]
             chunk=hexstring[i:j]
             winarray+=[chunk]
+        if len(winarray[-1]) < keylen:
+            for i in range(0, len(winarray[-1]) - keylen):
+                winarray[-1] += chr(0x00)
+
+        debugprint("---------winarray: ---------")
+        debugprint(winarray)
+        debugprint("----------------------------")
 
         # create an array containing an empty string for each transposed block,
         # and one for candidate plaintext based on it
-        transposed_winarrays = transposed_candidates = []
+        transposed_winarrays = []
+        transposed_candidates = []
         for i in range(0, int(len(hexstring)/keylen)):
             transposed_winarrays += [ "" ]
             transposed_candidates += [ "" ]
@@ -337,6 +387,10 @@ def break_repkey_xor(hexstring):
         for i in range(0, len(hexstring)):
             tw_index = i%keylen
             transposed_winarrays[tw_index] += hexstring[i]
+
+        debugprint("---transposed_winarrays: ---")
+        debugprint(transposed_winarrays)
+        debugprint("----------------------------")
 
         # solve each as if it's a 1 character xor to populate the cadidate plaintexts array
         for i in range(0, len(transposed_winarrays)):
