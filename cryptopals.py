@@ -18,7 +18,7 @@ def safeprint(string):
     try:
         print(string)
     except UnicodeEncodeError:
-        # this usually only happens on Windows
+        # this (usually?) only happens on Windows
         print("WARNING: Tried to print characters that could not be displayed on this terminal. Skipping...")
 
 def debugprint(string):
@@ -314,7 +314,8 @@ def break_repkey_xor(hexstring):
         for hds in hamming_distances_sorted:
             print(hds)
     
-    # pick the four keylens with the lowest hamming distance between chunks; one of these is probably right
+    # pick the four keylens with the lowest hamming distance between chunks; 
+    # one of these is probably right
     for winner in hamming_distances_sorted[0:4]:
         keylen = winner['keylen']
 
@@ -350,8 +351,10 @@ def break_repkey_xor(hexstring):
         # un-transpose the candidates
         plaintext_candidate = ""
         for candidate in transposed_candidates:
-            for i in range(0, keylen): # i: index of the character in each string 
-                for j in range(0, len(hexstring)/keylen): # j: the index of the string in transposed_candidates
+            # i: index of the character in each string 
+            for i in range(0, keylen): 
+                # j: the index of the string in transposed_candidates
+                for j in range(0, len(hexstring)/keylen): 
                     plaintext_candidate += transposed_candidates[j][i]
 
         debugprint("Plaintext candidate: " + str(plaintext_candidate))
