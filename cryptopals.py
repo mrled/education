@@ -2,35 +2,38 @@
 
 import argparse
 import base64
-import pdb
+import string
+
+from pdb import set_trace as strace
+# now you can just run strace() anywhere you want to run pdb.set_trace()
 
 
 ########################################################################
 ## Backend libraryish functions
 
-def safeprint(string):
+def safeprint(text):
     """
-    Attempt to print the passed string, but if a UnicodeEncodeError is encountered, print a warning 
+    Attempt to print the passed text, but if a UnicodeEncodeError is encountered, print a warning 
     and move on. This is useful when printing candidate plaintext strings, because Windows will throw
     a UnicdeEncodeError if you try to print a character it can't print or something, and your program
     will stop.
     """
     try:
-        print(string)
+        print(text)
     except UnicodeEncodeError:
         # this (usually?) only happens on Windows
         print("WARNING: Tried to print characters that could not be displayed on this terminal. Skipping...")
 
-def debugprint(string):
-    """Print the passed string if the program is being run in debug mode."""
+def debugprint(text):
+    """Print the passed text if the program is being run in debug mode."""
     if CRYPTOPALS_DEBUG:
-        safeprint(string)
+        safeprint("DEBUG: " + str(text))
 
 # idk if these are like cheating or something because they're using the base64 module? 
 def base64_to_hex(x):
-    string = base64.b64decode(x.encode())
+    text = base64.b64decode(x.encode())
     hexencoding = ""
-    for c in string:
+    for c in text:
         hexencoding += hex(c)[2:]
     return hexencoding
 
@@ -52,10 +55,10 @@ def hex_to_bin(hexstring):
 def bin_to_hex(integer):
     return hex(integer)
 
-def string_to_hex(string):
+def string_to_hex(text):
     hexstring = ""
     # the last character is \x00 which just terminates it, ignore that
-    for char in string.encode()[0:-1]: 
+    for char in text.encode()[0:-1]: 
         hexstring += '{:0>2}'.format(hex(char)[2:])
     if len(hexstring)%2 is 1:
        hextring = "0"+hexstring
@@ -84,16 +87,13 @@ def char_counts(text):
     """
     vowels = 'aeiouAEIOU'
     consonants = 'bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ'
-    ignoreds = ''
-    count={'s':0, 'v':0, 'c':0, 'o':0}
-    for char in text:
-        if char in ignoreds:
-            pass
-        elif char is ' ':
-            count['s'] += 1
-        elif char in vowels:
+    count={'w':0, 'v':0, 'c':0, 'o':0}
+    for character in text:
+        if character in string.whitespace:
+            count['w'] += 1
+        elif character in vowels:
             count['v'] += 1
-        elif char in consonants:
+        elif character in consonants:
             count['c'] += 1
         else:
             count['o'] += 1
@@ -105,51 +105,44 @@ def winnow_wordlength(text):
     Return True if some text contains 1-9 letters per space, False otherwise.
     English has an average word length of about five letters.
     """
-    debugprint("+++ winnow_wordlength({})".format(text))
+    #debugprint("+++ winnow_wordlength({})".format(text))
     count = char_counts(text)
     try:
-        avg_length = count['l'] / count['s']
+        avg_length = count['l'] / count['w']
     except ZeroDivisionError:
         avg_length = count['l']
     if 2 < avg_length < 8:
-        debugprint("    PASSED with {}/{} letters/spaces".format(count['l'], count['s']))
+        #debugprint("    PASSED with {}/{} letters/whitespace".format(count['l'], count['w']))
         return True
     else:
-        debugprint("    FAILED with {}/{} letters/spaces".format(count['l'], count['s']))
+        #debugprint("    FAILED with {}/{} letters/whitespace".format(count['l'], count['w']))
         return False
-# TODO: reimplement as a ratio of spaces to other letters
-#       winnowing by wordcount only works for longer strings, not short ones like I need to break
-#       repeating-key XOR, so this is basically useless.     
-# def winnow_wordcount(text):
-#     """Return True if some text contains at least 3 spaces; False otherwise"""
-#     sentence=text.split(' ')
-#     if len(sentence) > 4:
-#         return True
-#     else:
-#         return False
 
 def winnow_non_ascii(text):
-    """Return False if a text contains any non-ascii characters; True otherwise."""
+    """
+    Return False if a text contains any non-ascii (or non-printable ascii) characters; 
+    True otherwise.
+    """
     debugprint("+++ winnow_non_ascii({})".format(text))
     for character in text:
-        if not 32 < ord(character) < 127:
+        if not 27 < ord(character) < 128:
             return False
-    else:
-        return True
+    return True
 
-def winnow_junk_chars(text):
+def winnow_punctuation(text):
     """Return False if a text contains too many non-letter non-space characters; False otherwise."""
-    debugprint("+++ winnow_junk_chars({})".format(text))
+    #debugprint("+++ winnow_punctuation({})".format(text))
     count = char_counts(text)
-    if count['o'] < len(text)/4:
-        debugprint("    PASSED with {}/{} junk/total characters".format(count['o'], len(text)))
+    #if count['o'] < len(text)/4:
+    if count['o'] < len(text)/8:
+        #debugprint("    PASSED with {}/{} junk/total characters".format(count['o'], len(text)))
         return True
     else:
-        debugprint("    FAILED with {}/{} junk/total characters".format(count['o'], len(text)))
+        #debugprint("    FAILED with {}/{} junk/total characters".format(count['o'], len(text)))
         return False
 
 def winnow_vowel_ratio(text):
-    debugprint("+++ winnow_vowel_ratio({})".format(text))
+    #debugprint("+++ winnow_vowel_ratio({})".format(text))
     count = char_counts(text)
     # in English text, v/c ratio is about 38/62 i.e. 0.612
     # https://en.wikipedia.org/wiki/Letter_frequency
@@ -160,10 +153,10 @@ def winnow_vowel_ratio(text):
     if 0.20 < vc_ratio < 0.90:
     #if 0.50 < vc_ratio < 0.70:
     #if 0.40 < vc_ratio < 0.80:
-        debugprint("    PASSED with ratio {}".format(vc_ratio))
+        #debugprint("    PASSED with ratio {}".format(vc_ratio))
         return True
     else:
-        debugprint("    FAILED with ratio {}".format(vc_ratio))
+        #debugprint("    FAILED with ratio {}".format(vc_ratio))
         return False
 
 def find_1char_xor_v1(hextxt):
@@ -219,14 +212,16 @@ def find_1char_xor(hexes):
                 candidate = hexxor(h,xorhex)
                 canstring = hex_to_string(candidate)
 
-                c = {'hex':h, 'xorhex':xorhex, 'canstring':canstring}
+                c = {'hex':h, 'xorbyte':xorbyte, 'xorhex':xorhex, 'canstring':canstring}
                 candidates += [c]
+
+    for c in candidates:
+        debugprint("XORed against: {} Produced candidate: {}".format(c['xorbyte'], c['canstring']))
 
     # Provide the winnower functions you want to use, in order
     # Winnower functions should take a single string and return True or False
-    #winnowers = [winnow_non_ascii, winnow_junk_chars, winnow_vowel_ratio, winnow_wordlength]
     winnowers = [winnow_non_ascii, 
-                 winnow_junk_chars,
+                 winnow_punctuation,
                  winnow_vowel_ratio, 
                  winnow_wordlength,
                  lambda x: True] # the final one must be a noop lol TODO this is dumb be ashamed
@@ -240,7 +235,6 @@ def find_1char_xor(hexes):
             if w(s):
                 debugprint("Keeping canstring {}".format(s))
                 can2 += [c]
-        #pdb.set_trace()
         if len(can2) is 1:
             s = can2[0]['canstring']
             debugprint("Plaintext candidate for \n\t{}\n has been found: \n\t{}".format(
@@ -249,11 +243,12 @@ def find_1char_xor(hexes):
         elif len(can2) is 0:
             #raise Exception("Failed to find plaintext candidate for {}".format(h))
             debugprint("WINNOWING METHOD RESULTED IN ZERO CANDIDATES, ROLLING BACK...")
-            # ... and you don't actually have to roll back, you jhust have to ignore can2
+            # ... and you don't actually have to roll back, you just have to ignore can2
         else:
             candidates = can2
 
     #ideally there will be only one candidate butttt
+    # TODO: winnow better so there's guaranteed to be just one candidate dummy
     debugprint("WINNOWING  COMPLETE, {} CANDIDATES REMAINING:".format(len(candidates)))
     for c in candidates:
         debugprint("    candidate string: {}".format(c['canstring']))
@@ -359,46 +354,32 @@ def break_repkey_xor(hexstring):
             keylenmin, keylenmax, len(hexstring)))
 
 
-    #COMMENTUGH="""
     attempts = []
     for keylen in range(keylenmin, keylenmax):
-        if keylen%2 is 0: # only operate on even-length keys because two hits is one charater
+        # -   only operate on even-length keys because two hits is one charater
+        # -   only operate on keys that can divide evenly into the ciphertext b/c the plaintext 
+        #     would have been padded before the XOR.
+        if keylen%2 is 0 and cipherlen%keylen is 0: 
             this_attempt = {'keylen':keylen, 
                             'hd_norm':0, 
-                            'orig_hexstring':hexstring,
                             'hexstring':hexstring,
-                            'orig_cipherlen':cipherlen,
                             'cipherlen':cipherlen,
+                            'chunksize':int(cipherlen/keylen),
                             'chunks':[],
                             'chplain':[],
                             'tchunks':[],
                             'tchplain':[],
                             }
-            if cipherlen%keylen is not 0:
-                for i in range(0, cipherlen%keylen):
-                    # TODO: this is ugly.
-                    # only operate on every other hit because two hits is one char
-                    # if i%2 is 0: 
-                    #     this_attempt['hexstring'] += "00"
-                    #     this_attempt['cipherlen'] += 1
-                    this_attempt['hexstring'] += "0"
-                    this_attempt['cipherlen'] += 1
 
             debugprint("cipherlen: {},".format(this_attempt['cipherlen']))
+
             chunks = []
-            for i in range(0, this_attempt['cipherlen']):
-                try:
-                    mod = i % this_attempt['keylen'] 
-                except ZeroDivisionError:
-                    mod = 0
-                #debugprint("i: {}, mod: {}, keylen: {}".format(i, mod, this_attempt['keylen']))
-                if mod is 0:
-                    this_chunk = this_attempt['hexstring'][i]
-                else:
-                    this_chunk += this_attempt['hexstring'][i]
+            this_chunk = ""
+            for character in this_attempt['hexstring']:
+                this_chunk += character
                 if len(this_chunk) is this_attempt['keylen']:
-                    print("this chunk: {}".format(this_chunk))
                     chunks += [this_chunk]
+                    this_chunk = ""
 
             debugprint("----------------")
             debugprint("chunks: {}".format(chunks))
@@ -410,13 +391,20 @@ def break_repkey_xor(hexstring):
             this_attempt['chunks'] = chunks
             
             attempts += [this_attempt]
-    #"""
 
     attempts_sorted  = sorted(attempts, key=lambda a: a['hd_norm'])
-    debugprint("WINNERS DECLARED: lengths {} and {}".format(
-            attempts_sorted[0]['keylen'], attempts_sorted[1]['keylen']))
-    # TODO: present the top four winners or something, rather than just selecting the first one
-    for winner in attempts_sorted[0:2]:
+    debugprint(attempts_sorted)
+    # debugprint("WINNERS DECLARED: lengths {} and {}".format(
+    #         attempts_sorted[0]['keylen'], attempts_sorted[1]['keylen']))
+    # TODO: deal with situations where there are zero or one attempts
+    #       this might happen if the keylen is constrained, or as a result of only checking for 
+    #       keys that divide evenly into the ciphertext
+    # TODO: chal 06 breaks when you increase this to 4 while using the ciphertext from chal 03.
+    #       Not sure what happens? 
+    max_winners = 1
+    if max_winners > len(attempts_sorted):
+        max_winners = len(attempts_sorted)
+    for winner in attempts_sorted[0:max_winners]:
         debugprint("----------------")
         debugprint("Processing winner of with keylen {}".format(winner['keylen']))
         debugprint("----------------")
@@ -450,108 +438,19 @@ def break_repkey_xor(hexstring):
             block_candidate = find_1char_xor(tc)
             if not block_candidate:
                 raise Exception("No block candidate found for tchunk: {}".format(tc))
-            winner['tchplain'] = [block_candidate]
+            winner['tchplain'] += [block_candidate]
             debugprint("-------\nTransposed candidate: {}\n-------".format(block_candidate))
-
-
-
-        # use `index` to get the same index into both the tchunks array and also the tplain array
-            winner['tchplain'] = []
-        for index in range(0, len(winner['tchunks'])):
-            block_candidate = find_1char_xor(winner['tchunks'][index])
-            if not block_candidate:
-                raise Exception("No block candidate found for candidate #{}: {}".format(
-                        index, winner['tchunks'][index]))
-            winner['tchplain'] += block_candidate
-            debugprint("Transposed candidates: {}".format(block_candidate))
-            
-        pdb.set_trace()
+                        
         # un-transpose the candidates
         plaintext_candidate = ""
-        for candidate in transposed_candidates:
-            # i: index of the character in each string 
-            for i in range(0, keylen): 
-                # j: the index of the string in transposed_candidates
-                for j in range(0, len(hexstring)/keylen): 
-                    plaintext_candidate += transposed_candidates[j][i]
+        for i in range(0, winner['chunksize']):
+            for tc in winner['tchplain']:
+                plaintext_candidate += tc[i]
 
         debugprint("Plaintext candidate: " + str(plaintext_candidate))
-        
+        winner['plaintext'] = plaintext_candidate
 
-    #================================================================================
-    # hamming_distances=[]
-    # for keylen in range(keylenmin, keylenmax):
-    #     if keylen%2 is 0:
-    #         chunk1 = hexstring[0:keylen]
-    #         chunk2 = hexstring[keylen:keylen*2]
-    #         debugprint("chunks 1/2: '{}'/'{}'".format(chunk1, chunk2))
-    #         hd = hamming_code_distance(chunk1, chunk2)
-    #         hd_normalized = hd/keylen
-    #         hamming_distances += [ {'keylen':keylen, 'distance':hd_normalized} ]
-
-    # hamming_distances_sorted = sorted(hamming_distances, key=lambda hd: hd['distance'])
-    # if CRYPTOPALS_DEBUG:
-    #     for hds in hamming_distances_sorted:
-    #         print(hds)
-    
-    # pick the four keylens with the lowest hamming distance between chunks; 
-    # one of these is probably right
-    # for winner in hamming_distances_sorted[0:4]:
-    #     keylen = winner['keylen']
-
-    #     # break the ciphertext hexstring chunks the size of the keylen
-    #     winarray=[]
-    #     for i in range(0, int(len(hexstring)/keylen)):
-    #         j=i+1
-    #         #chunk=winner[i:j]
-    #         chunk=hexstring[i:j]
-    #         winarray+=[chunk]
-    #     if len(winarray[-1]) < keylen:
-    #         for i in range(0, len(winarray[-1]) - keylen):
-    #             winarray[-1] += chr(0x00)
-
-    #     debugprint("---------winarray: ---------")
-    #     debugprint(winarray)
-    #     debugprint("----------------------------")
-
-    #     # create an array containing an empty string for each transposed block,
-    #     # and one for candidate plaintext based on it
-    #     transposed_winarrays = []
-    #     transposed_candidates = []
-    #     for i in range(0, int(len(hexstring)/keylen)):
-    #         transposed_winarrays += [ "" ]
-    #         transposed_candidates += [ "" ]
-
-    #     # populate the transposed winner array
-    #     for i in range(0, len(hexstring)):
-    #         tw_index = i%keylen
-    #         transposed_winarrays[tw_index] += hexstring[i]
-
-    #     debugprint("---transposed_winarrays: ---")
-    #     debugprint(transposed_winarrays)
-    #     debugprint("----------------------------")
-
-    #     # solve each as if it's a 1 character xor to populate the cadidate plaintexts array
-    #     for i in range(0, len(transposed_winarrays)):
-    #         block_candidate = find_1char_xor(transposed_winarrays[i])
-    #         if not block_candidate:
-    #             raise Exception("No block candidate found for candidate #{}: {}".format(
-    #                     i, transposed_winarrays[i]))
-    #         transposed_candidates[i] = block_candidate
-    #     debugprint("Transposed candidates: " + str(transposed_candidates))
-            
-    #     # un-transpose the candidates
-    #     plaintext_candidate = ""
-    #     for candidate in transposed_candidates:
-    #         # i: index of the character in each string 
-    #         for i in range(0, keylen): 
-    #             # j: the index of the string in transposed_candidates
-    #             for j in range(0, len(hexstring)/keylen): 
-    #                 plaintext_candidate += transposed_candidates[j][i]
-
-    #     debugprint("Plaintext candidate: " + str(plaintext_candidate))
-
-
+    return attempts_sorted[0]['plaintext']
 
 ########################################################################
 ## Challenge functions - one per challnge, plus maybe more for the extra credit sections
@@ -600,12 +499,15 @@ def chal05():
     print(solution)
 
 def chal06():
-    # f = open("3132752.gist.txt")
-    # gist = f.read().replace("\n","")
-    # f.close()
-    # hexcipher = base64_to_hex(gist)
+    f = open("3132752.gist.txt")
+    gist = f.read().replace("\n","")
+    f.close()
+    hexcipher = base64_to_hex(gist)
+    print(break_repkey_xor(hexcipher))
+
+def chal06x():
     ciphertext = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
-    break_repkey_xor(ciphertext)
+    print(break_repkey_xor(ciphertext))
 
 def chal06h():
     ex1="this is a test"

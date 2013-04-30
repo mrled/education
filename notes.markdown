@@ -43,3 +43,57 @@ Don't do this
             candidates.remove([c])
         else:
             debugprint("Keeping canstring {}".format(s))
+
+## 20130430 cipherlen % keylen
+
+I had code inside `break_repkey_xor()` that looked like this: 
+
+    modlen = cipherlen%keylen
+    if modlen is not 0:
+        for i in range(0, keylen-modlen):
+            this_attempt['hexstring'] += "0"
+            this_attempt['cipherlen'] += 1
+
+This is code that caused me a bunch of problems, but I'm confident it's pretty well debugged now. 
+
+This code exists to deal with situations where a key doesn't divide some ciphertext evenly. In that situation, the plaintext would have been padded at the end with null (0x00) bytes, so if I want to break it I'l have to add them back. 
+
+Except that doesn't make any fucking sense. I already have the ciphertext so, if the key didn't divide evenly into the plaintext, the nulls would already be there. This means I can ignore any keylen that doesn't divide evenly in to the ciphertext!? I think. Wow. That makes this a lot easier. FUCK I AM DUMB. 
+
+
+Here's more dumb code from big dumb me:
+
+            # if cipherlen%keylen is not 0:
+            #     strace()
+            #     break
+            # modlen = cipherlen%keylen
+            # if modlen is not 0:
+            #     for i in range(0, keylen-modlen):
+            #         # TODO: this is ugly.
+            #         # only operate on every other hit because two hits is one char
+            #         # if i%2 is 0: 
+            #         #     this_attempt['hexstring'] += "00"
+            #         #     this_attempt['cipherlen'] += 1
+            #         this_attempt['hexstring'] += "0"
+            #         this_attempt['cipherlen'] += 1
+
+## 20130430 big milestone
+
+This commit lets me get the correct answer from chal03 using the code for chal06! 
+
+However, it still breaks on the hex from the big base64 gist. 
+
+Other big TODO items: 
+
+-   make sure it gets winnowed to exactly one candidate within `find_1char_xor()`
+    and then return that candidate only. Now I'm just winnowing it to >0 and 
+    then returning the first one (which will happen to be the lowest ASCII 
+    character).
+-   in `break_repkey_xor()` I need to deal with situations where there aren't 
+    any winners that made it through the winnowing process. I also want to
+    be able to return 2-4 instead of just one, but I'm just grabbing the 
+    first in the array right now. 
+-   There is some problem that manifests when you have `max_winners` set to 4 and you 
+    are trying to complete chal03 with this code. It breaks, not sure why, but
+    I've just set `max_winners` to 1 for now. 
+
