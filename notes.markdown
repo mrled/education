@@ -28,3 +28,18 @@ Specific notes about what I was doing at the time go down here at the bottom in 
 ## Stuck 2013-04-26
 
 I think I must be transposing the strings wrong or something inside `break_repkey_xor()` around ln 331. It gets through the first block with a candidate (actually more than one - need to fix that too), but cannot find a single candidate for the second block, based on `winnow_junk_chars()` alone. If you try to print the result of a XOR against every character from 1-128 on Windows, it can't do it - it fails with the `UnicodeEncodeError`. 
+
+## It is not safe to modify a list while iterating over it 2013-04-29
+
+Fuckin lol
+
+Don't do this
+
+    for c in candidates:
+        i += 1
+        s = c['canstring']
+        if not winnow_non_ascii(s):
+            debugprint("Removing canstring {}".format(s))
+            candidates.remove([c])
+        else:
+            debugprint("Keeping canstring {}".format(s))

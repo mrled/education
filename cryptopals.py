@@ -2,7 +2,7 @@
 
 import argparse
 import base64
-
+import pdb
 
 
 ########################################################################
@@ -102,48 +102,68 @@ def char_counts(text):
 
 def winnow_wordlength(text):
     """
-    Return True if some text contains 4-6 letters per space, False otherwise.
+    Return True if some text contains 1-9 letters per space, False otherwise.
     English has an average word length of about five letters.
     """
+    debugprint("+++ winnow_wordlength({})".format(text))
     count = char_counts(text)
     try:
         avg_length = count['l'] / count['s']
     except ZeroDivisionError:
-        return False
-    if 3 < count['l'] / count['s'] < 7:
+        avg_length = count['l']
+    if 2 < avg_length < 8:
+        debugprint("    PASSED with {}/{} letters/spaces".format(count['l'], count['s']))
         return True
     else:
+        debugprint("    FAILED with {}/{} letters/spaces".format(count['l'], count['s']))
         return False
 # TODO: reimplement as a ratio of spaces to other letters
+#       winnowing by wordcount only works for longer strings, not short ones like I need to break
+#       repeating-key XOR, so this is basically useless.     
 # def winnow_wordcount(text):
 #     """Return True if some text contains at least 3 spaces; False otherwise"""
 #     sentence=text.split(' ')
-#     #print(text)
-
 #     if len(sentence) > 4:
 #         return True
 #     else:
 #         return False
 
+def winnow_non_ascii(text):
+    """Return False if a text contains any non-ascii characters; True otherwise."""
+    debugprint("+++ winnow_non_ascii({})".format(text))
+    for character in text:
+        if not 32 < ord(character) < 127:
+            return False
+    else:
+        return True
+
 def winnow_junk_chars(text):
     """Return False if a text contains too many non-letter non-space characters; False otherwise."""
+    debugprint("+++ winnow_junk_chars({})".format(text))
     count = char_counts(text)
     if count['o'] < len(text)/4:
+        debugprint("    PASSED with {}/{} junk/total characters".format(count['o'], len(text)))
         return True
     else:
+        debugprint("    FAILED with {}/{} junk/total characters".format(count['o'], len(text)))
         return False
 
 def winnow_vowel_ratio(text):
+    debugprint("+++ winnow_vowel_ratio({})".format(text))
     count = char_counts(text)
     # in English text, v/c ratio is about 38/62 i.e. 0.612
     # https://en.wikipedia.org/wiki/Letter_frequency
     try:
         vc_ratio = count['v']/count['c']
     except ZeroDivisionError:
-        return False
-    if 0.50 < vc_ratio < 0.70:
+        vc_ratio = 1
+    if 0.20 < vc_ratio < 0.90:
+    #if 0.50 < vc_ratio < 0.70:
+    #if 0.40 < vc_ratio < 0.80:
+        debugprint("    PASSED with ratio {}".format(vc_ratio))
         return True
     else:
+        debugprint("    FAILED with ratio {}".format(vc_ratio))
         return False
 
 def find_1char_xor_v1(hextxt):
@@ -199,61 +219,46 @@ def find_1char_xor(hexes):
                 candidate = hexxor(h,xorhex)
                 canstring = hex_to_string(candidate)
 
-                # winnowing by wordcount only works for longer strings, not short ones
-                # lik I need to use when breaking repeating-key XOR
-                #if winnow_wordcount(canstring):
-
-                debugprint("hex: {}; xor'd against: {}; plaintext candidate: {}".format(
-                        h, xorbyte, canstring))
-                # if winnow_junk_chars(canstring):
-                #     c = {'hex':h, 'xorhex':xorhex, 'canstring':canstring}
-                #     candidates += [c]
                 c = {'hex':h, 'xorhex':xorhex, 'canstring':canstring}
                 candidates += [c]
 
     # Provide the winnower functions you want to use, in order
     # Winnower functions should take a single string and return True or False
-    winnowers = [winnow_junk_chars, winnow_wordlength, winnow_vowel_ratio]
+    #winnowers = [winnow_non_ascii, winnow_junk_chars, winnow_vowel_ratio, winnow_wordlength]
+    winnowers = [winnow_non_ascii, 
+                 winnow_junk_chars,
+                 winnow_vowel_ratio, 
+                 winnow_wordlength,
+                 lambda x: True] # the final one must be a noop lol TODO this is dumb be ashamed
 
-    for c in candidates:
-        s = c['canstring']
-        for w in winnowers:
-            if len(candidates) is 1:
-                debugprint("Plaintext candidate for \n\t{}\n has been found: \n\t{}".format(
-                    h, s))
-                return s
-            elif len(candidates) is 0:
-                raise Exception("Failed to find plaintext candidate for {}".format(h))
-            if not w(s):
-                candidates.remove(c)
-                break
-
-        if len(candidates) is 1:
+    for w in winnowers:
+        debugprint("WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
+                w.__name__, len(candidates)))
+        can2 = []
+        for c in candidates:
+            s = c['canstring']
+            if w(s):
+                debugprint("Keeping canstring {}".format(s))
+                can2 += [c]
+        #pdb.set_trace()
+        if len(can2) is 1:
+            s = can2[0]['canstring']
             debugprint("Plaintext candidate for \n\t{}\n has been found: \n\t{}".format(
-                h, s))
+                    h, s))
             return s
-        elif len(candidates) is 0:
-            raise Exception("Failed to find plaintext candidate for {}".format(h))
+        elif len(can2) is 0:
+            #raise Exception("Failed to find plaintext candidate for {}".format(h))
+            debugprint("WINNOWING METHOD RESULTED IN ZERO CANDIDATES, ROLLING BACK...")
+            # ... and you don't actually have to roll back, you jhust have to ignore can2
+        else:
+            candidates = can2
 
+    #ideally there will be only one candidate butttt
+    debugprint("WINNOWING  COMPLETE, {} CANDIDATES REMAINING:".format(len(candidates)))
+    for c in candidates:
+        debugprint("    candidate string: {}".format(c['canstring']))
+    return candidates[0]['canstring'] 
 
-    # # Now apply other winnowing methods
-    # passed2=[]
-    # for p in passed:
-    #     if winnow_junk_chars(p['canstring']):
-    #         passed2 += [p]
-    # else:
-    #     debugprint("NO PLAINTEXT CANDIDATE FOR {} IN ROUND ONE".format(h))
-    #     return False
-
-    # And finally, print the winners
-
-    # TODO: i'm returning just the first one in passed, this is wrong. 
-    # for p in passed:
-    #     debugprint("Candidate: hex: {}, xorhex: {}, plaintext: {}".format(
-    #             p['hex'], p['xorhex'], p['canstring']))
-    #     return p['canstring']
-    # else:
-    #     raise Exception("NO PLAINTEXT CANDIDATE FOR {} IN ROUND TWO".format(h))
 
 def repxor(plaintext, key):
     """
@@ -386,7 +391,7 @@ def break_repkey_xor(hexstring):
                     mod = i % this_attempt['keylen'] 
                 except ZeroDivisionError:
                     mod = 0
-                debugprint("i: {}, mod: {}, keylen: {}".format(i, mod, this_attempt['keylen']))
+                #debugprint("i: {}, mod: {}, keylen: {}".format(i, mod, this_attempt['keylen']))
                 if mod is 0:
                     this_chunk = this_attempt['hexstring'][i]
                 else:
@@ -396,7 +401,7 @@ def break_repkey_xor(hexstring):
                     chunks += [this_chunk]
 
             debugprint("----------------")
-            debugprint(chunks)
+            debugprint("chunks: {}".format(chunks))
             debugprint("----------------")
 
             hd = hamming_code_distance(chunks[0], chunks[1])
@@ -408,22 +413,31 @@ def break_repkey_xor(hexstring):
     #"""
 
     attempts_sorted  = sorted(attempts, key=lambda a: a['hd_norm'])
+    debugprint("WINNERS DECLARED: lengths {} and {}".format(
+            attempts_sorted[0]['keylen'], attempts_sorted[1]['keylen']))
     # TODO: present the top four winners or something, rather than just selecting the first one
     for winner in attempts_sorted[0:2]:
-
+        debugprint("----------------")
+        debugprint("Processing winner of with keylen {}".format(winner['keylen']))
+        debugprint("----------------")
         # build the transposed chunks
-        # you have `len(chunks)` many chunks, that are all `keylen` long
-        # you'll end up with `keylen` many transposed chunks that are all `len(chunks)` long. 
+        # you have `len(chunks)/2` many chunks, that are all `keylen/2` long
+        # you'll end up with `keylen/2` many transposed chunks that are all `len(chunks)/2` long. 
+        # (you divide them all by two because two hits make up one char)
         for index in range(0, winner['keylen']):
             if index%2 is 0:
-                new_tchunk = []
+                # new_tchunk = []
+                # for c in winner['chunks']:
+                #     new_hits = [ c[index], c[index+1] ]
+                #     new_tchunk += new_hits 
+                new_tchunk = ""
                 for c in winner['chunks']:
-                    new_hits = [ c[index], c[index+1] ]
-                    new_tchunk += new_hits 
+                    new_hits = "" + c[index] + c[index+1]
+                    new_tchunk += new_hits
                 winner['tchunks'] += [ new_tchunk ]
-                #debugprint(new_tchunk)
+                #debugprint("new_tchunk: {}".format(new_tchunk))
 
-        print(winner['tchunks'])
+        print("chunks:  {}\ntchunks: {}".format(winner['chunks'], winner['tchunks']))
 
 
         # if len(winarray[-1]) < keylen:
@@ -431,26 +445,27 @@ def break_repkey_xor(hexstring):
         #         winarray[-1] += chr(0x00)
 
         # solve each tchunk as if it's a 1 character xor to populate the cadidate plaintexts array
+        debugprint("winner['tchunks']: {}".format(winner['tchunks']))
         for tc in winner['tchunks']:
             block_candidate = find_1char_xor(tc)
             if not block_candidate:
                 raise Exception("No block candidate found for tchunk: {}".format(tc))
             winner['tchplain'] = [block_candidate]
             debugprint("-------\nTransposed candidate: {}\n-------".format(block_candidate))
-            import pdb; pdb.set_trace()
 
 
 
         # use `index` to get the same index into both the tchunks array and also the tplain array
+            winner['tchplain'] = []
         for index in range(0, len(winner['tchunks'])):
             block_candidate = find_1char_xor(winner['tchunks'][index])
             if not block_candidate:
                 raise Exception("No block candidate found for candidate #{}: {}".format(
                         index, winner['tchunks'][index]))
-            import pdb; pdb.set_trace()
-            winner['tchplain'][index] = block_candidate
+            winner['tchplain'] += block_candidate
             debugprint("Transposed candidates: {}".format(block_candidate))
             
+        pdb.set_trace()
         # un-transpose the candidates
         plaintext_candidate = ""
         for candidate in transposed_candidates:
