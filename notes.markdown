@@ -97,3 +97,9 @@ Other big TODO items:
     are trying to complete chal03 with this code. It breaks, not sure why, but
     I've just set `max_winners` to 1 for now. 
 
+## breaking single-char xor with my multi-char function
+
+I've been using the single-char xored text from challenge three as a test of my multi-char xor function. The text is xored against a string of repeating 'X' characters (0x58). 
+
+Interestingly, when I come up with possibilities and sort them by normalized Hamming distance, breaking the ciphertext into two char (aka four hit) chunks has a lower hamming edit distance (1.5) than one char (aka two hit) does (2.5). This means it ends up chopping it in half and solving each half separately. 
+

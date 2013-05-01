@@ -123,7 +123,7 @@ def winnow_non_ascii(text):
     Return False if a text contains any non-ascii (or non-printable ascii) characters; 
     True otherwise.
     """
-    debugprint("+++ winnow_non_ascii({})".format(text))
+    #debugprint("+++ winnow_non_ascii({})".format(text))
     for character in text:
         if not 27 < ord(character) < 128:
             return False
@@ -215,9 +215,6 @@ def find_1char_xor(hexes):
                 c = {'hex':h, 'xorbyte':xorbyte, 'xorhex':xorhex, 'canstring':canstring}
                 candidates += [c]
 
-    for c in candidates:
-        debugprint("XORed against: {} Produced candidate: {}".format(c['xorbyte'], c['canstring']))
-
     # Provide the winnower functions you want to use, in order
     # Winnower functions should take a single string and return True or False
     winnowers = [winnow_non_ascii, 
@@ -233,13 +230,15 @@ def find_1char_xor(hexes):
         for c in candidates:
             s = c['canstring']
             if w(s):
-                debugprint("Keeping canstring {}".format(s))
+                #debugprint("Keeping canstring {}".format(s))
                 can2 += [c]
         if len(can2) is 1:
             s = can2[0]['canstring']
             debugprint("Plaintext candidate for \n\t{}\n has been found: \n\t{}".format(
                     h, s))
-            return s
+            #return s
+            candidates = can2
+            break
         elif len(can2) is 0:
             #raise Exception("Failed to find plaintext candidate for {}".format(h))
             debugprint("WINNOWING METHOD RESULTED IN ZERO CANDIDATES, ROLLING BACK...")
@@ -252,7 +251,9 @@ def find_1char_xor(hexes):
     debugprint("WINNOWING  COMPLETE, {} CANDIDATES REMAINING:".format(len(candidates)))
     for c in candidates:
         debugprint("    candidate string: {}".format(c['canstring']))
-    return candidates[0]['canstring'] 
+    winner = candidates[0]
+    #return winner['canstring'] 
+    return winner
 
 
 def repxor(plaintext, key):
@@ -342,7 +343,7 @@ def break_repkey_xor(hexstring):
     # of hex digits. 
     # Throughout this function, keylen is specificed in *hex* digits. 
 
-    keylenmin = 4
+    keylenmin = 2
     keylenmax = 40
     cipherlen = len(hexstring)
 
@@ -370,7 +371,6 @@ def break_repkey_xor(hexstring):
                             'tchunks':[],
                             'tchplain':[],
                             }
-
             debugprint("cipherlen: {},".format(this_attempt['cipherlen']))
 
             chunks = []
@@ -439,15 +439,22 @@ def break_repkey_xor(hexstring):
             if not block_candidate:
                 raise Exception("No block candidate found for tchunk: {}".format(tc))
             winner['tchplain'] += [block_candidate]
-            debugprint("-------\nTransposed candidate: {}\n-------".format(block_candidate))
+            debugprint("-------\nTransposed candidate: {}\n-------".format(block_candidate['canstring']))
                         
         # un-transpose the candidates
         plaintext_candidate = ""
+        key_found = False
+        hexxorkey = ""
+        strxorkey = ""
         for i in range(0, winner['chunksize']):
             for tc in winner['tchplain']:
-                plaintext_candidate += tc[i]
+                plaintext_candidate += tc['canstring'][i]
+                if not key_found:
+                    hexxorkey += tc['xorbyte']
+                    strxorkey += chr(int(tc['xorbyte'], 16))
+            key_found = True
 
-        debugprint("Plaintext candidate: " + str(plaintext_candidate))
+        debugprint("Key: {} Plaintext: {}".format(strxorkey, plaintext_candidate))
         winner['plaintext'] = plaintext_candidate
 
     return attempts_sorted[0]['plaintext']
