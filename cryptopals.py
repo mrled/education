@@ -3,6 +3,7 @@
 import argparse
 import base64
 import string
+import sys
 
 from pdb import set_trace as strace
 # now you can just run strace() anywhere you want to run pdb.set_trace()
@@ -10,6 +11,8 @@ from pdb import set_trace as strace
 
 ########################################################################
 ## Backend libraryish functions
+
+
 
 def safeprint(text):
     """
@@ -69,9 +72,11 @@ def hex_to_base64(hexstring):
 
 def hexxor(x, y):
     """Do a XOR of two hex strings of the same length"""
-    if len(x) is not len(y):
-        raise Exception("Buffers diff lengths! '{}' is {} but '{}' is {}".format(
-                x, len(x), y, len(y)))
+    
+    # TODO: why does this code fail with the large input from chal06? 
+    # if len(x) is not len(y):
+    #     raise Exception("Buffers diff lengths! '{}' is {} but '{}' is {}".format(
+    #             x, len(x), y, len(y)))
         #return False
     xbin = int(x, 16)
     ybin = int(y, 16)
@@ -342,6 +347,8 @@ def break_repkey_xor(hexstring):
     # Remember that if we're assuming that our XOR key came from ASCII, it will have an even number 
     # of hex digits. 
     # Throughout this function, keylen is specificed in *hex* digits. 
+    if len(hexstring)%2 is not 0:
+        hexstring = "0"+hexstring
 
     keylenmin = 2
     keylenmax = 40
@@ -365,7 +372,7 @@ def break_repkey_xor(hexstring):
                             'hd_norm':0, 
                             'hexstring':hexstring,
                             'cipherlen':cipherlen,
-                            'chunksize':int(cipherlen/keylen),
+                            'tchunksize':int(cipherlen/keylen),
                             'chunks':[],
                             'chplain':[],
                             'tchunks':[],
@@ -414,15 +421,12 @@ def break_repkey_xor(hexstring):
         # (you divide them all by two because two hits make up one char)
         for index in range(0, winner['keylen']):
             if index%2 is 0:
-                # new_tchunk = []
-                # for c in winner['chunks']:
-                #     new_hits = [ c[index], c[index+1] ]
-                #     new_tchunk += new_hits 
                 new_tchunk = ""
                 for c in winner['chunks']:
                     new_hits = "" + c[index] + c[index+1]
                     new_tchunk += new_hits
                 winner['tchunks'] += [ new_tchunk ]
+                strace()
                 #debugprint("new_tchunk: {}".format(new_tchunk))
 
         print("chunks:  {}\ntchunks: {}".format(winner['chunks'], winner['tchunks']))
@@ -446,7 +450,7 @@ def break_repkey_xor(hexstring):
         key_found = False
         hexxorkey = ""
         strxorkey = ""
-        for i in range(0, winner['chunksize']):
+        for i in range(0, winner['tchunksize']):
             for tc in winner['tchplain']:
                 plaintext_candidate += tc['canstring'][i]
                 if not key_found:
@@ -528,12 +532,19 @@ def chal06h():
 
 CRYPTOPALS_DEBUG=False
 
+def debug_trap(type, value, tb):
+    import traceback, pdb
+    traceback.print_exception(type, value, tb)
+    print()
+    pdb.pm() # the debugger in post-mortem mode
+
 class DebugAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         #print('%r %r %r' % (namespace, values, option_string))
         #setattr(namespace, self.dest, values)
         global CRYPTOPALS_DEBUG
         CRYPTOPALS_DEBUG = True
+        sys.excepthook = debug_trap
 
 
 if __name__=='__main__':
