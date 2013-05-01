@@ -217,7 +217,11 @@ def find_1char_xor(hexes):
                 candidate = hexxor(h,xorhex)
                 canstring = hex_to_string(candidate)
 
-                c = {'hex':h, 'xorbyte':xorbyte, 'xorhex':xorhex, 'canstring':canstring}
+                c = {'hex':h, 
+                     'xorbyte':xorbyte, 
+                     'xorhex':xorhex, 
+                     'canstring':canstring, 
+                     'canhex':candidate}
                 candidates += [c]
 
     # Provide the winnower functions you want to use, in order
@@ -426,8 +430,6 @@ def break_repkey_xor(hexstring):
                     new_hits = "" + c[index] + c[index+1]
                     new_tchunk += new_hits
                 winner['tchunks'] += [ new_tchunk ]
-                strace()
-                #debugprint("new_tchunk: {}".format(new_tchunk))
 
         print("chunks:  {}\ntchunks: {}".format(winner['chunks'], winner['tchunks']))
 
@@ -452,7 +454,8 @@ def break_repkey_xor(hexstring):
         strxorkey = ""
         for i in range(0, winner['tchunksize']):
             for tc in winner['tchplain']:
-                plaintext_candidate += tc['canstring'][i]
+                canstring = tc['canstring']
+                plaintext_candidate += canstring[i]
                 if not key_found:
                     hexxorkey += tc['xorbyte']
                     strxorkey += chr(int(tc['xorbyte'], 16))
@@ -544,6 +547,7 @@ class DebugAction(argparse.Action):
         #setattr(namespace, self.dest, values)
         global CRYPTOPALS_DEBUG
         CRYPTOPALS_DEBUG = True
+        debugprint("EXCEPTION ENCOUNTERED. STARTING THE DEBUGGER IN POST-MORTEM MODE.")
         sys.excepthook = debug_trap
 
 
