@@ -74,14 +74,19 @@ def hexxor(x, y):
     """Do a XOR of two hex strings of the same length"""
     
     # TODO: why does this code fail with the large input from chal06? 
-    # if len(x) is not len(y):
-    #     raise Exception("Buffers diff lengths! '{}' is {} but '{}' is {}".format(
-    #             x, len(x), y, len(y)))
+    if len(x) != len(y):
+        raise Exception("Buffers diff lengths! x is {} but y is {}".format(
+            #x, len(x), y, len(y)))
+            len(x), len(y)))
         #return False
     xbin = int(x, 16)
     ybin = int(y, 16)
     xorbin = xbin^ybin
-    return hex(xorbin)[2:]
+    xorhex = hex(xorbin)[2:]
+    diff = len(x) - len(xorhex)
+    for i in range(0, diff):
+        xorhex = "0" + xorhex
+    return xorhex
 def strxor(x, y):
     return hexxor(string_to_hex(x), string_to_hex(y))
 

@@ -103,3 +103,10 @@ I've been using the single-char xored text from challenge three as a test of my 
 
 Interestingly, when I come up with possibilities and sort them by normalized Hamming distance, breaking the ciphertext into two char (aka four hit) chunks has a lower hamming edit distance (1.5) than one char (aka two hit) does (2.5). This means it ends up chopping it in half and solving each half separately. 
 
+## bugs in hexxor()
+
+-   I was using `len(x) is not len(y)` instead of `len(x) != len(y)`. Oops. 
+-   I wasn't accounting for a XOR operation that would return a number with fewer digits because the
+    most significant digits were zeroes. 
+
+Now I'm producing shitty plaintext for challenge 06, but I am hoping I can just fix that by tweaking the winnowing algorithm. 
