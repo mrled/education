@@ -135,15 +135,24 @@ def winnow_non_ascii(text):
     Return False if a text contains any non-ascii (or non-printable ascii) characters; 
     True otherwise.
     """
+    for character in text:
+        if not 0 <= ord(character) <= 127:
+            return False
+    return True
+
+def winnow_non_ascii_using_decode(text):
+    """
+    Return False if a text contains any non-ascii (or non-printable ascii) characters; 
+    True otherwise.
+    """
+    isascii = True
     try:
         atext = text.encode().decode("ascii")
         for character in atext:
             #if not 31 < ord(character) < 127:
-            if not 0 <= ord(character) >= 127:
+            if not 0 <= ord(character) <= 127:
                 isascii = False
                 break
-        else:
-            isascii = True
     except UnicodeDecodeError:
         isascii = False
 
@@ -230,6 +239,59 @@ class SingleCharCandidate(object):
         hex_plaintext = hexxor(hexstring, xor_hexstring)
         self.plaintext = hex_to_string(hex_plaintext)
 
+def winnow_plaintexts(candidates):
+    can2 = []
+    for c in candidates:
+        if winnow_non_ascii(c.plaintext):
+            can2 += [c]
+
+    candidates = can2
+
+    if len(candidates) == 0:
+        return False
+
+    opt_winnowers = [winnow_punctuation,
+                     winnow_vowel_ratio, 
+                     winnow_wordlength,
+                     lambda x: True] # the final one must be a noop lol TODO this is dumb be ashamed
+
+    for w in opt_winnowers:
+        #debugprint("WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
+        #        w.__name__, len(candidates)))
+        can2 = []
+        for c in candidates:
+            if w(c.plaintext):
+                can2 += [c]
+        if len(can2) is 1:
+            candidates = can2
+            break
+        elif len(can2) is 0:
+            debugprint("WINNOWING METHOD RESULTED IN ZERO CANDIDATES, ROLLING BACK...")
+            # ... and you don't actually have to roll back, you just have to ignore can2
+        else:
+            candidates = can2
+
+    #ideally there will be only one candidate butttt
+    # TODO: winnow better so there's guaranteed to be just one candidate dummy
+
+    if len(candidates) == 0:
+        return False
+    elif len(candidates) > 1:
+        debugprint("WINNOWING COMPLETE BUT {} CANDIDATES REMAIN".format(len(candidates)))
+
+    return candidates[0]
+
+
+
+    
+
+def detect_1char_xor(hexes):
+    candidates = []
+    for h in hexes:
+        for i in range(0, 128):
+            candidates += [SingleCharCandidate(h, chr(i))]
+    winner = winnow_plaintexts(candidates)
+    return winner
 
 def find_1char_xor(hexstring):
     """
@@ -259,6 +321,7 @@ def find_1char_xor(hexstring):
         if winnow_non_ascii(c.plaintext):
             can2 += [c]
 
+    debugprint("finished running through winnow_non_ascii")
     candidates = can2
     if len(candidates) == 0:
         return False
@@ -567,8 +630,10 @@ def chal04():
     gist = open("3132713.gist.txt")
     hexes = [line.strip() for line in gist.readlines()]
     gist.close()
-    for h in hexes:
-        print(find_1char_xor(h))
+    winner = detect_1char_xor(hexes)
+    print("Detected plaintext '{}'".format(winner.plaintext))
+    print("From hex string '{}'".format(winner.hexstring))
+    print("XOR'd against character '{}'".format(winner.xorchar))
 
 def chal05():
     plaintext = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
