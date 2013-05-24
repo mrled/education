@@ -234,10 +234,15 @@ class SingleCharCandidate(object):
         self.length = len(self.hexstring)
 
         xor_hexstring = ""
-        for byte in range(0, int(len(hexstring)/2)):
+        #for byte in range(0, int((len(self.hexstring)+1)/2)):
+        for byte in range(0, int(len(self.hexstring)/2)):
             xor_hexstring += self.hex_xorchar
-        hex_plaintext = hexxor(hexstring, xor_hexstring)
+        hex_plaintext = hexxor(self.hexstring, xor_hexstring)
         self.plaintext = hex_to_string(hex_plaintext)
+
+    def __repr__(self):
+        return "xorchar: '{}'; hexstring: '{}'; plaintext: '{}'".format(
+            self.xorchar, self.hexstring, self.plaintext)
 
 def winnow_plaintexts(candidates):
     can2 = []
@@ -266,7 +271,8 @@ def winnow_plaintexts(candidates):
             candidates = can2
             break
         elif len(can2) is 0:
-            debugprint("WINNOWING METHOD RESULTED IN ZERO CANDIDATES, ROLLING BACK...")
+            debugprint("WINNOWING METHOD {} RESULTED IN ZERO CANDIDATES, ROLLING BACK...".format(
+                w.__name__))
             # ... and you don't actually have to roll back, you just have to ignore can2
         else:
             candidates = can2
@@ -282,14 +288,17 @@ def winnow_plaintexts(candidates):
     return candidates[0]
 
 
-
-    
-
-def detect_1char_xor(hexes):
+def build_1char_candidates(hexstring):
     candidates = []
+    for i in range(0, 128):
+        candidates += [SingleCharCandidate(hexstring, chr(i))]
+    return candidates
+
+# TODO: test before next commit
+def detect_1char_xor(hexes):
+    candiates = []
     for h in hexes:
-        for i in range(0, 128):
-            candidates += [SingleCharCandidate(h, chr(i))]
+        candidates = build_1char_candidates(h)
     winner = winnow_plaintexts(candidates)
     return winner
 
@@ -321,7 +330,6 @@ def find_1char_xor(hexstring):
         if winnow_non_ascii(c.plaintext):
             can2 += [c]
 
-    debugprint("finished running through winnow_non_ascii")
     candidates = can2
     if len(candidates) == 0:
         return False
@@ -449,7 +457,6 @@ class MultiCharCandidate(object):
 
         self.cipherlen = len(self.hexstring)
 
-
         # -   only operate on even-length keys because two hits is one charater
         # -   only operate on keys that can divide evenly into the ciphertext b/c the plaintext 
         #     would have been padded before the XOR.
@@ -457,13 +464,12 @@ class MultiCharCandidate(object):
             raise Exception("Cannot create a MultiCharCandidate object with an odd keylen")
 
         if self.cipherlen % self.keylen != 0: 
-            et = "Attempted to create a MultiCharCandidate with cipherlen {}".format(
+            et = "Attempted to create a MultiCharCandidate with a ciphertext of len {}".format(
                 self.cipherlen)
-            et += " and keylen {}, but that cipherlen doesn't divide evenly into".format(
+            et += " and key of len {}, but that cipherlen doesn't divide evenly into".format(
                 self.keylen)
             et += " that keylen"
             raise Exception(et)
-
 
         self.tchunksize = int(self.cipherlen/self.keylen)
 
@@ -482,37 +488,73 @@ class MultiCharCandidate(object):
         # you have `len(chunks)/2` many chunks, that are all `keylen/2` long
         # you'll end up with `keylen/2` many transposed chunks that are all `len(chunks)/2` long. 
         # (you divide them all by two because two hits make up one char)
-        tmp_tchunks = []
+        self.tchunks = []
         for index in range(0, self.keylen):
             if index%2 is 0:
                 new_tchunk = ""
                 for c in self.chunks:
                     new_hits = "" + c[index] + c[index+1]
                     new_tchunk += new_hits
-                tmp_tchunks += [ new_tchunk ]
+                self.tchunks.append(new_tchunk)
 
-        # solve each tchunk as if it's a 1 character xor to populate the cadidate plaintexts array
-        self.tchunks = []
+        # calculate the possibilities for each chunk
+        # self.tccandidates is a list
+        #     each item in the list is a list of SingleCharCandidate objects
+        # self.tccandidates[0] corresponds to self.tchunks[0] of course, 
+        #     and it will contain 128 objects, which we'll winnow through in the next step
+        self.tccandidates = []
         self.solved_all = True
-        for tc in tmp_tchunks:
-            block_candidate = find_1char_xor(tc)
-            if not block_candidate:
-                debugprint("No block candidate found for tchunk: {}".format(tc))
+        for tc in self.tchunks:
+            block_candidates = build_1char_candidates(tc)
+            self.tccandidates.append(block_candidates)
+            # block_candidate = find_1char_xor(tc)
+            # if not block_candidate:
+            #     debugprint("No block candidate found for tchunk: {}".format(tc))
+            #     self.solved_all = False
+            # self.tchunks += [block_candidate]
+
+        self.tcwinners = []
+        self.solved_all = True
+        # now winnow the plaintexts down for each tchunk
+        for tcc in self.tccandidates:
+            tcwin = winnow_plaintexts(tcc)
+            if tcwin:
+                self.tcwinners += [tcwin]
+            else:
+                self.tcwinners += [False]
                 self.solved_all = False
-            self.tchunks += [block_candidate]
+
 
         # now, if we were able to solve each of the tchunks, reassemble the plaintext. 
-        self.plaintext = False
-        self.strxorkey = ""
-        self.hexxorkey = ""
         if self.solved_all:
-            self.plaintext = ""
+            self.plaintext = self.strxorkey = self.hexxorkey = ""
+            # y axis is location WITHIN the tchunk; x axis is which tchunk it is
+
+            tchunk_count = len(self.tchunks)
+            tchunk_size  = self.tchunksize
+
+
             for i in range(0, self.tchunksize):
-                for tc in self.tchunks:
-                    self.plaintext += tc.plaintext[i]
-                    if len(strxorkey) < self.keylen:
-                        self.strxorkey += tc.xorchar
+                for w in self.tcwinners:
+                    self.plaintext += w.plaintext[i]
+                    if len(self.strxorkey) < self.keylen:
+                        self.strxorkey += w.xorchar
             self.hexxorkey = string_to_hex(self.strxorkey)
+        else:
+            self.plaintext = self.strxorkey = self.hexxorkey = False
+
+        strace()
+
+
+        # if self.solved_all:
+        #     self.plaintext = ""
+        #     for i in range(0, self.tchunksize):
+        #         for tc in self.tchunks:
+        #             #self.plaintext += tc.plaintext[i]
+        #             self.plaintext += tc[i]
+        #             if len(self.strxorkey) < self.keylen:
+        #                 self.strxorkey += tc.xorchar
+        #     self.hexxorkey = string_to_hex(self.strxorkey)
     
         
 # TODO: rewrite to be less dumb
@@ -584,7 +626,8 @@ def find_multichar_xor(hexstring):
     attempts_passed_winnowing = []
     for candidate in attempts_sorted[0:max_candidates]:
         if candidate.solved_all:
-            debugprint("Key: {} Plaintext: ELIDED".format(candidate.strxorkey, candidate.plaintext))
+            debugprint("Key: {} Plaintext: <ELIDED>".format(
+                candidate.strxorkey, candidate.plaintext))
             attempts_passed_winnowing += [candidate]
 
     if len(attempts_passed_winnowing) == 0:
@@ -639,7 +682,7 @@ def chal05():
     plaintext = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
     repkey = "ICE"
     solution = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
-    print("These two strings should match: ")
+    print("These two strings should match:")
     print(repxor(plaintext, repkey))
     print(solution)
 
