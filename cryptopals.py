@@ -136,7 +136,7 @@ def winnow_non_ascii(text):
     True otherwise.
     """
     for character in text:
-        if not 0 <= ord(character) <= 127:
+        if not 31 <= ord(character) <= 127:
             return False
     return True
 
@@ -177,8 +177,8 @@ def winnow_punctuation(text):
     """Return False if a text contains too many non-letter non-space characters; False otherwise."""
     #debugprint("+++ winnow_punctuation({})".format(text))
     count = char_counts(text)
-    #if count['o'] < len(text)/4:
-    if count['o'] < len(text)/8:
+    if count['o'] < len(text)/4:
+    #if count['o'] < len(text)/8:
         #debugprint("    PASSED with {}/{} junk/total characters".format(count['o'], len(text)))
         return True
     else:
@@ -261,8 +261,8 @@ def winnow_plaintexts(candidates):
                      lambda x: True] # the final one must be a noop lol TODO this is dumb be ashamed
 
     for w in opt_winnowers:
-        #debugprint("WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
-        #        w.__name__, len(candidates)))
+        debugprint("WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
+                w.__name__, len(candidates)))
         can2 = []
         for c in candidates:
             if w(c.plaintext):
@@ -542,19 +542,6 @@ class MultiCharCandidate(object):
             self.hexxorkey = string_to_hex(self.strxorkey)
         else:
             self.plaintext = self.strxorkey = self.hexxorkey = False
-
-        strace()
-
-
-        # if self.solved_all:
-        #     self.plaintext = ""
-        #     for i in range(0, self.tchunksize):
-        #         for tc in self.tchunks:
-        #             #self.plaintext += tc.plaintext[i]
-        #             self.plaintext += tc[i]
-        #             if len(self.strxorkey) < self.keylen:
-        #                 self.strxorkey += tc.xorchar
-        #     self.hexxorkey = string_to_hex(self.strxorkey)
     
         
 # TODO: rewrite to be less dumb
