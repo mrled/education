@@ -137,6 +137,7 @@ def winnow_non_ascii(text):
     """
     for character in text:
         if not 31 <= ord(character) <= 127:
+            debugprint("character: '{}'; ord: '{}'".format(character, ord(character)))
             return False
     return True
 
@@ -177,7 +178,7 @@ def winnow_punctuation(text):
     """Return False if a text contains too many non-letter non-space characters; False otherwise."""
     #debugprint("+++ winnow_punctuation({})".format(text))
     count = char_counts(text)
-    if count['o'] < len(text)/4:
+    if count['o'] < len(text)/12:
     #if count['o'] < len(text)/8:
         #debugprint("    PASSED with {}/{} junk/total characters".format(count['o'], len(text)))
         return True
@@ -245,15 +246,15 @@ class SingleCharCandidate(object):
             self.xorchar, self.hexstring, self.plaintext)
 
 def winnow_plaintexts(candidates):
-    can2 = []
-    for c in candidates:
-        if winnow_non_ascii(c.plaintext):
-            can2 += [c]
 
-    candidates = can2
-
-    if len(candidates) == 0:
-        return False
+    # winnowing based on ascii results in totally fucked output. wtf. 
+    # can2 = []
+    # for c in candidates:
+    #     if winnow_non_ascii(c.plaintext):
+    #         can2 += [c]
+    # candidates = can2
+    # if len(candidates) == 0:
+    #     return False
 
     opt_winnowers = [winnow_punctuation,
                      winnow_vowel_ratio, 
@@ -445,6 +446,25 @@ def hexxor_shitty(x,y):
         ctr+=1
     print(bin_to_hex(binxor))
 
+class TchunkCandidateSet(object):
+    def __init__(self, text):
+        self.text = text
+
+        # calculate the possibilities for this chunk
+        self.candidates = build_1char_candidates(self.text)
+
+        self.solved = True
+        self.winners = []
+        # now winnow the plaintexts down for each tchunk
+        # TODO: note that right now this may have several winners! make sure to handle that elsewhere
+        tcwin = winnow_plaintexts(self.candidates)
+        if tcwin:
+            self.winners.append(tcwin)
+        else:
+            self.winners.append(False)
+            self.solved = False
+            strace()
+
 
 class MultiCharCandidate(object):
     def __init__(self, hexstring, keylen):
@@ -487,63 +507,31 @@ class MultiCharCandidate(object):
         # build the transposed chunks
         # you have `len(chunks)/2` many chunks, that are all `keylen/2` long
         # you'll end up with `keylen/2` many transposed chunks that are all `len(chunks)/2` long. 
-        # (you divide them all by two because two hits make up one char)
+        # (you divide all of those by two because two hits make up one char)
         self.tchunks = []
-        for index in range(0, self.keylen):
-            if index%2 is 0:
-                new_tchunk = ""
-                for c in self.chunks:
-                    new_hits = "" + c[index] + c[index+1]
-                    new_tchunk += new_hits
-                self.tchunks.append(new_tchunk)
-
-        # calculate the possibilities for each chunk
-        # self.tccandidates is a list
-        #     each item in the list is a list of SingleCharCandidate objects
-        # self.tccandidates[0] corresponds to self.tchunks[0] of course, 
-        #     and it will contain 128 objects, which we'll winnow through in the next step
-        self.tccandidates = []
         self.solved_all = True
-        for tc in self.tchunks:
-            block_candidates = build_1char_candidates(tc)
-            self.tccandidates.append(block_candidates)
-            # block_candidate = find_1char_xor(tc)
-            # if not block_candidate:
-            #     debugprint("No block candidate found for tchunk: {}".format(tc))
-            #     self.solved_all = False
-            # self.tchunks += [block_candidate]
-
-        self.tcwinners = []
-        self.solved_all = True
-        # now winnow the plaintexts down for each tchunk
-        for tcc in self.tccandidates:
-            tcwin = winnow_plaintexts(tcc)
-            if tcwin:
-                self.tcwinners += [tcwin]
-            else:
-                self.tcwinners += [False]
+        for index in range(0, self.keylen, 2):
+            new_tchunk_text = ""
+            for c in self.chunks:
+                new_hits = "" + c[index] + c[index+1]
+                new_tchunk_text += new_hits
+            new_tchunk = TchunkCandidateSet(new_tchunk_text)
+            self.tchunks.append(new_tchunk)
+            if not new_tchunk.solved:
                 self.solved_all = False
 
+        self.plaintext = self.strxorkey = self.hexxorkey = ""
+        tchunk_count = len(self.tchunks)
 
-        # now, if we were able to solve each of the tchunks, reassemble the plaintext. 
-        if self.solved_all:
-            self.plaintext = self.strxorkey = self.hexxorkey = ""
-            # y axis is location WITHIN the tchunk; x axis is which tchunk it is
+        for i in range(0, self.tchunksize):
+            for tc in self.tchunks:
+                newpt = newxc = '_' # a temp value that only gets used if there was no winner
+                if tc.solved:
+                    newpt = tc.winners[0].plaintext[i]
+                    newxc = tc.winners[0].xorchar
+                self.plaintext += newpt
+                self.strxorkey += newxc
 
-            tchunk_count = len(self.tchunks)
-            tchunk_size  = self.tchunksize
-
-
-            for i in range(0, self.tchunksize):
-                for w in self.tcwinners:
-                    self.plaintext += w.plaintext[i]
-                    if len(self.strxorkey) < self.keylen:
-                        self.strxorkey += w.xorchar
-            self.hexxorkey = string_to_hex(self.strxorkey)
-        else:
-            self.plaintext = self.strxorkey = self.hexxorkey = False
-    
-        
 # TODO: rewrite to be less dumb
 def hamming_code_distance(string1, string2):
     """
@@ -592,37 +580,22 @@ def find_multichar_xor(hexstring):
     if keylenmax >= int(len(hexstring)/2):
         keylenmax = int(len(hexstring)/2)
     debugprint("min key length: {} / max key length: {} / hexstring length: {}".format(
-            keylenmin, keylenmax, len(hexstring)))
+        keylenmin, keylenmax, len(hexstring)))
 
     attempts = []
-    for keylen in range(keylenmin, keylenmax):
+    for keylen in range(keylenmin, keylenmax, 2):
         # -   only operate on even-length keys because two hits is one charater
         # -   only operate on keys that can divide evenly into the ciphertext b/c the plaintext 
         #     would have been padded before the XOR.
-        if keylen%2 == 0 and cipherlen%keylen == 0: 
+        # NOTE: for our chal06, there are only *3* keylens that will pass this test: 
+        #     2 (1 ascii char), 4 (2 ascii chars), 8 (4 ascii chars).
+        #     cipherlen for chal06 is 5752 and 5752/8==719, a prime number.
+        if cipherlen%keylen == 0: 
             attempts += [MultiCharCandidate(hexstring, keylen)]
 
     attempts_sorted  = sorted(attempts, key=lambda a: a.hdnorm)
+    return attempts_sorted[0].plaintext
 
-    # TODO: deal with situations where there are zero or one attempts
-    #       this might happen if the keylen is too constrained, or as a result of only checking for 
-    #       keys that divide evenly into the ciphertext
-    max_candidates = 4
-    if max_candidates > len(attempts_sorted):
-        max_candidates = len(attempts_sorted)
-    attempts_passed_winnowing = []
-    for candidate in attempts_sorted[0:max_candidates]:
-        if candidate.solved_all:
-            debugprint("Key: {} Plaintext: <ELIDED>".format(
-                candidate.strxorkey, candidate.plaintext))
-            attempts_passed_winnowing += [candidate]
-
-    if len(attempts_passed_winnowing) == 0:
-        raise Exception("FOUND NO KEYLEN CANDIDATES THAT PASSED WINNOWING.")
-    elif len(attempts_passed_winnowing) > 1:
-        debugprint("WE HAVE MULTIPLE KEYLEN CANDIDATES THAT PASSED WINNOWING.")
-
-    return attempts_passed_winnowing[0].plaintext
 
 ########################################################################
 ## Challenge functions - one per challnge, plus maybe more for the extra credit sections
