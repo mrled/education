@@ -46,11 +46,8 @@ def hex_to_string(hexstring):
     # each PAIR of hex digits represents ONE character, so grab them by twos
     character=""
     decoded=""
-    for hexdigit in hexstring:
-        character+=hexdigit
-        if len(character) > 1:
-            decoded+= chr(int(character, 16))
-            character=""
+    for i in range(0, len(hexstring), 2):
+        decoded += chr(int(hexstring[i:i+2], 16))
     return decoded
 
 def hex_to_bin(hexstring):
