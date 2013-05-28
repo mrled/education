@@ -102,10 +102,17 @@ def winnow_noop(candidate):
     # TODO: revisit this! 
     return True
 
+def winnow_asciicontrol(candidate):
+    if candidate.asciicontrol > 0:
+        return False
+    else:
+        return True
+
 def winnow_nonascii(candidate):
     if candidate.nonascii > 0:
         return False
     else:
+        print("passed nonascii winnowing!")
         return True
 
 def winnow_wordlength(candidate):
@@ -145,6 +152,10 @@ def winnow_letter_frequency(candidate):
 class SingleCharCandidate(object):
     def __init__(self, hexstring, xorchar):
 
+        # TODO: how is this happening? 
+        if xorchar == 'é':
+            strace()
+
         if len(hexstring)%2 == 1:
             self.hexstring = "0" + hexstring
         else:
@@ -169,16 +180,32 @@ class SingleCharCandidate(object):
         self.vowels = 0
         self.consonants = 0
         self.digits = 0
-        self.nonascii = 0
         self.punctuation = 0
         self.letters = 0
         self.allcharacters = len(self.plaintext)
         self.popchars = 0 # more ~60% of english letters are one of these
+        self.asciicontrol = 0
+        self.nulls = 0
+        self.nonascii = 0
         for character in self.plaintext:
-            if not 31 <= ord(character) <= 127:
+            ordc = ord(character)
+            #if not 31 <= ord(character) <= 127:
+            if ordc > 127:
                 self.nonascii += 1
-            elif character in string.whitespace:
+            elif ordc == 0:
+                self.nulls += 1
+            elif ordc == 13:
+                # this is a linefeed char; just totally ignore it in the char count
+                pass 
+            elif character in string.whitespace or ordc in [9, 10]:
+                # 9 is tab, 10, is carriage return
                 self.whitespace += 1
+            elif ordc in [7, 27]:
+                self.asciicontrol += 1
+            elif 0 <= ordc <= 31 or ordc == 127:
+                # all these that remain in this range are nonprintables
+                #self.asciicontrol += 1
+                pass
             elif character in 'aeiouAEIOU':
                 self.vowels += 1
             elif character in 'bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ':
@@ -218,11 +245,12 @@ class TchunkCandidateSet(object):
         #debugprint("Winnowing candidate: {}".format(text))
 
 
-        self.winners = [c for c in self.candidates if winnow_nonascii(c)]
+        self.winners = [c for c in self.candidates if winnow_asciicontrol(c)]
         if len(self.winners) == 0:
             self.solved = False
         else:
-            opt_winnowers = [winnow_punctuation,
+            opt_winnowers = [winnow_nonascii,
+                             winnow_punctuation,
                              winnow_vowel_ratio, 
                              winnow_wordlength,
                              winnow_letter_frequency,
@@ -326,10 +354,10 @@ def find_multichar_xor(hexstring):
     if len(hexstring)%2 is not 0:
         hexstring = "0"+hexstring
 
-    #keylenmin = 2
-    #keylenmax = 40
-    keylenmin = 18
-    keylenmax = 22
+    keylenmin = 2
+    keylenmax = 40
+    #keylenmin = 18
+    #keylenmax = 22
     cipherlen = len(hexstring)
 
     # If you don't do this, and you pass it a too-short hexstring, it'll try to compare chunk1 with
@@ -405,7 +433,7 @@ def mytest_ciphertext():
     print(ciphertext)
     return ciphertext
 
-ciphertext = mytest_ciphertext()
+ciphertext = gist_ciphertext()
 
 winner = find_multichar_xor(ciphertext)
 print("Winning key: {}".format(winner.strxorkey))
