@@ -42,6 +42,14 @@ def hexxor(x, y):
         xorhex = "0" + xorhex
     return xorhex
 
+def string_to_hex(text):
+    hexstring = ""
+    for char in text.encode():
+        hexstring += '{:0>2}'.format(hex(char)[2:])
+    if len(hexstring)%2 is 1:
+       hextring = "0"+hexstring
+    return hexstring
+
 def base64_to_hex(x):
     text = base64.b64decode(x.encode())
     hexstring = ""
@@ -306,8 +314,10 @@ def find_multichar_xor(hexstring):
     if len(hexstring)%2 is not 0:
         hexstring = "0"+hexstring
 
-    keylenmin = 2
-    keylenmax = 40
+    #keylenmin = 2
+    #keylenmax = 40
+    keylenmin = 18
+    keylenmax = 22
     cipherlen = len(hexstring)
 
     # If you don't do this, and you pass it a too-short hexstring, it'll try to compare chunk1 with
@@ -326,15 +336,65 @@ def find_multichar_xor(hexstring):
         #     2 (1 ascii char), 4 (2 ascii chars), 8 (4 ascii chars).
         #     cipherlen for chal06 is 5752 and 5752/8==719, a prime number.
         if cipherlen%keylen == 0: 
+            debugprint("Attempting a keylen of {}".format(keylen))
             attempts += [MultiCharCandidate(hexstring, keylen)]
 
     attempts_sorted  = sorted(attempts, key=lambda a: a.hdnorm)
-    return attempts_sorted[0].plaintext
+    return attempts_sorted[0]
+
+def repxor(plaintext, basekey):
+    """
+    XOR plaintext with a repeating key and return the result in hex.
+
+    Take a plaintext string (not hex) and a key. Repeat the key as many times as is necessary. Pad 
+    the plaintext with chr(0x00) so that it is equal to key length (do not truncate the key if it 
+    is too long, or if it is too longer after it was repeated). XOR them together. Return the result
+    as a hex string.
+    """
+    key = basekey
+    while len(key) < len(plaintext):
+        key += basekey
+    while len(plaintext) < len(key):
+        plaintext += (chr(0x00))
+
+    hextxt = string_to_hex(plaintext)
+    hexkey = string_to_hex(key)
+    bintxt = int(hextxt, 16)
+    binkey = int(hexkey, 16)
+    binxor = bintxt^binkey
+    hexxor = hex(binxor)[2:]
+
+    if len(hexxor)%2 is 1:
+        # pad the beginning with zero so that the hexxor string has an even number of hex bits in it. 
+        # useful because not only does it match the provided solution this way, it also 
+        # means there are two hex digits per character so the ciphertext is decodable to ASCII
+        # and it's consistent with how you'd encode plaintext.
+        hexxor = "0"+hexxor
+    return(hexxor)
 
 
-f = open("3132752.gist.txt")
-gist = f.read().replace("\n","")
-f.close()
-ciphertext = base64_to_hex(gist)
-#ciphertext = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
-print(find_multichar_xor(ciphertext))
+
+def gist_ciphertext():
+    f = open("3132752.gist.txt")
+    gist = f.read().replace("\n","")
+    f.close()
+    return base64_to_hex(gist)
+
+def ex3_ciphertext():
+    return '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
+
+def mytest_ciphertext():
+    # the length of this string is exactly 310
+    plaintext = 'To convert data to PEM printable encoding, the first byte is placed in the most significant eight bits of a 24-bit buffer, the next in the middle eight, and the third in the least significant eight bits. If there are fewer than three bytes left to encode (or in total), the remaining buffer bits will be zero..'
+    key = 'abcdefghij'
+    ciphertext = repxor(plaintext, key)
+    print("Ciphertext: ")
+    print(ciphertext)
+    return ciphertext
+
+ciphertext = mytest_ciphertext()
+
+winner = find_multichar_xor(ciphertext)
+print("Winning key: {}".format(winner.strxorkey))
+print("Winning plaintext: {}".format(winner.plaintext))
+
