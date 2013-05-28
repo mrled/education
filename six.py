@@ -110,7 +110,7 @@ def winnow_nonascii(candidate):
 
 def winnow_wordlength(candidate):
     try:
-        avg_length = candidate.letters / candidate.whitespace
+        avg_length = (candidate.letters + candidate.digits) / candidate.whitespace
     except ZeroDivisionError:
         avg_length = candidate.letters
     if 2 < avg_length < 8:
@@ -124,13 +124,19 @@ def winnow_punctuation(candidate):
     else:
         return False
 
-# TODO: you won't get a ratio of 0.00-1.00 by dividing vowels/consonants. fix!
 def winnow_vowel_ratio(candidate):
-    try:
-        vc_ratio = candidate.vowels / candidate.consonants
-    except ZeroDivisionError:
-        vc_ratio = 1
-    if 0.20 < vc_ratio < 0.90:
+    if candidate.letters == 0:
+        return True
+    vr = candidate.vowels / candidate.letters
+    cr = candidate.consonants / candidate.letters
+    if vr > cr:
+        return True
+    else:
+        return False
+
+def winnow_letter_frequency(candidate):
+    pr = candidate.popchars / candidate.letters
+    if .50 <= pr <= .85:
         return True
     else:
         return False
@@ -165,8 +171,9 @@ class SingleCharCandidate(object):
         self.digits = 0
         self.nonascii = 0
         self.punctuation = 0
-        self.letters = 0 #includes digits
+        self.letters = 0
         self.allcharacters = len(self.plaintext)
+        self.popchars = 0 # more ~60% of english letters are one of these
         for character in self.plaintext:
             if not 31 <= ord(character) <= 127:
                 self.nonascii += 1
@@ -180,7 +187,11 @@ class SingleCharCandidate(object):
                 self.digits += 1
             else:
                 self.punctuation += 1
-        self.letters = self.consonants + self.vowels + self.digits
+
+            if character in 'etaoins':
+                self.popchars += 1
+
+        self.letters = self.consonants + self.vowels
 
     def __repr__(self):
         return "xorchar: '{}'; hexstring: '{}'; plaintext: '{}'".format(
@@ -189,7 +200,7 @@ class SingleCharCandidate(object):
     @classmethod
     def generate_ascii_candidates(self, hexstring):
         candidates = []
-        for i in range(0, 256):
+        for i in range(0, 128):
             candidates += [SingleCharCandidate(hexstring, chr(i))]
         return candidates
 
@@ -214,6 +225,7 @@ class TchunkCandidateSet(object):
             opt_winnowers = [winnow_punctuation,
                              winnow_vowel_ratio, 
                              winnow_wordlength,
+                             winnow_letter_frequency,
                              winnow_noop]
 
             for w in opt_winnowers:
@@ -385,6 +397,7 @@ def ex3_ciphertext():
 
 def mytest_ciphertext():
     # the length of this string is exactly 310
+    # 310/10 is 31 which is a prime. useful for testing larger keylens. 
     plaintext = 'To convert data to PEM printable encoding, the first byte is placed in the most significant eight bits of a 24-bit buffer, the next in the middle eight, and the third in the least significant eight bits. If there are fewer than three bytes left to encode (or in total), the remaining buffer bits will be zero..'
     key = 'abcdefghij'
     ciphertext = repxor(plaintext, key)
