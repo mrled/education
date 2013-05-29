@@ -112,7 +112,6 @@ def winnow_nonascii(candidate):
     if candidate.nonascii > 0:
         return False
     else:
-        print("passed nonascii winnowing!")
         return True
 
 def winnow_wordlength(candidate):
@@ -126,7 +125,7 @@ def winnow_wordlength(candidate):
         return False
 
 def winnow_punctuation(candidate):
-    if candidate.punctuation < candidate.allcharacters/12:
+    if candidate.punctuation < candidate.letters/7:
         return True
     else:
         return False
@@ -149,12 +148,10 @@ def winnow_letter_frequency(candidate):
         return False
 
 
+#punctuations = ""
+#asciicontrols = ""
 class SingleCharCandidate(object):
     def __init__(self, hexstring, xorchar):
-
-        # TODO: how is this happening? 
-        if xorchar == 'é':
-            strace()
 
         if len(hexstring)%2 == 1:
             self.hexstring = "0" + hexstring
@@ -187,25 +184,32 @@ class SingleCharCandidate(object):
         self.asciicontrol = 0
         self.nulls = 0
         self.nonascii = 0
+        self.punctuations = self.asciicontrols = ''
         for character in self.plaintext:
             ordc = ord(character)
-            #if not 31 <= ord(character) <= 127:
-            if ordc > 127:
-                self.nonascii += 1
-            elif ordc == 0:
+            if ordc == 0:
                 self.nulls += 1
-            elif ordc == 13:
-                # this is a linefeed char; just totally ignore it in the char count
-                pass 
-            elif character in string.whitespace or ordc in [9, 10]:
-                # 9 is tab, 10, is carriage return
-                self.whitespace += 1
-            elif ordc in [7, 27]:
+            elif ordc <= 8:
                 self.asciicontrol += 1
-            elif 0 <= ordc <= 31 or ordc == 127:
-                # all these that remain in this range are nonprintables
-                #self.asciicontrol += 1
-                pass
+                self.asciicontrols += character
+            elif ordc <= 10:
+                self.whitespace += 1
+            elif ordc <= 12:
+                self.asciicontrol +=1 
+                self.asciicontrols += character
+            elif ordc == 13:
+                # ignoring this so i dont have to deal with cr+lf vs just lf or whatever
+                pass 
+            elif ordc <= 31:
+                self.asciicontrol += 1
+                self.asciicontrols += character
+            elif ordc == 127:
+                self.asciicontrol += 1
+                self.asciicontrols += character
+            elif ordc > 127: 
+                self.nonascii += 1
+            elif character in string.whitespace:
+                self.whitespace += 1
             elif character in 'aeiouAEIOU':
                 self.vowels += 1
             elif character in 'bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ':
@@ -214,6 +218,8 @@ class SingleCharCandidate(object):
                 self.digits += 1
             else:
                 self.punctuation += 1
+                #global punctuations
+                #punctuations += character
 
             if character in 'etaoins':
                 self.popchars += 1
@@ -245,7 +251,8 @@ class TchunkCandidateSet(object):
         #debugprint("Winnowing candidate: {}".format(text))
 
 
-        self.winners = [c for c in self.candidates if winnow_asciicontrol(c)]
+        #self.winners = [c for c in self.candidates if winnow_asciicontrol(c)]
+        self.winners = self.candidates
         if len(self.winners) == 0:
             self.solved = False
         else:
@@ -272,9 +279,17 @@ class TchunkCandidateSet(object):
             self.solved = False
             debugprint("Candidate winners: NONE")
         else:
-            debugprint("Candidate winners:")
+            debugprint("Candidate winners ({} total)".format(len(self.winners)))
             for w in self.winners:
-                debugprint(w.plaintext)
+                debugprint("length: {} key char: {}".format(w.length, w.xorchar))
+            # this prints the ascii control chars that were NOT present
+            # it's only useful at this stage if you disable winnowing control chars, obviously
+            for i in [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 14, 15, 16, 17, 18, 19, 20, 
+                      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 127]:
+                present = chr(i) in w.asciicontrols
+                if not present:
+                    debugprint("    {}: {}".format(i, present))
+
 
 
 class MultiCharCandidate(object):
@@ -331,18 +346,21 @@ class MultiCharCandidate(object):
             if not new_tchunk.solved:
                 self.solved_all = False
 
-        self.plaintext = self.strxorkey = self.hexxorkey = ""
+        self.plaintext = self.ascii_key = self.fullkey_ascii = self.hexxorkey = ""
         tchunk_count = len(self.tchunks)
 
         for i in range(0, self.tchunksize):
             for tc in self.tchunks:
-                newpt = newxc = '_' # a temp value that only gets used if there was no winner
+                newpt = newxc = '_' # a placeholder that only gets used if there was no winner
                 if tc.solved:
                     newpt = tc.winners[0].plaintext[i]
                     newxc = tc.winners[0].xorchar
                 self.plaintext += newpt
-                self.strxorkey += newxc
-
+                self.fullkey_ascii += newxc
+                if i == self.keylen:
+                    self.ascii_key += newxc
+        self.hex_key = string_to_hex(self.ascii_key)
+        self.hex_plaintext = string_to_hex(self.plaintext)
 
 def find_multichar_xor(hexstring):
     """
@@ -436,6 +454,10 @@ def mytest_ciphertext():
 ciphertext = gist_ciphertext()
 
 winner = find_multichar_xor(ciphertext)
-print("Winning key: {}".format(winner.strxorkey))
-print("Winning plaintext: {}".format(winner.plaintext))
-
+print("Winning key: ascii: {} hex: {} hexlen: {}".format(
+    winner.ascii_key, winner.hex_key, winner.keylen))
+#print("Winning plaintext:\n{}".format(winner.plaintext))
+#print("Winning hex_plaintext:\n{}".format(winner.hex_plaintext))
+strace()
+#print("punctuations:")
+#print(punctuations)
