@@ -444,9 +444,9 @@ def repxor(plaintext=False, plainhex=False, keytext=False, keyhex=False, returns
     the result.
     """
     if (plaintext and plainhex) or (not plaintext and not plainhex):
-        raise Exception("Specify only plaintext or plainhex argument, not both or neither")
+        raise Exception("Specify one of plaintext or plainhex argument, not both or neither")
     if (keytext and keyhex) or (not keytext and not keyhex):
-        raise Exception("Specify only keytext or keyhex argument, not both or neither")
+        raise Exception("Specify one of keytext or keyhex argument, not both or neither")
     if plaintext:
         plainhex = string_to_hex(plaintext)
     if keytext:
@@ -457,42 +457,23 @@ def repxor(plaintext=False, plainhex=False, keytext=False, keyhex=False, returns
     while len(plainhex) < len(fullkeyhex):
         plainhex += ("00")
     plainbin = int(plainhex, 16)
-    keybin = int(keyhex, 16)
+    keybin = int(fullkeyhex, 16)
     xorbin = plainbin^keybin
     xorhex = hex(xorbin)[2:]
     if len(xorhex)%2 == 1:
+        # TODO: what if there is more than one leading zero? I need to pad this to len(plainhex).
+        # 
         # pad the beginning with zero so that the hexxor string has an even number of hex bits in it.
         # useful because not only does it match the provided solution this way, it also 
         # means there are two hex digits per character so the ciphertext is decodable to ASCII
         # and it's consistent with how you'd encode plaintext.
         xorhex = "0"+xorhex
-    return(xorhex)
+    xortext = hex_to_string(xorhex)
+    if returnstring:
+        return(xortext)
+    else:
+        return(xorhex)
         
-        
-def repxor_old(plaintext, basekey):
-    key = basekey
-    while len(key) < len(plaintext):
-        key += basekey
-    while len(plaintext) < len(key):
-        plaintext += (chr(0x00))
-
-    hextxt = string_to_hex(plaintext)
-    hexkey = string_to_hex(key)
-    bintxt = int(hextxt, 16)
-    binkey = int(hexkey, 16)
-    binxor = bintxt^binkey
-    hexxor = hex(binxor)[2:]
-
-    if len(hexxor)%2 is 1:
-        # pad the beginning with zero so that the hexxor string has an even number of hex bits in it. 
-        # useful because not only does it match the provided solution this way, it also 
-        # means there are two hex digits per character so the ciphertext is decodable to ASCII
-        # and it's consistent with how you'd encode plaintext.
-        hexxor = "0"+hexxor
-    return(hexxor)
-
-
-
 def gist_ciphertext():
     f = open("3132752.gist.txt")
     gist = f.read().replace("\n","")
@@ -506,22 +487,27 @@ def mytest_ciphertext():
     # the length of this string is exactly 310
     # 310/10 is 31 which is a prime. useful for testing larger keylens. 
     plaintext = 'To convert data to PEM printable encoding, the first byte is placed in the most significant eight bits of a 24-bit buffer, the next in the middle eight, and the third in the least significant eight bits. If there are fewer than three bytes left to encode (or in total), the remaining buffer bits will be zero..'
-    key = 'abcdefg'
+    key = 'abcdefghij'
     ciphertext = repxor(plaintext=plaintext, keytext=key, returnstring=False)
     print("Ciphertext: ")
     print(ciphertext)
     return ciphertext
 
-ciphertext = mytest_ciphertext()
+def mytestshort_ciphertext():
+    plaintext = 'abcdefghij'
+    key = '00000000'
+    ciphertext = repxor(plaintext=plaintext, keyhex=key)
+    return ciphertext
 
-winner = find_multichar_xor(ciphertext)
-print("Winning key: ascii: {} hex: {} hexlen: {}".format(
-    winner.ascii_key, winner.hex_key, winner.keylen))
-print("Winning plaintext:\n{}".format(winner.plaintext))
-#print("Winning hex_plaintext:\n{}".format(winner.hex_plaintext))
-#print("punctuations:")
-#print(punctuations)
-debugprint(len(winner.tchunks[0].winners))
-for w0 in winner.tchunks[0].winners:
-    debugprint(w0.plaintext)
-strace()
+if __name__ == '__main__':
+    ciphertext = mytest_ciphertext()
+    winner = find_multichar_xor(ciphertext)
+    print("Winning key: ascii: {} hex: {} hexlen: {}".format(
+        winner.ascii_key, winner.hex_key, winner.keylen))
+    print("Winning plaintext:\n{}".format(winner.plaintext))
+    #print("Winning hex_plaintext:\n{}".format(winner.hex_plaintext))
+    #print("punctuations:")
+    #print(punctuations)
+    debugprint(len(winner.tchunks[0].winners))
+    for w0 in winner.tchunks[0].winners:
+        debugprint(w0.plaintext)
