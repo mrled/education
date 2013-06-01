@@ -102,6 +102,21 @@ def winnow_noop(candidate):
     # TODO: revisit this! 
     return True
 
+def winnow_nulls(candidate):
+    # nulls should only appear at the end I think?
+    if candidate.nulls > 0:
+        for i in range(len(candidate.plaintext)):
+            if candidate.plaintext[i] == chr(0x00):
+                try:
+                    nextchar = candidate.plaintext[i+1]
+                    if nextchar != chr(0x00):
+                        return False
+                except IndexError:
+                    return True
+    else:
+        return True
+                
+
 def winnow_asciicontrol(candidate):
     if candidate.asciicontrol > 0:
         return False
@@ -136,6 +151,12 @@ def winnow_vowel_ratio(candidate):
     vr = candidate.vowels / candidate.letters
     cr = candidate.consonants / candidate.letters
     if vr > cr:
+        return True
+    else:
+        return False
+
+def winnow_upper_lower(candidate):
+    if candidate.uppercase < candidate.lowercase:
         return True
     else:
         return False
@@ -185,6 +206,7 @@ class SingleCharCandidate(object):
         self.nulls = 0
         self.nonascii = 0
         self.punctuations = self.asciicontrols = ''
+        self.uppercase = self.lowercase = 0
         for character in self.plaintext:
             ordc = ord(character)
             if ordc == 0:
@@ -210,10 +232,18 @@ class SingleCharCandidate(object):
                 self.nonascii += 1
             elif character in string.whitespace:
                 self.whitespace += 1
-            elif character in 'aeiouAEIOU':
+            elif character in 'aeiou':
                 self.vowels += 1
-            elif character in 'bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ':
+                self.lowercase += 1
+            elif character in 'AEIOU':
+                self.vowels += 1
+                self.uppercase += 1
+            elif character in 'bcdfghjklmnpqrstvwxyz':
                 self.consonants += 1
+                self.lowercase += 1
+            elif character in 'BCDFGHJKLMNPQRSTVWXYZ':
+                self.consonants += 1
+                self.uppercase += 1
             elif character in '0123456789':
                 self.digits += 1
             else:
@@ -251,21 +281,24 @@ class TchunkCandidateSet(object):
         #debugprint("Winnowing candidate: {}".format(text))
 
 
-        #self.winners = [c for c in self.candidates if winnow_asciicontrol(c)]
-        self.winners = self.candidates
+        self.winners = [c for c in self.candidates if winnow_asciicontrol(c)]
+        #self.winners = self.candidates
         if len(self.winners) == 0:
             self.solved = False
         else:
             opt_winnowers = [winnow_nonascii,
+                             winnow_asciicontrol,
+                             #winnow_nulls,
                              winnow_punctuation,
                              winnow_vowel_ratio, 
                              winnow_wordlength,
+                             #winnow_upper_lower,
                              winnow_letter_frequency,
                              winnow_noop]
 
             for w in opt_winnowers:
                 debugprint("WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
-                        w.__name__, len(self.winners)))
+                       w.__name__, len(self.winners)))
                 can2 = [ c for c in self.winners if w(c) ]
                 if len(can2) > 0:
                     self.winners = can2
@@ -287,8 +320,9 @@ class TchunkCandidateSet(object):
             for i in [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 14, 15, 16, 17, 18, 19, 20, 
                       21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 127]:
                 present = chr(i) in w.asciicontrols
-                if not present:
-                    debugprint("    {}: {}".format(i, present))
+                # if not present:
+                #     debugprint("    {}: {}".format(i, present))
+                #debugprint("    {}: {}".format(i, present))
 
 
 
@@ -372,7 +406,7 @@ def find_multichar_xor(hexstring):
     if len(hexstring)%2 is not 0:
         hexstring = "0"+hexstring
 
-    keylenmin = 2
+    keylenmin = 4
     keylenmax = 40
     #keylenmin = 18
     #keylenmax = 22
@@ -400,15 +434,42 @@ def find_multichar_xor(hexstring):
     attempts_sorted  = sorted(attempts, key=lambda a: a.hdnorm)
     return attempts_sorted[0]
 
-def repxor(plaintext, basekey):
+def repxor(plaintext=False, plainhex=False, keytext=False, keyhex=False, returnstring=False):
     """
     XOR plaintext with a repeating key and return the result in hex.
 
-    Take a plaintext string (not hex) and a key. Repeat the key as many times as is necessary. Pad 
+    Take a string and a key. Repeat the key as many times as is necessary. Pad 
     the plaintext with chr(0x00) so that it is equal to key length (do not truncate the key if it 
-    is too long, or if it is too longer after it was repeated). XOR them together. Return the result
-    as a hex string.
+    is too long, or if it is too longer after it was repeated). XOR them together. Return
+    the result.
     """
+    if (plaintext and plainhex) or (not plaintext and not plainhex):
+        raise Exception("Specify only plaintext or plainhex argument, not both or neither")
+    if (keytext and keyhex) or (not keytext and not keyhex):
+        raise Exception("Specify only keytext or keyhex argument, not both or neither")
+    if plaintext:
+        plainhex = string_to_hex(plaintext)
+    if keytext:
+        keyhex = string_to_hex(keytext)
+    fullkeyhex = keyhex
+    while len(fullkeyhex) < len(plainhex):
+        fullkeyhex += keyhex
+    while len(plainhex) < len(fullkeyhex):
+        plainhex += ("00")
+    plainbin = int(plainhex, 16)
+    keybin = int(keyhex, 16)
+    xorbin = plainbin^keybin
+    xorhex = hex(xorbin)[2:]
+    if len(xorhex)%2 == 1:
+        # pad the beginning with zero so that the hexxor string has an even number of hex bits in it.
+        # useful because not only does it match the provided solution this way, it also 
+        # means there are two hex digits per character so the ciphertext is decodable to ASCII
+        # and it's consistent with how you'd encode plaintext.
+        xorhex = "0"+xorhex
+    return(xorhex)
+        
+        
+def repxor_old(plaintext, basekey):
     key = basekey
     while len(key) < len(plaintext):
         key += basekey
@@ -445,19 +506,22 @@ def mytest_ciphertext():
     # the length of this string is exactly 310
     # 310/10 is 31 which is a prime. useful for testing larger keylens. 
     plaintext = 'To convert data to PEM printable encoding, the first byte is placed in the most significant eight bits of a 24-bit buffer, the next in the middle eight, and the third in the least significant eight bits. If there are fewer than three bytes left to encode (or in total), the remaining buffer bits will be zero..'
-    key = 'abcdefghij'
-    ciphertext = repxor(plaintext, key)
+    key = 'abcdefg'
+    ciphertext = repxor(plaintext=plaintext, keytext=key, returnstring=False)
     print("Ciphertext: ")
     print(ciphertext)
     return ciphertext
 
-ciphertext = gist_ciphertext()
+ciphertext = mytest_ciphertext()
 
 winner = find_multichar_xor(ciphertext)
 print("Winning key: ascii: {} hex: {} hexlen: {}".format(
     winner.ascii_key, winner.hex_key, winner.keylen))
-#print("Winning plaintext:\n{}".format(winner.plaintext))
+print("Winning plaintext:\n{}".format(winner.plaintext))
 #print("Winning hex_plaintext:\n{}".format(winner.hex_plaintext))
-strace()
 #print("punctuations:")
 #print(punctuations)
+debugprint(len(winner.tchunks[0].winners))
+for w0 in winner.tchunks[0].winners:
+    debugprint(w0.plaintext)
+strace()
