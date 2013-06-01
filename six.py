@@ -209,11 +209,10 @@ class SingleCharCandidate(object):
         self.asciicontrol = 0
         self.nulls = 0
         self.nonascii = 0
-        self.punctuations = self.asciicontrols = ''
         self.uppercase = self.lowercase = 0
         self.allletters={'a':0,'b':0,'c':0,'d':0,'e':0,'f':0,'g':0,'h':0,'i':0,
-                        'j':0,'k':0,'l':0,'m':0,'n':0,'o':0,'p':0,'q':0,'r':0,
-                        's':0,'t':0,'u':0,'v':0,'w':0,'x':0,'y':0,'z':0}
+                         'j':0,'k':0,'l':0,'m':0,'n':0,'o':0,'p':0,'q':0,'r':0,
+                         's':0,'t':0,'u':0,'v':0,'w':0,'x':0,'y':0,'z':0}
                            
         for character in self.plaintext:
             ordc = ord(character)
@@ -221,61 +220,58 @@ class SingleCharCandidate(object):
                 self.nulls += 1
             elif ordc <= 8:
                 self.asciicontrol += 1
-                self.asciicontrols += character
             elif ordc <= 10:
                 self.whitespace += 1
             elif ordc <= 12:
                 self.asciicontrol +=1 
-                self.asciicontrols += character
             elif ordc == 13:
                 # ignoring this so i dont have to deal with cr+lf vs just lf or whatever
                 pass 
             elif ordc <= 31:
                 self.asciicontrol += 1
-                self.asciicontrols += character
             elif ordc == 127:
                 self.asciicontrol += 1
-                self.asciicontrols += character
             elif ordc > 127: 
                 self.nonascii += 1
             elif character in string.whitespace:
                 self.whitespace += 1
-            elif character in 'aeiou':
-                self.vowels += 1
-                self.lowercase += 1
-                self.letters += 1
-                self.allletters[character.lower()] += 1
-            elif character in 'AEIOU':
-                self.vowels += 1
-                self.uppercase += 1
-                self.letters += 1
-                self.allletters[character.lower()] += 1
-            elif character in 'bcdfghjklmnpqrstvwxyz':
-                self.consonants += 1
-                self.lowercase += 1
-                self.letters += 1
-                self.allletters[character.lower()] += 1
-            elif character in 'BCDFGHJKLMNPQRSTVWXYZ':
-                self.consonants += 1
-                self.uppercase += 1
-                self.letters += 1
-                self.allletters[character.lower()] += 1
+            elif character in 'aeiouAEIOUbcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ':
+                 self.letters += 1
+                 self.allletters[character.lower()] += 1
+            # elif character in 'aeiou':
+            #     self.vowels += 1
+            #     self.lowercase += 1
+            #     self.letters += 1
+            #     self.allletters[character.lower()] += 1
+            # elif character in 'AEIOU':
+            #     self.vowels += 1
+            #     self.uppercase += 1
+            #     self.letters += 1
+            #     self.allletters[character.lower()] += 1
+            # elif character in 'bcdfghjklmnpqrstvwxyz':
+            #     self.consonants += 1
+            #     self.lowercase += 1
+            #     self.letters += 1
+            #     self.allletters[character.lower()] += 1
+            # elif character in 'BCDFGHJKLMNPQRSTVWXYZ':
+            #     self.consonants += 1
+            #     self.uppercase += 1
+            #     self.letters += 1
+            #     self.allletters[character.lower()] += 1
             elif character in '0123456789':
                 self.digits += 1
             else:
                 self.punctuation += 1
-                #global punctuations
-                #punctuations += character
 
             if character in 'etaoins':
                 self.popchars += 1
 
-        avghistogram={"a":8.167,"b":1.492,"c":2.782,"d":4.253,"e":12.702,
-                      "f":2.228,"g":2.015,"h":6.094,"i":6.966,"j":0.153,
-                      "k":0.772,"l":4.025,"m":2.406,"n":6.749,"o":7.507,
-                      "p":1.929,"q":0.095,"r":5.987,"s":6.327,"t":9.056,
-                      "u":2.758,"v":0.978,"w":2.360,"x":0.150,"y":1.974,
-                      "z":0.074} # from wikipedia
+        avghistogram={"a":.08167,"b":.01492,"c":.02782,"d":.04253,"e":.12702,
+                      "f":.02228,"g":.02015,"h":.06094,"i":.06966,"j":.00153,
+                      "k":.00772,"l":.04025,"m":.02406,"n":.06749,"o":.07507,
+                      "p":.01929,"q":.00095,"r":.05987,"s":.06327,"t":.09056,
+                      "u":.02758,"v":.00978,"w":.02360,"x":.00150,"y":.01974,
+                      "z":.00074} # from wikipedia
         self.histdifference = 0
         self.histogram={}
         for letter in self.allletters:
@@ -286,16 +282,17 @@ class SingleCharCandidate(object):
             self.histdifference += abs(avghistogram[letter] - self.allletters[letter])
 
 
-
     def __repr__(self):
-        retval = "SingleCharCandidate xorchar: {}, plaintext: {}".format(
-            self.xorchar, self.plaintext)
+        histd = '{:0>8}'.format(round(self.histdifference, 6))
+        retval = "1cc: xor: {}, histd: {}, plain: {}".format(
+            self.xorchar, histd, self.plaintext)
         return retval
 
     @classmethod
     def generate_ascii_candidates(self, hexstring):
         candidates = []
-        for i in range(0, 128):
+        #for i in range(0, 128):
+        for i in range(31, 127):
             candidates += [SingleCharCandidate(hexstring, chr(i))]
         return candidates
 
@@ -307,8 +304,8 @@ class TchunkCandidateSet(object):
 
         # calculate the possibilities for this chunk
         self.candidates = SingleCharCandidate.generate_ascii_candidates(self.text)
-        tmpwinners =   [c for c in self.candidates if winnow_asciicontrol(c)]
-        self.winners = [c for c in tmpwinners      if winnow_nulls(c)]
+        self.winners = [c for c in self.candidates if winnow_asciicontrol(c)]
+        self.winners = [c for c in self.winners    if winnow_nulls(c)]
         #self.winners = self.candidates
         if len(self.winners) == 0:
             self.solved = False
@@ -459,16 +456,13 @@ class MultiCharCandidate(object):
                 safeprint("tchunks[{}]: {} with {} winners".format(
                     i, "solved" if tc.solved else "unsolved", len(tc.winners)))
                 for winner in tc.winners:
-                    safeprint("    SingleCharCandidate: xorchar: {}, plaintext: {}".format(
-                        winner.xorchar, winner.plaintext))
+                    safeprint("  {}".format(winner))
         else:
             tc = self.tchunks[tchunk]
             safeprint("tchunks[{}]: {} with {} winners".format(
                 tchunk, "solved" if tc.solved else "unsolved", len(tc.winners)))
             for winner in tc.winners:
-                safeprint("    SingleCharCandidate: xorchar: {}, plaintext: {}".format(
-                    winner.xorchar, winner.plaintext))
-
+                safeprint("  {}".format(winner))
         
 
 def find_multichar_xor(hexstring):
@@ -581,10 +575,9 @@ if __name__ == '__main__':
         winner.ascii_key, winner.hex_key, winner.keylen))
     print("Winning plaintext:\n{}".format(winner.plaintext))
     #print("Winning hex_plaintext:\n{}".format(winner.hex_plaintext))
-    #print("punctuations:")
-    #print(punctuations)
     debugprint(len(winner.tchunks[0].winners))
     for w0 in winner.tchunks[0].winners:
         debugprint(w0.plaintext)
 
+    winner.print_winners()
     strace()
