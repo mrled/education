@@ -11,7 +11,10 @@ CRYPTOPALS_DEBUG = True
 def safeprint(text):
     safetext = ""
     for character in text:
-        if 31 <= ord(character) <= 127:
+        ordc = ord(character)
+        if character in string.whitespace:
+            safetext += ' '
+        elif 31 <= ordc <= 127:
             safetext += character
         else:
             safetext += hex(ord(character))
@@ -212,9 +215,12 @@ class SingleCharCandidate(object):
         self.uppercase = self.lowercase = 0
         self.allletters={'a':0,'b':0,'c':0,'d':0,'e':0,'f':0,'g':0,'h':0,'i':0,
                          'j':0,'k':0,'l':0,'m':0,'n':0,'o':0,'p':0,'q':0,'r':0,
-                         's':0,'t':0,'u':0,'v':0,'w':0,'x':0,'y':0,'z':0}
+                         's':0,'t':0,'u':0,'v':0,'w':0,'x':0,'y':0,'z':0, 
+                         'whitespace':0, 'other':0}
                            
-        for character in self.plaintext:
+        #for character in self.plaintext:
+        for i in range(len(self.plaintext)):
+            character = self.plaintext[i]
             ordc = ord(character)
             if ordc == 0:
                 self.nulls += 1
@@ -223,10 +229,12 @@ class SingleCharCandidate(object):
             elif ordc <= 10:
                 self.whitespace += 1
             elif ordc <= 12:
+                self.asciicontrol += 1 
+            elif ordc == 13: 
+                # ideally i'd check if the CR char was followed by LF, but that LF would be
+                # in another tchunk, so that's kinda hard...
+                #pass
                 self.asciicontrol +=1 
-            elif ordc == 13:
-                # ignoring this so i dont have to deal with cr+lf vs just lf or whatever
-                pass 
             elif ordc <= 31:
                 self.asciicontrol += 1
             elif ordc == 127:
@@ -266,12 +274,26 @@ class SingleCharCandidate(object):
             if character in 'etaoins':
                 self.popchars += 1
 
-        avghistogram={"a":.08167,"b":.01492,"c":.02782,"d":.04253,"e":.12702,
-                      "f":.02228,"g":.02015,"h":.06094,"i":.06966,"j":.00153,
-                      "k":.00772,"l":.04025,"m":.02406,"n":.06749,"o":.07507,
-                      "p":.01929,"q":.00095,"r":.05987,"s":.06327,"t":.09056,
-                      "u":.02758,"v":.00978,"w":.02360,"x":.00150,"y":.01974,
-                      "z":.00074} # from wikipedia
+        wikipedia_avg_histogram ={
+            "a":.08167,"b":.01492,"c":.02782,"d":.04253,"e":.12702,
+            "f":.02228,"g":.02015,"h":.06094,"i":.06966,"j":.00153,
+            "k":.00772,"l":.04025,"m":.02406,"n":.06749,"o":.07507,
+            "p":.01929,"q":.00095,"r":.05987,"s":.06327,"t":.09056,
+            "u":.02758,"v":.00978,"w":.02360,"x":.00150,"y":.01974,
+            "z":.00074} 
+        # from: http://www.cl.cam.ac.uk/~mgk25/lee-essays.pdf p181. via: wikipedia.
+        lee_avg_histogram = {
+            'a':.0609, 'b':.0105, 'c':.0284, 'd':.0292, 'e':.1136,
+            'f':.0179, 'g':.0138, 'h':.0341, 'i':.0544, 'j':.0024,
+            'k':.0041, 'l':.0292, 'm':.0276, 'n':.0544, 'o':.0600,
+            'p':.0195, 'q':.0024, 'r':.0495, 's':.0568, 't':.0803,
+            'u':.0243, 'v':.0097, 'w':.0138, 'x':.0024, 'y':.0130,
+            'z':.0003, 'whitespace':.1217, 'other':.0657 }
+        self.avghistogram = lee_avg_histogram
+
+        self.allletters['whitespace'] = self.whitespace
+        self.allletters['other'] = self.punctuation + self.digits
+
         self.histdifference = 0
         self.histogram={}
         for letter in self.allletters:
@@ -279,7 +301,7 @@ class SingleCharCandidate(object):
                 self.histogram[letter] = self.allletters[letter]/self.letters
             except ZeroDivisionError:
                 self.histogram[letter] = 0
-            self.histdifference += abs(avghistogram[letter] - self.allletters[letter])
+            self.histdifference += abs(self.avghistogram[letter] - self.allletters[letter])
 
 
     def __repr__(self):
@@ -477,8 +499,8 @@ def find_multichar_xor(hexstring):
 
     keylenmin = 4
     keylenmax = 40
-    keylenmin = 18
-    keylenmax = 22
+    #keylenmin = 18
+    #keylenmax = 22
     cipherlen = len(hexstring)
 
     # If you don't do this, and you pass it a too-short hexstring, it'll try to compare chunk1 with
@@ -500,7 +522,7 @@ def find_multichar_xor(hexstring):
             debugprint("Attempting a keylen of {}".format(keylen))
             attempts += [MultiCharCandidate(hexstring, keylen)]
 
-    attempts_sorted  = sorted(attempts, key=lambda a: a.hdnorm)
+    attempts_sorted = sorted(attempts, key=lambda a: a.hdnorm)
     return attempts_sorted[0]
 
 def repxor(plaintext=False, plainhex=False, keytext=False, keyhex=False, returnstring=False):
@@ -556,7 +578,7 @@ def mytest_ciphertext():
     # the length of this string is exactly 310
     # 310/10 is 31 which is a prime. useful for testing larger keylens. 
     plaintext = 'To convert data to PEM printable encoding, the first byte is placed in the most significant eight bits of a 24-bit buffer, the next in the middle eight, and the third in the least significant eight bits. If there are fewer than three bytes left to encode (or in total), the remaining buffer bits will be zero..'
-    key = 'abcdefghij'
+    key = 'abcdefghi'
     ciphertext = repxor(plaintext=plaintext, keytext=key, returnstring=False)
     print("Ciphertext: ")
     print(ciphertext)
@@ -571,13 +593,12 @@ def mytestshort_ciphertext():
 if __name__ == '__main__':
     ciphertext = mytest_ciphertext()
     winner = find_multichar_xor(ciphertext)
+
+    winner.print_winners()
+
     print("Winning key: ascii: {} hex: {} hexlen: {}".format(
         winner.ascii_key, winner.hex_key, winner.keylen))
     print("Winning plaintext:\n{}".format(winner.plaintext))
     #print("Winning hex_plaintext:\n{}".format(winner.hex_plaintext))
-    debugprint(len(winner.tchunks[0].winners))
-    for w0 in winner.tchunks[0].winners:
-        debugprint(w0.plaintext)
 
-    winner.print_winners()
     strace()
