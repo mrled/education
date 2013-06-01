@@ -9,11 +9,18 @@ from pdb import set_trace as strace
 CRYPTOPALS_DEBUG = True
 
 def safeprint(text):
-    try:
-        print(text)
-    except UnicodeEncodeError:
-        # this (usually?) only happens on Windows
-        print("WARNING: Tried to print characters that could not be displayed on this terminal. Skipping...")
+    safetext = ""
+    for character in text:
+        if 31 <= ord(character) <= 127:
+            safetext += character
+        else:
+            safetext += hex(ord(character))
+    print(safetext)
+    # try:
+    #     print(text)
+    # except UnicodeEncodeError:
+    #     # this (usually?) only happens on Windows
+    #     print("WARNING: Tried to print chars that couldn't be shown on this terminal. Skipping...")
 
 def debugprint(text):
     """Print the passed text if the program is being run in debug mode."""
@@ -103,7 +110,7 @@ def winnow_noop(candidate):
     return True
 
 def winnow_nulls(candidate):
-    # nulls should only appear at the end I think?
+    # nulls should only appear at the end as padding
     if candidate.nulls > 0:
         for i in range(len(candidate.plaintext)):
             if candidate.plaintext[i] == chr(0x00):
@@ -168,9 +175,6 @@ def winnow_letter_frequency(candidate):
     else:
         return False
 
-
-#punctuations = ""
-#asciicontrols = ""
 class SingleCharCandidate(object):
     def __init__(self, hexstring, xorchar):
 
@@ -207,6 +211,10 @@ class SingleCharCandidate(object):
         self.nonascii = 0
         self.punctuations = self.asciicontrols = ''
         self.uppercase = self.lowercase = 0
+        self.allletters={'a':0,'b':0,'c':0,'d':0,'e':0,'f':0,'g':0,'h':0,'i':0,
+                        'j':0,'k':0,'l':0,'m':0,'n':0,'o':0,'p':0,'q':0,'r':0,
+                        's':0,'t':0,'u':0,'v':0,'w':0,'x':0,'y':0,'z':0}
+                           
         for character in self.plaintext:
             ordc = ord(character)
             if ordc == 0:
@@ -235,15 +243,23 @@ class SingleCharCandidate(object):
             elif character in 'aeiou':
                 self.vowels += 1
                 self.lowercase += 1
+                self.letters += 1
+                self.allletters[character.lower()] += 1
             elif character in 'AEIOU':
                 self.vowels += 1
                 self.uppercase += 1
+                self.letters += 1
+                self.allletters[character.lower()] += 1
             elif character in 'bcdfghjklmnpqrstvwxyz':
                 self.consonants += 1
                 self.lowercase += 1
+                self.letters += 1
+                self.allletters[character.lower()] += 1
             elif character in 'BCDFGHJKLMNPQRSTVWXYZ':
                 self.consonants += 1
                 self.uppercase += 1
+                self.letters += 1
+                self.allletters[character.lower()] += 1
             elif character in '0123456789':
                 self.digits += 1
             else:
@@ -254,11 +270,27 @@ class SingleCharCandidate(object):
             if character in 'etaoins':
                 self.popchars += 1
 
-        self.letters = self.consonants + self.vowels
+        avghistogram={"a":8.167,"b":1.492,"c":2.782,"d":4.253,"e":12.702,
+                      "f":2.228,"g":2.015,"h":6.094,"i":6.966,"j":0.153,
+                      "k":0.772,"l":4.025,"m":2.406,"n":6.749,"o":7.507,
+                      "p":1.929,"q":0.095,"r":5.987,"s":6.327,"t":9.056,
+                      "u":2.758,"v":0.978,"w":2.360,"x":0.150,"y":1.974,
+                      "z":0.074} # from wikipedia
+        self.histdifference = 0
+        self.histogram={}
+        for letter in self.allletters:
+            try:
+                self.histogram[letter] = self.allletters[letter]/self.letters
+            except ZeroDivisionError:
+                self.histogram[letter] = 0
+            self.histdifference += abs(avghistogram[letter] - self.allletters[letter])
+
+
 
     def __repr__(self):
-        return "xorchar: '{}'; hexstring: '{}'; plaintext: '{}'".format(
-            self.xorchar, self.hexstring, self.plaintext)
+        retval = "SingleCharCandidate xorchar: {}, plaintext: {}".format(
+            self.xorchar, self.plaintext)
+        return retval
 
     @classmethod
     def generate_ascii_candidates(self, hexstring):
@@ -269,6 +301,23 @@ class SingleCharCandidate(object):
 
 
 class TchunkCandidateSet(object):
+    def __init__(self, text):
+        self.text = text
+        self.solved = True
+
+        # calculate the possibilities for this chunk
+        self.candidates = SingleCharCandidate.generate_ascii_candidates(self.text)
+        tmpwinners =   [c for c in self.candidates if winnow_asciicontrol(c)]
+        self.winners = [c for c in tmpwinners      if winnow_nulls(c)]
+        #self.winners = self.candidates
+        if len(self.winners) == 0:
+            self.solved = False
+        else:
+            sorted_winners = sorted(self.winners, key=lambda w: w.histdifference)
+            self.winners = sorted_winners
+
+
+class TchunkCandidateSet_OldWinnowMethod(object):
     def __init__(self, text):
         self.text = text
 
@@ -323,8 +372,6 @@ class TchunkCandidateSet(object):
                 # if not present:
                 #     debugprint("    {}: {}".format(i, present))
                 #debugprint("    {}: {}".format(i, present))
-
-
 
 class MultiCharCandidate(object):
     def __init__(self, hexstring, keylen):
@@ -396,6 +443,34 @@ class MultiCharCandidate(object):
         self.hex_key = string_to_hex(self.ascii_key)
         self.hex_plaintext = string_to_hex(self.plaintext)
 
+    def __repr__(self):
+        retval =  "MultiCharCandidate: {}, of hex len: {}, hdnorm: {}\n".format(
+            "solved" if self.solved_all else "unsolved", self.keylen, self.hdnorm)
+        for i in range(len(self.tchunks)):
+            tc = self.tchunks[i]
+            retval += "    tchunks[{}]: {} with {} winners\n".format(
+                i, "solved" if tc.solved else "unsolved", len(tc.winners))
+        return retval
+
+    def print_winners(self, tchunk="all"):
+        if tchunk == "all":
+            for i in range(len(self.tchunks)):
+                tc = self.tchunks[i]
+                safeprint("tchunks[{}]: {} with {} winners".format(
+                    i, "solved" if tc.solved else "unsolved", len(tc.winners)))
+                for winner in tc.winners:
+                    safeprint("    SingleCharCandidate: xorchar: {}, plaintext: {}".format(
+                        winner.xorchar, winner.plaintext))
+        else:
+            tc = self.tchunks[tchunk]
+            safeprint("tchunks[{}]: {} with {} winners".format(
+                tchunk, "solved" if tc.solved else "unsolved", len(tc.winners)))
+            for winner in tc.winners:
+                safeprint("    SingleCharCandidate: xorchar: {}, plaintext: {}".format(
+                    winner.xorchar, winner.plaintext))
+
+        
+
 def find_multichar_xor(hexstring):
     """
     Break a hexstring of repeating-key XOR ciphertext. 
@@ -408,8 +483,8 @@ def find_multichar_xor(hexstring):
 
     keylenmin = 4
     keylenmax = 40
-    #keylenmin = 18
-    #keylenmax = 22
+    keylenmin = 18
+    keylenmax = 22
     cipherlen = len(hexstring)
 
     # If you don't do this, and you pass it a too-short hexstring, it'll try to compare chunk1 with
@@ -511,3 +586,5 @@ if __name__ == '__main__':
     debugprint(len(winner.tchunks[0].winners))
     for w0 in winner.tchunks[0].winners:
         debugprint(w0.plaintext)
+
+    strace()
