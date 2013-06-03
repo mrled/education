@@ -17,13 +17,11 @@ def safeprint(text):
         elif 31 <= ordc <= 127:
             safetext += character
         else:
-            safetext += hex(ord(character))
-    print(safetext)
-    # try:
-    #     print(text)
-    # except UnicodeEncodeError:
-    #     # this (usually?) only happens on Windows
-    #     print("WARNING: Tried to print chars that couldn't be shown on this terminal. Skipping...")
+            safetext += '£' # might need to tweak this on Windows...
+    try:
+        print(safetext)
+    except UnicodeEncodeError:
+         print("WARNING: Tried to print chars that couldn't be shown on this terminal. Skipping...")
 
 def debugprint(text):
     """Print the passed text if the program is being run in debug mode."""
@@ -35,8 +33,7 @@ def debug_trap(type, value, tb):
     traceback.print_exception(type, value, tb)
     print("EXCEPTION ENCOUNTERED. STARTING THE DEBUGGER IN POST-MORTEM MODE.")
     pdb.pm() # the debugger in post-mortem mode
-    sys.excepthook = debug_trap
-
+sys.excepthook = debug_trap
 
 def hexxor(x, y):
     """Do a XOR of two hex strings of the same length"""
@@ -79,21 +76,14 @@ def hamming_code_distance(string1, string2):
     bytes2=string2.encode()
     i = 0
     hamming_distance = 0
-    while i < len(bytes1):
+    for i in range(len(bytes1)):
         char1 = bytes1[i]
         char2 = bytes2[i]
         bin1 = "{:0>8}".format(bin(char1)[2:])
         bin2 = "{:0>8}".format(bin(char2)[2:])
-        j = 0
-        thisbyte_hd = 0
-        while j < 8:
+        for j in range(8):
             if bin1[j] is not bin2[j]:
-                thisbyte_hd +=1
                 hamming_distance += 1
-            j +=1
-        #debugprint("{} {}\n{} {}\n\t-- hamming distance: {}".format(
-        #        chr(char1), bin1, chr(char2), bin2, thisbyte_hd))
-        i +=1
     return hamming_distance
 
 def hex_to_string(hexstring):
@@ -104,16 +94,11 @@ def hex_to_string(hexstring):
         decoded += chr(int(hexstring[i:i+2], 16))
     return decoded
 
-
-
-def winnow_noop(candidate):
-    # this is dumb I know, but the final winnow function must be a noop like this b/c of
-    # how I set up my loop. 
-    # TODO: revisit this! 
-    return True
-
 def winnow_nulls(candidate):
     # nulls should only appear at the end as padding
+    # note that a candidate will falsely pass winnowing if it has nulls at the end, 
+    # but other tchunks have non-nulls that come later. I don't think that's a huge 
+    # problem but it's worth noting that this isn't perfect without tchunk lookahead. 
     if candidate.nulls > 0:
         for i in range(len(candidate.plaintext)):
             if candidate.plaintext[i] == chr(0x00):
@@ -139,45 +124,6 @@ def winnow_nonascii(candidate):
     else:
         return True
 
-def winnow_wordlength(candidate):
-    try:
-        avg_length = (candidate.letters + candidate.digits) / candidate.whitespace
-    except ZeroDivisionError:
-        avg_length = candidate.letters
-    if 2 < avg_length < 8:
-        return True
-    else:
-        return False
-
-def winnow_punctuation(candidate):
-    if candidate.punctuation < candidate.letters/7:
-        return True
-    else:
-        return False
-
-def winnow_vowel_ratio(candidate):
-    if candidate.letters == 0:
-        return True
-    vr = candidate.vowels / candidate.letters
-    cr = candidate.consonants / candidate.letters
-    if vr > cr:
-        return True
-    else:
-        return False
-
-def winnow_upper_lower(candidate):
-    if candidate.uppercase < candidate.lowercase:
-        return True
-    else:
-        return False
-
-def winnow_letter_frequency(candidate):
-    pr = candidate.popchars / candidate.letters
-    if .50 <= pr <= .85:
-        return True
-    else:
-        return False
-
 class SingleCharCandidate(object):
     def __init__(self, hexstring, xorchar):
 
@@ -201,18 +147,8 @@ class SingleCharCandidate(object):
         hex_plaintext = hexxor(self.hexstring, xor_hexstring)
         self.plaintext = hex_to_string(hex_plaintext)
 
-        self.whitespace = 0
-        self.vowels = 0
-        self.consonants = 0
-        self.digits = 0
-        self.punctuation = 0
-        self.letters = 0
-        self.allcharacters = len(self.plaintext)
-        self.popchars = 0 # more ~60% of english letters are one of these
-        self.asciicontrol = 0
-        self.nulls = 0
-        self.nonascii = 0
-        self.uppercase = self.lowercase = 0
+        self.whitespace = self.digits = self.punctuation = self.letters = 0
+        self.asciicontrol = self.nulls = self.nonascii = 0
         self.allletters={'a':0,'b':0,'c':0,'d':0,'e':0,'f':0,'g':0,'h':0,'i':0,
                          'j':0,'k':0,'l':0,'m':0,'n':0,'o':0,'p':0,'q':0,'r':0,
                          's':0,'t':0,'u':0,'v':0,'w':0,'x':0,'y':0,'z':0, 
@@ -222,74 +158,37 @@ class SingleCharCandidate(object):
         for i in range(len(self.plaintext)):
             character = self.plaintext[i]
             ordc = ord(character)
-            if ordc == 0:
-                self.nulls += 1
-            elif ordc <= 8:
-                self.asciicontrol += 1
-            elif ordc <= 10:
-                self.whitespace += 1
-            elif ordc <= 12:
-                self.asciicontrol += 1 
-            elif ordc == 13: 
-                # ideally i'd check if the CR char was followed by LF, but that LF would be
-                # in another tchunk, so that's kinda hard...
-                #pass
-                self.asciicontrol +=1 
-            elif ordc <= 31:
-                self.asciicontrol += 1
-            elif ordc == 127:
-                self.asciicontrol += 1
-            elif ordc > 127: 
-                self.nonascii += 1
+
+            if character in string.ascii_letters:
+                self.letters += 1
+                self.allletters[character.lower()] += 1
+            elif character in string.punctuation:
+                self.punctuation += 1
+            elif character in string.digits:
+                self.digits += 1
             elif character in string.whitespace:
                 self.whitespace += 1
-            elif character in 'aeiouAEIOUbcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ':
-                 self.letters += 1
-                 self.allletters[character.lower()] += 1
-            # elif character in 'aeiou':
-            #     self.vowels += 1
-            #     self.lowercase += 1
-            #     self.letters += 1
-            #     self.allletters[character.lower()] += 1
-            # elif character in 'AEIOU':
-            #     self.vowels += 1
-            #     self.uppercase += 1
-            #     self.letters += 1
-            #     self.allletters[character.lower()] += 1
-            # elif character in 'bcdfghjklmnpqrstvwxyz':
-            #     self.consonants += 1
-            #     self.lowercase += 1
-            #     self.letters += 1
-            #     self.allletters[character.lower()] += 1
-            # elif character in 'BCDFGHJKLMNPQRSTVWXYZ':
-            #     self.consonants += 1
-            #     self.uppercase += 1
-            #     self.letters += 1
-            #     self.allletters[character.lower()] += 1
-            elif character in '0123456789':
-                self.digits += 1
+            elif ordc > 127:
+                self.nonascii += 1
+            elif ordc == 13: 
+                # ideally i'd check if the CR char was followed by LF, but that LF would be
+                # in another tchunk, so that's kinda hard... 
+                # ... so we need tchunk lookahead to do this too 
+                #self.asciicontrol +=1 
+                pass
+            elif ordc == 0:
+                self.nulls += 1
             else:
-                self.punctuation += 1
+                self.asciicontrol += 1
 
-            if character in 'etaoins':
-                self.popchars += 1
-
-        wikipedia_avg_histogram ={
-            "a":.08167,"b":.01492,"c":.02782,"d":.04253,"e":.12702,
-            "f":.02228,"g":.02015,"h":.06094,"i":.06966,"j":.00153,
-            "k":.00772,"l":.04025,"m":.02406,"n":.06749,"o":.07507,
-            "p":.01929,"q":.00095,"r":.05987,"s":.06327,"t":.09056,
-            "u":.02758,"v":.00978,"w":.02360,"x":.00150,"y":.01974,
-            "z":.00074} 
         # from: http://www.cl.cam.ac.uk/~mgk25/lee-essays.pdf p181. via: wikipedia.
-        lee_avg_histogram = {
+        self.avghistogram = {
             'a':.0609, 'b':.0105, 'c':.0284, 'd':.0292, 'e':.1136,
             'f':.0179, 'g':.0138, 'h':.0341, 'i':.0544, 'j':.0024,
             'k':.0041, 'l':.0292, 'm':.0276, 'n':.0544, 'o':.0600,
             'p':.0195, 'q':.0024, 'r':.0495, 's':.0568, 't':.0803,
             'u':.0243, 'v':.0097, 'w':.0138, 'x':.0024, 'y':.0130,
             'z':.0003, 'whitespace':.1217, 'other':.0657 }
-        self.avghistogram = lee_avg_histogram
 
         self.allletters['whitespace'] = self.whitespace
         self.allletters['other'] = self.punctuation + self.digits
@@ -303,18 +202,22 @@ class SingleCharCandidate(object):
                 self.histogram[letter] = 0
             self.histdifference += abs(self.avghistogram[letter] - self.allletters[letter])
 
-
     def __repr__(self):
         histd = '{:0>8}'.format(round(self.histdifference, 6))
-        retval = "1cc: xor: {}, histd: {}, plain: {}".format(
-            self.xorchar, histd, self.plaintext)
+        ptmaxlen = 30
+        if len(self.plaintext) <= ptmaxlen:
+            pt = self.plaintext
+        else:
+            ptmaxlen = ptmaxlen - 3
+            pt = self.plaintext[0:ptmaxlen] + "..."
+        retval = "1cc: xor: {}, histd: {}, plain: {}".format(self.xorchar, histd, pt)
         return retval
 
     @classmethod
     def generate_ascii_candidates(self, hexstring):
         candidates = []
         #for i in range(0, 128):
-        for i in range(31, 127):
+        for i in range(32, 127):
             candidates += [SingleCharCandidate(hexstring, chr(i))]
         return candidates
 
@@ -326,71 +229,14 @@ class TchunkCandidateSet(object):
 
         # calculate the possibilities for this chunk
         self.candidates = SingleCharCandidate.generate_ascii_candidates(self.text)
-        self.winners = [c for c in self.candidates if winnow_asciicontrol(c)]
-        self.winners = [c for c in self.winners    if winnow_nulls(c)]
-        #self.winners = self.candidates
+        self.winners = self.candidates
+        self.winners = [c for c in self.winners if winnow_asciicontrol(c)]
+        self.winners = [c for c in self.winners if winnow_nulls(c)]
         if len(self.winners) == 0:
             self.solved = False
         else:
             sorted_winners = sorted(self.winners, key=lambda w: w.histdifference)
             self.winners = sorted_winners
-
-
-class TchunkCandidateSet_OldWinnowMethod(object):
-    def __init__(self, text):
-        self.text = text
-
-        # calculate the possibilities for this chunk
-        self.candidates = SingleCharCandidate.generate_ascii_candidates(self.text)
-
-        self.solved = True
-        # now winnow the plaintexts down for each tchunk
-        # TODO: note that right now this may have several winners! make sure to handle that elsewhere
-        #debugprint("Winnowing candidate: {}".format(text))
-
-
-        self.winners = [c for c in self.candidates if winnow_asciicontrol(c)]
-        #self.winners = self.candidates
-        if len(self.winners) == 0:
-            self.solved = False
-        else:
-            opt_winnowers = [winnow_nonascii,
-                             winnow_asciicontrol,
-                             #winnow_nulls,
-                             winnow_punctuation,
-                             winnow_vowel_ratio, 
-                             winnow_wordlength,
-                             #winnow_upper_lower,
-                             winnow_letter_frequency,
-                             winnow_noop]
-
-            for w in opt_winnowers:
-                debugprint("WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
-                       w.__name__, len(self.winners)))
-                can2 = [ c for c in self.winners if w(c) ]
-                if len(can2) > 0:
-                    self.winners = can2
-                if len(can2) == 1:
-                    break
-        
-            #ideally there will be only one candidate butttt
-            # todo: winnow better so there's guaranteed to be just one candidate dummy
-        
-        if len(self.winners) == 0:
-            self.solved = False
-            debugprint("Candidate winners: NONE")
-        else:
-            debugprint("Candidate winners ({} total)".format(len(self.winners)))
-            for w in self.winners:
-                debugprint("length: {} key char: {}".format(w.length, w.xorchar))
-            # this prints the ascii control chars that were NOT present
-            # it's only useful at this stage if you disable winnowing control chars, obviously
-            for i in [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 14, 15, 16, 17, 18, 19, 20, 
-                      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 127]:
-                present = chr(i) in w.asciicontrols
-                # if not present:
-                #     debugprint("    {}: {}".format(i, present))
-                #debugprint("    {}: {}".format(i, present))
 
 class MultiCharCandidate(object):
     def __init__(self, hexstring, keylen):
@@ -403,7 +249,7 @@ class MultiCharCandidate(object):
 
         self.cipherlen = len(self.hexstring)
 
-        # -   only operate on even-length keys because two hits is one charater
+        # -   only operate on even-length keys because two hits is one character
         # -   only operate on keys that can divide evenly into the ciphertext b/c the plaintext 
         #     would have been padded before the XOR.
         if self.keylen%2 != 0:
@@ -416,6 +262,7 @@ class MultiCharCandidate(object):
                 self.keylen)
             et += " that keylen"
             raise Exception(et)
+            
 
         self.tchunksize = int(self.cipherlen/self.keylen)
 
@@ -427,8 +274,18 @@ class MultiCharCandidate(object):
                 self.chunks += [this_chunk]
                 this_chunk = ""
 
-        hd = hamming_code_distance(self.chunks[0], self.chunks[1])
-        self.hdnorm = hd/self.keylen
+        # TODO: this is probably overly complicated
+        hds = []
+        self.hdnorm = 0
+        for i in range(0, len(self.chunks), 2):
+            try:
+                tmphdn = hamming_code_distance(self.chunks[i], self.chunks[i+1])/self.keylen
+                hds.append(tmphdn)
+            except IndexError:
+                pass
+        for h in hds:
+            self.hdnorm += h
+        self.hdnorm = self.hdnorm / len(hds)
 
         # build the transposed chunks
         # you have `len(chunks)/2` many chunks, that are all `keylen/2` long
@@ -519,8 +376,8 @@ def find_multichar_xor(hexstring):
         #     2 (1 ascii char), 4 (2 ascii chars), 8 (4 ascii chars).
         #     cipherlen for chal06 is 5752 and 5752/8==719, a prime number.
         if cipherlen%keylen == 0: 
-            debugprint("Attempting a keylen of {}".format(keylen))
-            attempts += [MultiCharCandidate(hexstring, keylen)]
+           debugprint("Attempting a keylen of {}".format(keylen))
+           attempts += [MultiCharCandidate(hexstring, keylen)]
 
     attempts_sorted = sorted(attempts, key=lambda a: a.hdnorm)
     return attempts_sorted[0]
@@ -551,14 +408,8 @@ def repxor(plaintext=False, plainhex=False, keytext=False, keyhex=False, returns
     keybin = int(fullkeyhex, 16)
     xorbin = plainbin^keybin
     xorhex = hex(xorbin)[2:]
-    if len(xorhex)%2 == 1:
-        # TODO: what if there is more than one leading zero? I need to pad this to len(plainhex).
-        # 
-        # pad the beginning with zero so that the hexxor string has an even number of hex bits in it.
-        # useful because not only does it match the provided solution this way, it also 
-        # means there are two hex digits per character so the ciphertext is decodable to ASCII
-        # and it's consistent with how you'd encode plaintext.
-        xorhex = "0"+xorhex
+    while len(xorhex) < len(plainhex):
+        xorhex = "0" + xorhex
     xortext = hex_to_string(xorhex)
     if returnstring:
         return(xortext)
@@ -596,9 +447,9 @@ if __name__ == '__main__':
 
     winner.print_winners()
 
-    print("Winning key: ascii: {} hex: {} hexlen: {}".format(
+    safeprint("Winning key: ascii: {} hex: {} hexlen: {}".format(
         winner.ascii_key, winner.hex_key, winner.keylen))
-    print("Winning plaintext:\n{}".format(winner.plaintext))
+    safeprint("Winning plaintext:\n{}".format(winner.plaintext))
     #print("Winning hex_plaintext:\n{}".format(winner.hex_plaintext))
 
     strace()
