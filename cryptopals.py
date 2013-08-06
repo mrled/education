@@ -10,18 +10,46 @@ import binascii
 ########################################################################
 ## Backend libraryish functions
 
-def safeprint(text):
+def safeprint(text, underscores=False, maxwidth=None):
     """
-    Attempt to print the passed text, but if a UnicodeEncodeError is encountered, print a warning 
-    and move on. This is useful when printing candidate plaintext strings, because Windows will throw
-    a UnicdeEncodeError if you try to print a character it can't print or something, and your program
-    will stop.
+    Attempt to print the passed text, but if a UnicodeEncodeError is 
+    encountered, print a warning and move on. 
+
+    This is useful when printing 
+    candidate plaintext strings, because Windows will throw a UnicodeEncodeError
+    if you try to print a character it can't print or something, and your 
+    program will stop.
+
+    If `underscores` is set to True, any character not between 31 and 127 will
+    be rendered as an underscore. Note that of course you may have actual 
+    underscores in your `text` as well! 
+
+    If maxwidth is set to an integer, text will be truncated and an elipsis
+    inserted.
     """
+
+    if maxwidth and len(text) > maxwidth:
+        output1 = text[0:maxwidth-3]
+    else:
+        output1 = text
+    
+    output2 = ""
+    if underscores:
+        for character in output1:
+            if 31 <= ord(character) <= 127:
+                output2 += character
+            else:
+                output2 += "_"
+    else:
+        output2 = output1
+
     try:
-        print(text)
+        print(output2)
     except UnicodeEncodeError:
         # this (usually?) only happens on Windows
-        print("WARNING: Tried to print characters that could not be displayed on this terminal. Skipping...")
+        wt = "WARNING: Tried to print characters that could not be displayed on "
+        wt+= "this terminal. Skipping..."
+        print(wt)
 
 # idk if these are like cheating or something because they're using the base64 module? 
 def base64_to_hex(x):
@@ -187,6 +215,12 @@ def winnow_plaintexts(candidates):
 
     # winnowing based on ascii results in totally fucked output. wtf. 
     can2 = []
+
+    if CRYPTOPALS_DEBUG:
+        for c in candidates:
+            safeprint(c.plaintext, underscores=True, maxwidth=80)
+
+    strace()
     for c in candidates:
         if winnow_non_ascii(c.plaintext):
             can2 += [c]
