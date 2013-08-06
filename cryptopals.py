@@ -4,15 +4,11 @@ import argparse
 import base64
 import string
 import sys
-
-from pdb import set_trace as strace
-# now you can just run strace() anywhere you want to run pdb.set_trace()
-
+import math
+import binascii
 
 ########################################################################
 ## Backend libraryish functions
-
-
 
 def safeprint(text):
     """
@@ -26,11 +22,6 @@ def safeprint(text):
     except UnicodeEncodeError:
         # this (usually?) only happens on Windows
         print("WARNING: Tried to print characters that could not be displayed on this terminal. Skipping...")
-
-def debugprint(text):
-    """Print the passed text if the program is being run in debug mode."""
-    if CRYPTOPALS_DEBUG:
-        safeprint("DEBUG: " + str(text))
 
 # idk if these are like cheating or something because they're using the base64 module? 
 def base64_to_hex(x):
@@ -78,16 +69,40 @@ def hexxor(x, y):
             #x, len(x), y, len(y)))
             len(x), len(y)))
         #return False
-    xbin = int(x, 16)
-    ybin = int(y, 16)
-    xorbin = xbin^ybin
-    xorhex = hex(xorbin)[2:]
+    xorbin = int(x, 16) ^ int(y, 16)
+    xorhex = '{:0>2x}'.format(xorbin) # chomp leading '0x'
+
+    # if the xor results in a number with leading zeroes, make sure they're 
+    # added back so that the ciphertext is the same length as the plaintext
     diff = len(x) - len(xorhex)
     for i in range(0, diff):
         xorhex = "0" + xorhex
+
     return xorhex
+
 def strxor(x, y):
-    return hexxor(string_to_hex(x), string_to_hex(y))
+    """Do a XOR of two strings of the same length. Return the result in hex"""
+    xs = binascii.hexlify(x.encode())
+    ys = binascii.hexlify(y.encode())
+    xor = hexxor(xs, ys)
+    return xor
+
+def repxor(plaintext, key):
+    """
+    Xor the given plaintext against the given key, repeating the key as many 
+    times as is necessary.
+    """
+
+    # repeat the key as many times as necessary to be >= length of the plaintext
+    repcount = math.ceil(len(plaintext)/len(key))
+    fullkey = key * repcount
+
+    # make sure the key didnt end up longer than the plaintext by the repetition
+    fullkey = fullkey[0:len(plaintext)]
+
+    x = strxor(plaintext, fullkey)
+
+    return(x)
 
 def char_counts(text):
     """
@@ -120,7 +135,7 @@ def winnow_wordlength(text):
         avg_length = count['l'] / count['w']
     except ZeroDivisionError:
         avg_length = count['l']
-    if 2 < avg_length < 8:
+    if 2 < avg_length < 12:
         #debugprint("    PASSED with {}/{} letters/whitespace".format(count['l'], count['w']))
         return True
     else:
@@ -134,40 +149,7 @@ def winnow_non_ascii(text):
     """
     for character in text:
         if not 31 <= ord(character) <= 127:
-            debugprint("character: '{}'; ord: '{}'".format(character, ord(character)))
-            return False
-    return True
-
-def winnow_non_ascii_using_decode(text):
-    """
-    Return False if a text contains any non-ascii (or non-printable ascii) characters; 
-    True otherwise.
-    """
-    isascii = True
-    try:
-        atext = text.encode().decode("ascii")
-        for character in atext:
-            #if not 31 < ord(character) < 127:
-            if not 0 <= ord(character) <= 127:
-                isascii = False
-                break
-    except UnicodeDecodeError:
-        isascii = False
-
-    return isascii
-
-def winnow_non_ascii_orig(text):
-    """
-    Return False if a text contains any non-ascii (or non-printable ascii) characters; 
-    True otherwise.
-    """
-    try:
-        atext = text.encode().decode("ascii")
-    except UnicodeDecodeError:
-        return False
-    for character in atext:
-        #if not 27 < ord(character) < 128:
-        if not 31 < ord(character) < 127:
+            #debugprint("character: '{}'; ord: '{}'".format(character, ord(character)))
             return False
     return True
 
@@ -201,57 +183,19 @@ def winnow_vowel_ratio(text):
         #debugprint("    FAILED with ratio {}".format(vc_ratio))
         return False
 
-def find_1char_xor_v1(hextxt):
-    """Loop through all ASCII characters, XOR them against a passed hex ciphertext, 
-    and print any that are good candidates for the key."""
-    strtxt = hex_to_string(hextxt)
-    for i in range(1, 128):
-        xorchr = chr(i)
-        xortxt = '{:{fill}>{width}}'.format(xorchr, fill=xorchr, width=len(strtxt)+1)
-        xorhex = string_to_hex(xortxt)
-        candidate = hexxor(hextxt,xorhex)
-        if candidate:
-            score = score_plaintext(hex_to_string(candidate))
-            if score:
-                safeprint("{}: {}".format(xorchr, hex_to_string(candidate)))
-
-class SingleCharCandidate(object):
-    def __init__(self, hexstring, xorchar):
-
-        if len(hexstring)%2 == 1:
-            self.hexstring = "0" + hexstring
-        else:
-            self.hexstring = hexstring
-
-        if not 0 <= ord(xorchar) <= 127:
-            raise Exception("Passed a xorchar that is not an ascii character.")
-
-        self.xorchar = xorchar
-        self.hex_xorchar = "{:0>2x}".format(ord(self.xorchar))
-
-        self.length = len(self.hexstring)
-
-        xor_hexstring = ""
-        #for byte in range(0, int((len(self.hexstring)+1)/2)):
-        for byte in range(0, int(len(self.hexstring)/2)):
-            xor_hexstring += self.hex_xorchar
-        hex_plaintext = hexxor(self.hexstring, xor_hexstring)
-        self.plaintext = hex_to_string(hex_plaintext)
-
-    def __repr__(self):
-        return "xorchar: '{}'; hexstring: '{}'; plaintext: '{}'".format(
-            self.xorchar, self.hexstring, self.plaintext)
-
 def winnow_plaintexts(candidates):
 
     # winnowing based on ascii results in totally fucked output. wtf. 
-    # can2 = []
-    # for c in candidates:
-    #     if winnow_non_ascii(c.plaintext):
-    #         can2 += [c]
-    # candidates = can2
-    # if len(candidates) == 0:
-    #     return False
+    can2 = []
+    for c in candidates:
+        if winnow_non_ascii(c.plaintext):
+            can2 += [c]
+    if len(can2) == 0:
+        et = "ASCII winnowing failed. "
+        et+= "Found no candidates which didn't result in non-ascii characters "
+        et+= "for this hexstring: {}".format(candidates[0].hexstring)
+        raise Exception(et)
+    candidates = can2
 
     opt_winnowers = [winnow_punctuation,
                      winnow_vowel_ratio, 
@@ -283,21 +227,14 @@ def winnow_plaintexts(candidates):
     elif len(candidates) > 1:
         debugprint("WINNOWING COMPLETE BUT {} CANDIDATES REMAIN".format(len(candidates)))
 
-    return candidates[0]
-
-
-def build_1char_candidates(hexstring):
-    candidates = []
-    for i in range(0, 128):
-        candidates += [SingleCharCandidate(hexstring, chr(i))]
     return candidates
 
 # TODO: test before next commit
 def detect_1char_xor(hexes):
     candiates = []
     for h in hexes:
-        candidates = build_1char_candidates(h)
-    winner = winnow_plaintexts(candidates)
+        candidates = SingleCharCandidate.generate_set(h)
+    winner = winnow_plaintexts(candidates)[0]
     return winner
 
 def find_1char_xor(hexstring):
@@ -314,156 +251,101 @@ def find_1char_xor(hexstring):
         # pad with zero so there's an even number of hex chars
         # this way my other functions like hexxor() work properly
         h = "0" + h
-    strtxt = hex_to_string(hexstring)
     for i in range(0, 128):
         candidates += [SingleCharCandidate(hexstring, chr(i))]
 
-    # Provide the winnower functions you want to use, in order
-    # Winnower functions should take a single string and return True or False
-    reqd_winnowers = [winnow_non_ascii,
-                      lambda x: True] # the final one must be a noop lol TODO this is dumb be ashamed
-
-    can2 = []
-    for c in candidates:
-        if winnow_non_ascii(c.plaintext):
-            can2 += [c]
-
-    candidates = can2
-    if len(candidates) == 0:
-        return False
-
-    opt_winnowers = [winnow_punctuation,
-                     winnow_vowel_ratio, 
-                     winnow_wordlength,
-                     lambda x: True] # the final one must be a noop lol TODO this is dumb be ashamed
-
-    for w in opt_winnowers:
-        debugprint("WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
-                w.__name__, len(candidates)))
-        can2 = []
-        for c in candidates:
-            if w(c.plaintext):
-                can2 += [c]
-        if len(can2) is 1:
-            candidates = can2
-            break
-        elif len(can2) is 0:
-            debugprint("WINNOWING METHOD RESULTED IN ZERO CANDIDATES, ROLLING BACK...")
-            # ... and you don't actually have to roll back, you just have to ignore can2
-        else:
-            candidates = can2
+    candidates = winnow_plaintexts(candidates)
 
     #ideally there will be only one candidate butttt
     # TODO: winnow better so there's guaranteed to be just one candidate dummy
-
     if len(candidates) == 0:
         return False
     elif len(candidates) > 1:
         debugprint("WINNOWING COMPLETE BUT {} CANDIDATES REMAIN".format(len(candidates)))
     return candidates[0]
 
-
-def repxor(plaintext, key):
+class SingleCharCandidate(object):
     """
-    XOR plaintext with a repeating key and return the result in hex.
-
-    Take a plaintext string (not hex) and a key. Repeat the key as many times as is necessary. Pad 
-    the plaintext with chr(0x00) so that it is equal to key length (do not truncate the key if it 
-    is too long, or if it is too longer after it was repeated). XOR them together. Return the result
-    as a hex string.
+    Bundle for the following data:
+    -   a hex cipherstring
+    -   a single character to xor it against
+    -   the result of that xor
     """
-    fullkey = key
-    if len(key) < len(plaintext):
-        remainder = len(plaintext) - len(key)
-        iterate = int(remainder/len(key))+1 #the +1 catches a remainder, if any; I cut it down later.
-        fullkey=key
-        for i in range(iterate):
-            fullkey += key
+    def __init__(self, hexstring, xorchar):
 
-    if len(plaintext) < len(fullkey):
-        remainder = len(fullkey) - len(plaintext)
-        for i in range(remainder):
-            plaintext += chr(0x00)
-
-    hextxt = string_to_hex(plaintext)
-    hexkey = string_to_hex(fullkey)
-    bintxt = int(hextxt, 16)
-    binkey = int(hexkey, 16)
-    binxor = bintxt^binkey
-    hexxor = hex(binxor)[2:]
-    if len(hexxor)%2 is 1:
-        # pad the beginning with zero so that the hexxor string has an even number of hex bits in it. 
-        # useful because not only does it match the provided solution this way, it also 
-        # means there are two hex digits per character so the ciphertext is decodable to ASCII
-        # and it's consistent with how you'd encode plaintext.
-        hexxor = "0"+hexxor
-    return(hexxor)
-
-def hamming_code_distance(string1, string2):
-    """
-    Compute the Hamming Code distance between two strings
-    """
-    if len(string1) is not len(string2):
-        raise Exception("Buffers are different lengths!")
-    bytes1=string1.encode()
-    bytes2=string2.encode()
-    i = 0
-    hamming_distance = 0
-    while i < len(bytes1):
-        char1 = bytes1[i]
-        char2 = bytes2[i]
-        bin1 = "{:0>8}".format(bin(char1)[2:])
-        bin2 = "{:0>8}".format(bin(char2)[2:])
-        j = 0
-        thisbyte_hd = 0
-        while j < 8:
-            if bin1[j] is not bin2[j]:
-                thisbyte_hd +=1
-                hamming_distance += 1
-            j +=1
-        #debugprint("{} {}\n{} {}\n\t-- hamming distance: {}".format(
-        #        chr(char1), bin1, chr(char2), bin2, thisbyte_hd))
-        i +=1
-    return hamming_distance
-
-# TODO: fix with this: http://wiki.python.org/moin/BitManipulation
-def hexxor_shitty(x,y):
-    if len(x) is not len(y):
-        raise Exception("Buffers are different lengths! x is {} but y is {}".format(len(x), len(y)))
-    binx = hex_to_bin(x)
-    biny = hex_to_bin(y)
-    #binxor=""
-    ctr=0
-    for xbit in binx:
-        ybit=biny[ctr]
-        if xbit is ybit:
-            binxor+='0'
+        if len(hexstring)%2 == 1:
+            self.hexstring = "0" + hexstring
         else:
-            binxor+='1'
-        ctr+=1
-    print(bin_to_hex(binxor))
+            self.hexstring = hexstring
+
+        if not 0 <= ord(xorchar) <= 127:
+            raise Exception("Passed a xorchar that is not an ascii character.")
+
+        self.xorchar = xorchar
+        self.hex_xorchar = "{:0>2x}".format(ord(self.xorchar))
+        self.length = len(self.hexstring)
+        hex_plaintext = repxor(self.hexstring, self.hex_xorchar)
+        self.plaintext = hex_to_string(hex_plaintext)
+
+    def __repr__(self):
+        return "xorchar: '{}'; hexstring: '{}'; plaintext: '{}'".format(
+            self.xorchar, self.hexstring, self.plaintext)
+
+    @classmethod
+    def generate_set(self, hexstring):
+        candidates = []
+        for i in range(0, 128):
+            candidates += [SingleCharCandidate(hexstring, chr(i))]
+        return candidates
 
 class TchunkCandidateSet(object):
+    """
+    A set of candidates for a tchunk.
+
+    Contains the text of the tchunk itself, all 128 SingleCharCandidate objects
+    generated by SingleCharCandidate.generate_set(), and an array called 
+    `winners` that contains the best of those SCC objects as judged by whether 
+    they pass a series of winnowing tests.     
+    """
     def __init__(self, text):
+        """
+        -   Take in text from a tchunk (a transposed chunk from a 
+            MultiCharCandidate)
+        -   Brute force a plaintext from that ciphertext by calling
+            SingleCharCandidate.generate_set()
+        -   Winnow those 128 candidates down to (ideally) just one
+            winner.
+        """
         self.text = text
 
         # calculate the possibilities for this chunk
-        self.candidates = build_1char_candidates(self.text)
+        self.candidates = SingleCharCandidate.generate_set(self.text)
 
         self.solved = True
         self.winners = []
         # now winnow the plaintexts down for each tchunk
-        # TODO: note that right now this may have several winners! make sure to handle that elsewhere
-        tcwin = winnow_plaintexts(self.candidates)
+        # TODO: note that right now this may have several winners! make sure to
+        # handle that elsewhere
+        tcwin = winnow_plaintexts(self.candidates)[0]
         if tcwin:
             self.winners.append(tcwin)
         else:
             self.winners.append(False)
             self.solved = False
-            strace()
 
 
 class MultiCharCandidate(object):
+    """
+    A bundle for the following related pieces of data:
+    -   a single piece of ciphertext (represented in *hex*)
+    -   a single key which is assumed to be multiple ascii characters long 
+        (represented in *hex*)
+    -   chunks: the ciphertext, divided into chunks len(key) long
+    -   tchunks: those chunks, transposed
+    -   the hamming code distance between chunks[0] and chunks[1]
+    -   for each tchunk, a TchunkCandidateSet object 
+    -   a plain text that is reassembled from the TchunkCandidateSet objects
+    """
     def __init__(self, hexstring, keylen):
         self.keylen = keylen
 
@@ -473,28 +355,21 @@ class MultiCharCandidate(object):
             self.hexstring = hexstring
 
         self.cipherlen = len(self.hexstring)
+        self.tchunksize = math.ceil(self.cipherlen/self.keylen) 
 
-        # -   only operate on even-length keys because two hits is one charater
-        # -   only operate on keys that can divide evenly into the ciphertext b/c the plaintext 
-        #     would have been padded before the XOR.
+        # only operate on even-length keys because two hits is one charater
         if self.keylen%2 != 0:
-            raise Exception("Cannot create a MultiCharCandidate object with an odd keylen")
+            es = "Cannot create a MultiCharCandidate object with an odd keylen"
+            raise Exception(es)
 
-        if self.cipherlen % self.keylen != 0: 
-            et = "Attempted to create a MultiCharCandidate with a ciphertext of len {}".format(
-                self.cipherlen)
-            et += " and key of len {}, but that cipherlen doesn't divide evenly into".format(
-                self.keylen)
-            et += " that keylen"
-            raise Exception(et)
-
-        self.tchunksize = int(self.cipherlen/self.keylen)
-
+        # divide the ciphertext into chunks
         self.chunks = []
         this_chunk = ""
-        for character in self.hexstring:
-            this_chunk += character
-            if len(this_chunk) is self.keylen:
+        # I have to use cipherlen+1 or this will stop on the second to last char
+        # ... This is ugly and should be fixed probably, but I'm too tired
+        for i in range(0, self.cipherlen+1, 2):
+            this_chunk += self.hexstring[i:i+2]
+            if len(this_chunk) == self.keylen or i >= self.cipherlen:
                 self.chunks += [this_chunk]
                 this_chunk = ""
 
@@ -502,16 +377,16 @@ class MultiCharCandidate(object):
         self.hdnorm = hd/self.keylen
 
         # build the transposed chunks
-        # you have `len(chunks)/2` many chunks, that are all `keylen/2` long
-        # you'll end up with `keylen/2` many transposed chunks that are all `len(chunks)/2` long. 
+        # you have len(chunks)/2 many chunks, that are all keylen/2 long
+        # you'll end up with keylen/2 many transposed chunks that are all 
+        # len(chunks)/2 long. 
         # (you divide all of those by two because two hits make up one char)
         self.tchunks = []
         self.solved_all = True
-        for index in range(0, self.keylen, 2):
+        for i in range(0, self.keylen, 2):
             new_tchunk_text = ""
             for c in self.chunks:
-                new_hits = "" + c[index] + c[index+1]
-                new_tchunk_text += new_hits
+                new_tchunk_text += c[i:i+2]
             new_tchunk = TchunkCandidateSet(new_tchunk_text)
             self.tchunks.append(new_tchunk)
             if not new_tchunk.solved:
@@ -522,20 +397,34 @@ class MultiCharCandidate(object):
 
         for i in range(0, self.tchunksize):
             for tc in self.tchunks:
-                newpt = newxc = '_' # a temp value that only gets used if there was no winner
+                # use an underscore as a temp value that gets printed if there
+                # was no winner
+                newpt = newxc = '_' 
                 if tc.solved:
-                    newpt = tc.winners[0].plaintext[i]
-                    newxc = tc.winners[0].xorchar
+                    try: 
+                        tcw = tc.winners[0]
+                        newpt = tcw.plaintext[i]
+                        newxc = tcw.xorchar
+                    except IndexError:
+                        # this only ever happens for the last tchunks of the 
+                        # bunch, when the keylen doesn't divide evenly into
+                        # the cipherlen
+                        pass
+                    #newpt = tc.winners[0].plaintext[i]
+                    #newxc = tc.winners[0].xorchar
                 self.plaintext += newpt
                 self.strxorkey += newxc
 
-# TODO: rewrite to be less dumb
 def hamming_code_distance(string1, string2):
     """
     Compute the Hamming Code distance between two strings
     """
     if len(string1) is not len(string2):
-        raise Exception("Buffers are different lengths!")
+        # If strings are different lengths, truncate the longer one so that you 
+        # can do the compare
+        string1 = string1[0:len(string2)]
+        string2 = string2[0:len(string1)]
+        #raise Exception("Buffers are different lengths!")
     bytes1=string1.encode()
     bytes2=string2.encode()
     i = 0
@@ -552,8 +441,6 @@ def hamming_code_distance(string1, string2):
                 thisbyte_hd +=1
                 hamming_distance += 1
             j +=1
-        #debugprint("{} {}\n{} {}\n\t-- hamming distance: {}".format(
-        #        chr(char1), bin1, chr(char2), bin2, thisbyte_hd))
         i +=1
     return hamming_distance
 
@@ -562,9 +449,10 @@ def find_multichar_xor(hexstring):
     """
     Break a hexstring of repeating-key XOR ciphertext. 
     """
-    # Remember that if we're assuming that our XOR key came from ASCII, it will have an even number 
-    # of hex digits. 
-    # Throughout this function and elsewhere, keylen is specificed in *hex* digits. 
+    # Remember that if we're assuming that our XOR key came from ASCII, it will
+    # have an even number of hex digits. 
+    # Throughout this function and elsewhere, keylen is specificed in *hex* 
+    # digits. 
     if len(hexstring)%2 is not 0:
         hexstring = "0"+hexstring
 
@@ -572,23 +460,15 @@ def find_multichar_xor(hexstring):
     keylenmax = 40
     cipherlen = len(hexstring)
 
-    # If you don't do this, and you pass it a too-short hexstring, it'll try to compare chunk1 with
-    # chunk2 in the for loop, but they'll be different lengths after a while.
-    if keylenmax >= int(len(hexstring)/2):
-        keylenmax = int(len(hexstring)/2)
-    debugprint("min key length: {} / max key length: {} / hexstring length: {}".format(
-        keylenmin, keylenmax, len(hexstring)))
+    dp = "min key length: {} / ".format(keylenmin)
+    dp+= "max key length: {} / ".format(keylenmax)
+    dp+= "hexstring length: {}".format(len(hexstring))
+    debugprint(dp)
 
     attempts = []
     for keylen in range(keylenmin, keylenmax, 2):
-        # -   only operate on even-length keys because two hits is one charater
-        # -   only operate on keys that can divide evenly into the ciphertext b/c the plaintext 
-        #     would have been padded before the XOR.
-        # NOTE: for our chal06, there are only *3* keylens that will pass this test: 
-        #     2 (1 ascii char), 4 (2 ascii chars), 8 (4 ascii chars).
-        #     cipherlen for chal06 is 5752 and 5752/8==719, a prime number.
-        if cipherlen%keylen == 0: 
-            attempts += [MultiCharCandidate(hexstring, keylen)]
+        # only operate on even-length keys because two hits is one charater
+        attempts += [MultiCharCandidate(hexstring, keylen)]
 
     attempts_sorted  = sorted(attempts, key=lambda a: a.hdnorm)
     return attempts_sorted[0].plaintext
@@ -639,8 +519,9 @@ def chal05():
     plaintext = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
     repkey = "ICE"
     solution = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
-    print("These two strings should match:")
+    print("The calculated result:")
     print(repxor(plaintext, repkey))
+    print("The official solution:")
     print(solution)
 
 def chal06():
@@ -653,12 +534,12 @@ def chal06():
 def chal06a():
     ex1="this is a test"
     ex2="wokka wokka!!!"
-    print(hamming_code_distance(ex1, ex2))
+    print("Hamming code distance between: \n\t{}\n\t{}".format(ex1, ex2))
+    print("... is: {}".format(hamming_code_distance(ex1, ex2)))
 
 def chal06b():
     ciphertext = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
     print(find_multichar_xor(ciphertext))
-
 
 
 ########################################################################
@@ -666,30 +547,52 @@ def chal06b():
 
 CRYPTOPALS_DEBUG=False
 
+def strace():
+    pass
+def debugprint():
+    pass
+
 def debug_trap(type, value, tb):
+    """
+    Print some diagnostics, colorize the important bits, and then automatically
+    drop into the debugger when there is an unhandled exception
+    """
     import traceback, pdb
-    traceback.print_exception(type, value, tb)
-    print("EXCEPTION ENCOUNTERED. STARTING THE DEBUGGER IN POST-MORTEM MODE.")
-    pdb.pm() # the debugger in post-mortem mode
+    from pygments import highlight
+    from pygments.lexers import get_lexer_by_name
+    from pygments.formatters import TerminalFormatter
+    tbtext = ''.join(traceback.format_exception(type, value, tb))
+    lexer = get_lexer_by_name("pytb", stripall=True)
+    formatter = TerminalFormatter()
+    sys.stderr.write(highlight(tbtext, lexer, formatter))
+    pdb.pm()
 
 class DebugAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
-        #print('%r %r %r' % (namespace, values, option_string))
-        #setattr(namespace, self.dest, values)
         global CRYPTOPALS_DEBUG
         CRYPTOPALS_DEBUG = True
         sys.excepthook = debug_trap
 
+        global strace
+        from pdb import set_trace as strace
+
+        global debugprint
+        def debugprint(text):
+            """Print the passed text if the program is being run in debug mode."""
+            safeprint("DEBUG: " + str(text))
 
 if __name__=='__main__':
     argparser = argparse.ArgumentParser(description='Matasano Cryptopals Yay')
     argparser.add_argument('--debug', '-d', nargs=0, action=DebugAction,
                            help='Show debugging information')
     subparsers = argparser.add_subparsers()
-    subparser_challenges = subparsers.add_parser('challenge', aliases=['c','ch','chal'], 
-                                                 help="Run one of the challenge assignments directly")
+    h="Run one of the challenge assignments directly"
+    subparser_challenges = subparsers.add_parser('challenge', 
+                                                 aliases=['c','ch','chal'], 
+                                                 help=h)
+    h='Choose the challenge number you want to run'
     subparser_challenges.add_argument('chalnum', type=str, action='store', 
-                                      help='Choose the challenge number you want to run')
+                                      help=h)
 
     subparser_challenges.set_defaults(func=challenger)
 
