@@ -24,7 +24,7 @@ def safeprint(text, underscores=False, maxwidth=None):
     be rendered as an underscore. Note that of course you may have actual 
     underscores in your `text` as well! 
 
-    If maxwidth is set to an integer, text will be truncated and an elipsis
+    If `maxwidth` is set to an integer, text will be truncated and an elipsis
     inserted.
     """
 
@@ -50,8 +50,9 @@ def safeprint(text, underscores=False, maxwidth=None):
         wt = "WARNING: Tried to print characters that could not be displayed on "
         wt+= "this terminal. Skipping..."
         print(wt)
-
-# idk if these are like cheating or something because they're using the base64 module? 
+        
+# idk if these are like cheating or something because they're using the base64 
+# module? 
 def base64_to_hex(x):
     text = base64.b64decode(x.encode())
     hexstring = ""
@@ -76,6 +77,10 @@ def hex_to_bin(hexstring):
 def bin_to_hex(integer):
     return hex(integer)
 
+# this isn't used anywhere
+# ... plus I think it actually doesn't work
+# TODO: replace with hexlify or equialient
+# TODO: look at other helper functions like this and replace them similarly
 def string_to_hex(text):
     hexstring = ""
     # the last character is \x00 which just terminates it, ignore that
@@ -141,13 +146,15 @@ def xor_strings(plaintext, key):
 
 def char_counts(text):
     """
-    Count different types of characters in a text. Useful for statistical analysis of candidate 
-    plaintext.
+    Count different types of characters in a text. Useful for statistical 
+    analysis of candidate plaintext.
     """
     vowels = 'aeiouAEIOU'
     consonants = 'bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ'
     count={'w':0, 'v':0, 'c':0, 'o':0,
-           'printable':0, 'unprintable':0}
+           'printable':0, 'unprintable':0,
+           'bad_lineendings':0}
+    index = 0
     for character in text:
         if character in string.whitespace:
             count['w'] += 1
@@ -162,6 +169,17 @@ def char_counts(text):
             count['printable'] += 1
         else:
             count['unprintable'] += 1
+
+        # check for linefeeds. if there's \r\n, assume OK (windows standard),
+        # but if \r by itself, assume bad (nothing uses \r by itself)
+        if ord(character) is 13: 
+            if index+1 >= len(text) or ord(text[index+1]) is not 10:
+                pass
+            else:
+                count['bad_lineendings'] += 1
+            text[index-1]
+
+        index += 1
 
     count['l'] = count['c'] + count['v']
     return count
@@ -187,7 +205,7 @@ def winnow_unprintable_ascii(text):
     True otherwise.
     """
     cc = char_counts(text)
-    if cc['unprintable'] > 0:
+    if cc['unprintable'] > 0 or cc['bad_lineendings'] > 0:
         return False
     else:
         return True
@@ -220,8 +238,8 @@ def winnow_plaintexts(candidates):
 
     if CRYPTOPALS_DEBUG:
         csup = sorted(candidates, key=lambda c: c.charcounts['unprintable'])
-        for c in candidates:
-            safeprint(c.plaintext, underscores=True, maxwidth=80)
+        # for c in candidates:
+        #     safeprint(c.plaintext, underscores=True, maxwidth=80)
 
     for c in candidates:
         if winnow_unprintable_ascii(c.plaintext):
@@ -240,9 +258,9 @@ def winnow_plaintexts(candidates):
                      lambda x: True] # the final one must be a noop lol TODO
 
     for w in opt_winnowers:
-        dp = "WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
-                w.__name__, len(candidates))
-        debugprint(dp)
+        # dp = "WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
+        #         w.__name__, len(candidates))
+        # debugprint(dp)
         can2 = []
         for c in candidates:
             if w(c.plaintext):
@@ -251,11 +269,12 @@ def winnow_plaintexts(candidates):
             candidates = can2
             break
         elif len(can2) is 0:
-            dp = "WINNOWING METHOD {} RESULTED IN ZERO CANDIDATES, ".format(
-                w.__name__)
-            dp+= "ROLLING BACK..."
-            debugprint(dp)
+            # dp = "WINNOWING METHOD {} RESULTED IN ZERO CANDIDATES, ".format(
+            #     w.__name__)
+            # dp+= "ROLLING BACK..."
+            # debugprint(dp)
             # ... and you don't actually have to roll back, you just have to ignore can2
+            pass
         else:
             candidates = can2
 
@@ -374,6 +393,14 @@ class TchunkCandidateSet(object):
             self.winners.append(False)
             self.solved = False
 
+    def __repr__(self):
+        if self.solved:
+            solvstring = "solved ({} winners)".format(len(self.winners))
+        else:
+            solvstring = "unsolved"
+        repr = "<TchunkCandidateSet: {}, ".format(solvstring)
+        return repr
+
 
 class MultiCharCandidate(object):
     """
@@ -433,7 +460,7 @@ class MultiCharCandidate(object):
             if not new_tchunk.solved:
                 self.solved_all = False
 
-        self.plaintext = self.strxorkey = self.hexxorkey = ""
+        self.plaintext = self.key = self.fullkey = ""
         tchunk_count = len(self.tchunks)
 
         for i in range(0, self.tchunksize):
@@ -454,7 +481,29 @@ class MultiCharCandidate(object):
                     #newpt = tc.winners[0].plaintext[i]
                     #newxc = tc.winners[0].xorchar
                 self.plaintext += newpt
-                self.strxorkey += newxc
+                self.fullkey += newxc
+
+                if i == 0:
+                    self.key = self.fullkey
+
+    def __repr__(self):
+        repr = "<MultiCharCandidate: key(hex): {} hdnorm: ~{} tchunks: {}>"
+        repr = repr.format(
+            binascii.hexlify(self.key.encode()), 
+            round(self.hdnorm, 4),
+            len(self.tchunks))
+        return repr
+
+    def diag(self):
+        repr = self.__repr__()
+        for tc in self.tchunks:
+            repr += "\n  {}".format(tc.__repr__())
+            for w in tc.winners:
+                wrepr = w.__repr__()
+                wrepr = wrepr.replace("\n","_").replace("\r","_")
+                wrepr = "\n    " + wrepr
+                repr += wrepr
+        safeprint(repr)
 
 def hamming_code_distance(string1, string2):
     """
@@ -512,7 +561,15 @@ def find_multichar_xor(hexstring):
         attempts += [MultiCharCandidate(hexstring, keylen)]
 
     attempts_sorted  = sorted(attempts, key=lambda a: a.hdnorm)
-    return attempts_sorted[0].plaintext
+    winner = attempts_sorted[0]
+
+    if CRYPTOPALS_DEBUG: 
+        print("######## winning MCC diagnostic: ########")
+        winner.diag()
+        print("######## ####### ### ########### ########")
+        print()
+
+    return winner.plaintext
 
 
 ########################################################################
