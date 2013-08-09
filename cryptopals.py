@@ -20,7 +20,7 @@ def safeprint(text, underscores=False, maxwidth=None):
     if you try to print a character it can't print or something, and your 
     program will stop.
 
-    If `underscores` is set to True, any character not between 31 and 127 will
+    If `underscores` is set to True, any character not printable
     be rendered as an underscore. Note that of course you may have actual 
     underscores in your `text` as well! 
 
@@ -29,14 +29,14 @@ def safeprint(text, underscores=False, maxwidth=None):
     """
 
     if maxwidth and len(text) > maxwidth:
-        output1 = text[0:maxwidth-3]
+        output1 = text[0:maxwidth-3] + "..."
     else:
         output1 = text
     
     output2 = ""
     if underscores:
         for character in output1:
-            if 31 <= ord(character) <= 127:
+            if character in string.printable:
                 output2 += character
             else:
                 output2 += "_"
@@ -88,37 +88,42 @@ def string_to_hex(text):
 def hex_to_base64(hexstring):
     return base64.b64encode(hex_to_string(hexstring).encode())
 
-def hexxor(x, y):
-    """Do a XOR of two hex strings of the same length"""
+def xor_hexstrings(plaintext, key):
+    """
+    Take two hex strings and xor them together. 
+    Return the result as a hex string. 
+
+    The first is treated as the "plaintext" hex string. 
+    The second is treated as the "key" hex string. If the key is shorter than
+    the plaintext, it is repeated as many times as is necessary until they
+    are of equal length. 
+    """
+
+    # repeat the key as many times as necessary to be >= length of the plaintext
+    repcount = math.ceil(len(plaintext)/len(key))
+    fullkey = key * repcount
+
+    # make sure the key didnt end up longer than the plaintext by the repetition
+    fullkey = fullkey[0:len(plaintext)]
     
-    # TODO: why does this code fail with the large input from chal06? 
-    if len(x) != len(y):
-        raise Exception("Buffers diff lengths! x is {} but y is {}".format(
-            #x, len(x), y, len(y)))
-            len(x), len(y)))
-        #return False
-    xorbin = int(x, 16) ^ int(y, 16)
+    xorbin = int(plaintext, 16) ^ int(fullkey, 16)
     xorhex = '{:0>2x}'.format(xorbin) # chomp leading '0x'
 
     # if the xor results in a number with leading zeroes, make sure they're 
     # added back so that the ciphertext is the same length as the plaintext
-    diff = len(x) - len(xorhex)
+    diff = len(plaintext) - len(xorhex)
     for i in range(0, diff):
         xorhex = "0" + xorhex
 
     return xorhex
 
-def strxor(x, y):
-    """Do a XOR of two strings of the same length. Return the result in hex"""
-    xs = binascii.hexlify(x.encode())
-    ys = binascii.hexlify(y.encode())
-    xor = hexxor(xs, ys)
-    return xor
-
-def repxor(plaintext, key):
+def xor_strings(plaintext, key):
     """
-    Xor the given plaintext against the given key, repeating the key as many 
-    times as is necessary.
+    Xor the given plaintext against the given key. 
+    Return the result in a hexstring.
+
+    If the plaintext is longer than the key, repeat the key as many times as is
+    necessary.
     """
 
     # repeat the key as many times as necessary to be >= length of the plaintext
@@ -128,7 +133,9 @@ def repxor(plaintext, key):
     # make sure the key didnt end up longer than the plaintext by the repetition
     fullkey = fullkey[0:len(plaintext)]
 
-    x = strxor(plaintext, fullkey)
+    phex = binascii.hexlify(plaintext.encode())
+    khex = binascii.hexlify(key.encode())
+    x = xor_hexstrings(phex, khex)
 
     return(x)
 
@@ -139,7 +146,8 @@ def char_counts(text):
     """
     vowels = 'aeiouAEIOU'
     consonants = 'bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ'
-    count={'w':0, 'v':0, 'c':0, 'o':0}
+    count={'w':0, 'v':0, 'c':0, 'o':0,
+           'printable':0, 'unprintable':0}
     for character in text:
         if character in string.whitespace:
             count['w'] += 1
@@ -149,6 +157,12 @@ def char_counts(text):
             count['c'] += 1
         else:
             count['o'] += 1
+
+        if character in string.printable:
+            count['printable'] += 1
+        else:
+            count['unprintable'] += 1
+
     count['l'] = count['c'] + count['v']
     return count
 
@@ -157,44 +171,36 @@ def winnow_wordlength(text):
     Return True if some text contains 1-9 letters per space, False otherwise.
     English has an average word length of about five letters.
     """
-    #debugprint("+++ winnow_wordlength({})".format(text))
     count = char_counts(text)
     try:
         avg_length = count['l'] / count['w']
     except ZeroDivisionError:
         avg_length = count['l']
     if 2 < avg_length < 12:
-        #debugprint("    PASSED with {}/{} letters/whitespace".format(count['l'], count['w']))
         return True
     else:
-        #debugprint("    FAILED with {}/{} letters/whitespace".format(count['l'], count['w']))
         return False
 
-def winnow_non_ascii(text):
+def winnow_unprintable_ascii(text):
     """
     Return False if a text contains any non-ascii (or non-printable ascii) characters; 
     True otherwise.
     """
-    for character in text:
-        if not 31 <= ord(character) <= 127:
-            #debugprint("character: '{}'; ord: '{}'".format(character, ord(character)))
-            return False
-    return True
+    cc = char_counts(text)
+    if cc['unprintable'] > 0:
+        return False
+    else:
+        return True
 
 def winnow_punctuation(text):
     """Return False if a text contains too many non-letter non-space characters; False otherwise."""
-    #debugprint("+++ winnow_punctuation({})".format(text))
     count = char_counts(text)
     if count['o'] < len(text)/12:
-    #if count['o'] < len(text)/8:
-        #debugprint("    PASSED with {}/{} junk/total characters".format(count['o'], len(text)))
         return True
     else:
-        #debugprint("    FAILED with {}/{} junk/total characters".format(count['o'], len(text)))
         return False
 
 def winnow_vowel_ratio(text):
-    #debugprint("+++ winnow_vowel_ratio({})".format(text))
     count = char_counts(text)
     # in English text, v/c ratio is about 38/62 i.e. 0.612
     # https://en.wikipedia.org/wiki/Letter_frequency
@@ -203,12 +209,8 @@ def winnow_vowel_ratio(text):
     except ZeroDivisionError:
         vc_ratio = 1
     if 0.20 < vc_ratio < 0.90:
-    #if 0.50 < vc_ratio < 0.70:
-    #if 0.40 < vc_ratio < 0.80:
-        #debugprint("    PASSED with ratio {}".format(vc_ratio))
         return True
     else:
-        #debugprint("    FAILED with ratio {}".format(vc_ratio))
         return False
 
 def winnow_plaintexts(candidates):
@@ -217,28 +219,30 @@ def winnow_plaintexts(candidates):
     can2 = []
 
     if CRYPTOPALS_DEBUG:
+        csup = sorted(candidates, key=lambda c: c.charcounts['unprintable'])
         for c in candidates:
             safeprint(c.plaintext, underscores=True, maxwidth=80)
 
-    strace()
     for c in candidates:
-        if winnow_non_ascii(c.plaintext):
+        if winnow_unprintable_ascii(c.plaintext):
             can2 += [c]
     if len(can2) == 0:
-        et = "ASCII winnowing failed. "
+        et = "Unprintable ASCII winnowing failed. "
         et+= "Found no candidates which didn't result in non-ascii characters "
-        et+= "for this hexstring: {}".format(candidates[0].hexstring)
+        et+= "for this hexstring: \n    '{}'".format(
+            candidates[0].hexstring[0:72] + "...")
         raise Exception(et)
     candidates = can2
 
     opt_winnowers = [winnow_punctuation,
                      winnow_vowel_ratio, 
                      winnow_wordlength,
-                     lambda x: True] # the final one must be a noop lol TODO this is dumb be ashamed
+                     lambda x: True] # the final one must be a noop lol TODO
 
     for w in opt_winnowers:
-        debugprint("WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
-                w.__name__, len(candidates)))
+        dp = "WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
+                w.__name__, len(candidates))
+        debugprint(dp)
         can2 = []
         for c in candidates:
             if w(c.plaintext):
@@ -247,8 +251,10 @@ def winnow_plaintexts(candidates):
             candidates = can2
             break
         elif len(can2) is 0:
-            debugprint("WINNOWING METHOD {} RESULTED IN ZERO CANDIDATES, ROLLING BACK...".format(
-                w.__name__))
+            dp = "WINNOWING METHOD {} RESULTED IN ZERO CANDIDATES, ".format(
+                w.__name__)
+            dp+= "ROLLING BACK..."
+            debugprint(dp)
             # ... and you don't actually have to roll back, you just have to ignore can2
         else:
             candidates = can2
@@ -283,7 +289,7 @@ def find_1char_xor(hexstring):
     candidates = []
     if len(hexstring)%2 is 1:
         # pad with zero so there's an even number of hex chars
-        # this way my other functions like hexxor() work properly
+        # this way my other functions like work properly
         h = "0" + h
     for i in range(0, 128):
         candidates += [SingleCharCandidate(hexstring, chr(i))]
@@ -318,8 +324,9 @@ class SingleCharCandidate(object):
         self.xorchar = xorchar
         self.hex_xorchar = "{:0>2x}".format(ord(self.xorchar))
         self.length = len(self.hexstring)
-        hex_plaintext = repxor(self.hexstring, self.hex_xorchar)
+        hex_plaintext = xor_hexstrings(self.hexstring, self.hex_xorchar)
         self.plaintext = hex_to_string(hex_plaintext)
+        self.charcounts = char_counts(self.plaintext)
 
     def __repr__(self):
         return "xorchar: '{}'; hexstring: '{}'; plaintext: '{}'".format(
@@ -530,7 +537,7 @@ def chal02():
     ex1 = '1c0111001f010100061a024b53535009181c'
     ex2 = '686974207468652062756c6c277320657965'
     res = '746865206b696420646f6e277420706c6179'
-    calculated = hexxor(ex1, ex2)
+    calculated = xor_hexstrings(ex1, ex2)
     print("ex1: " + ex1)
     print("ex2: " + ex2)
     print("res: " + res)
@@ -554,7 +561,7 @@ def chal05():
     repkey = "ICE"
     solution = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
     print("The calculated result:")
-    print(repxor(plaintext, repkey))
+    print(xor_strings(plaintext, repkey))
     print("The official solution:")
     print(solution)
 
