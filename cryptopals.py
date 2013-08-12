@@ -660,7 +660,7 @@ def chal03():
     print(find_1char_xor(ciphertext))
 
 def chal04():
-    gist = open("3132713.gist.txt")
+    gist = open("data/challenge04.3132713.gist.txt")
     hexes = [line.strip() for line in gist.readlines()]
     gist.close()
     winner = detect_1char_xor(hexes)
@@ -681,7 +681,7 @@ def chal05():
     print(solution)
 
 def chal06():
-    f = open("3132752.gist.txt")
+    f = open("data/challenge06.3132752.gist.txt")
     gist = f.read().replace("\n","")
     f.close()
     hexcipher = base64_to_hex(gist)
