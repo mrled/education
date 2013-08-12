@@ -599,14 +599,19 @@ def find_multichar_xor(hexstring):
         # only operate on even-length keys because two hits is one charater
         attempts += [MultiCharCandidate(hexstring, keylen)]
 
-    attempts_sorted  = sorted(attempts, key=lambda a: a.hdnorm)
+    attempts_sorted  = sorted(attempts, key=lambda a: a.hdnorm, reverse=True)
     winner = attempts_sorted[0]
 
     if CRYPTOPALS_DEBUG: 
-        print("######## winning MCC diagnostic: ########")
+        print("########   winning MCC diagnostic:   ########")
         winner.diag()
-        print("######## ####### ### ########### ########")
+        print("######## sorted attempts diagnostic: ########")
+        for a in attempts_sorted[0:10]:
+            print(a)
+        print("########     ###################     ########")
         print()
+
+    strace()
 
     return winner.plaintext
 
