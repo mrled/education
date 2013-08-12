@@ -7,6 +7,9 @@ import sys
 import math
 import binascii
 
+# requires pycrypto
+from Crypto.Cipher import AES
+
 ########################################################################
 ## Backend libraryish functions
 
@@ -262,17 +265,18 @@ def winnow_vowel_ratio(text):
     else:
         return False
 
+# TODO: fix all the callers of this function so that they don't pass SCC objets,
+# they should just pass a plaintext now
 def winnow_plaintexts(candidates):
 
+    # if CRYPTOPALS_DEBUG:
+    #     csup = sorted(candidates, key=lambda c: c.charcounts['unprintable'])
+    #     for c in candidates:
+    #         safeprint(c, underscores=True, maxwidth=80)
+
     can2 = []
-
-    if CRYPTOPALS_DEBUG:
-        csup = sorted(candidates, key=lambda c: c.charcounts['unprintable'])
-        # for c in candidates:
-        #     safeprint(c.plaintext, underscores=True, maxwidth=80)
-
     for c in candidates:
-        if winnow_unprintable_ascii(c.plaintext):
+        if winnow_unprintable_ascii(c):
             can2 += [c]
     if len(can2) == 0:
         et = "Unprintable ASCII winnowing failed. "
@@ -288,21 +292,14 @@ def winnow_plaintexts(candidates):
                      lambda x: True] # the final one must be a noop lol TODO
 
     for w in opt_winnowers:
-        # dp = "WINNOWING USING METHOD {}, BEGINNING WITH {} CANDIDATES".format(
-        #         w.__name__, len(candidates))
-        # debugprint(dp)
         can2 = []
         for c in candidates:
-            if w(c.plaintext):
+            if w(c):
                 can2 += [c]
         if len(can2) is 1:
             candidates = can2
             break
         elif len(can2) is 0:
-            # dp = "WINNOWING METHOD {} RESULTED IN ZERO CANDIDATES, ".format(
-            #     w.__name__)
-            # dp+= "ROLLING BACK..."
-            # debugprint(dp)
             # ... and you don't actually have to roll back, you just have to ignore can2
             pass
         else:
@@ -310,7 +307,6 @@ def winnow_plaintexts(candidates):
 
     #ideally there will be only one candidate butttt
     # TODO: winnow better so there's guaranteed to be just one candidate dummy
-
     if len(candidates) == 0:
         return False
     elif len(candidates) > 1:
@@ -555,39 +551,35 @@ class MultiCharCandidate(object):
                 repr += wrepr
         safeprint(repr)
 
+class AesEcbTchunk(object):
+    def __init__(self, ciphertext):
+        self.ciphertext = ciphertext
+        self.cipherlen = len(self.ciphertext)
+        self.candidates = []
+        for i in range(0, 128):
+            cipher = AES.new(chr(i)*self.cipherlen, AES.MODE_ECB)
+            pt = cipher.decrypt(self.ciphertext)
+            if winnow_plaintexts(pt):
+                scc = {'ciphertext': ciphertext,
+                       'keychar': chr(i),
+                       'length': len(ciphertext),
+                       'plantext': pt,
+                       'charcounts': char_counts(pt),}
+                self.candidates += scc
+
 class AesEcbCandidate(object):
     def __init__(self, ciphertext, keylen):
         self.keylen = keylen
         self.ciphertext = ciphertext
 
-        # self.tchunks = []
-        # this_tchunk = ""
-        # for i in range(0, len(ciphertext)):
-        #     this_tchunk += ciphertext[i]
-        #     if (i+1)%keylen:
-        #         self.tchunks += this_tchunk
-        #         this_tchunk = ""
-
-        # for i in range(0, len(ciphertext)):
-        #     if i%keylen:
-        #         this_tchunk = ""
-        #     this_tchunk += ciphertext[i]
-
-        # for i in range(0, math.ceil(len(ciphertext)/keylen)):
-        #     for j in range(0, keylen):
-        #         self.tchunks[j] += 
-
-
-        # for tcindex in range(0, keylen):
-        #     self.tchunks[tcindex] = ""
-        #     for charindex in range(tcindex, len(ciphertext), keylen):
-        #         self.tchunks[tcindex] += ciphertext[charindex]
-
-        tchunks = []
+        self.tchunks = []
         for tcindex in range(0, keylen):
-            tchunks[tcindex] = ""
+            this_tc = ""
             for charindex in range(tcindex, len(ciphertext), keylen):
-                tchunks[tcindex] += ciphertext[charindex]
+                this_tc += chr(ciphertext[charindex])
+            self.tchunks += AesEcbTchunk(this_tc)
+
+        strace()
 
 def hamming_code_distance(string1, string2):
     """
@@ -757,13 +749,11 @@ def chal08():
     hexes = [line.strip() for line in f.readlines()]
     f.close()
 
+    candidates = []
     for h in hexes:
         asc = binascii.unhexlify(h)
         #safeprint(h, unprintable=True, maxwidth=80)
-
-    ciphertext = binascii.unhexlify(hexes[0])
-    strace()
-    
+        candidates += AesEcbCandidate(asc, 16)
 
 
 ########################################################################
@@ -790,13 +780,16 @@ class DebugAction(argparse.Action):
             safeprint("DEBUG: " + str(text))
 
         try:
+            import TotalBullshitIdk
+
             from IPython.core.debugger import Pdb
 
             global strace 
             strace = Pdb(color_scheme='Linux').set_trace
 
             from IPython.core import ultratb
-            ftb = ultratb.FormattedTB(mode='Verbose', 
+            ftb = ultratb.FormattedTB(#mode='Plain',
+                                      mode='Verbose', 
                                       color_scheme='Linux', call_pdb=1)
             sys.excepthook = ftb
 
