@@ -51,6 +51,7 @@ def safefilter(text, unprintable=False, newlines=False, maxwidth=None):
     If `maxwidth` is set to an integer, text will be truncated and an elipsis
     inserted.
     """
+    text = str(text)
 
     if maxwidth and len(text) > maxwidth:
         output1 = text[0:maxwidth-3] + "..."
@@ -60,9 +61,10 @@ def safefilter(text, unprintable=False, newlines=False, maxwidth=None):
     if unprintable or newlines:
         output2 = ""
         for character in output1:
-            if unprintable and character not in string.printable:
+            #if unprintable and (chr(character) not in string.printable):
+            if unprintable and (character not in string.printable):
                 output2 += "_"
-            elif newlines and ord(character) == 10 or ord(character) == 13:
+            elif newlines and (ord(character) == 10 or ord(character) == 13):
                 output2 += "_"
             else:
                 output2 += character
@@ -553,6 +555,40 @@ class MultiCharCandidate(object):
                 repr += wrepr
         safeprint(repr)
 
+class AesEcbCandidate(object):
+    def __init__(self, ciphertext, keylen):
+        self.keylen = keylen
+        self.ciphertext = ciphertext
+
+        # self.tchunks = []
+        # this_tchunk = ""
+        # for i in range(0, len(ciphertext)):
+        #     this_tchunk += ciphertext[i]
+        #     if (i+1)%keylen:
+        #         self.tchunks += this_tchunk
+        #         this_tchunk = ""
+
+        # for i in range(0, len(ciphertext)):
+        #     if i%keylen:
+        #         this_tchunk = ""
+        #     this_tchunk += ciphertext[i]
+
+        # for i in range(0, math.ceil(len(ciphertext)/keylen)):
+        #     for j in range(0, keylen):
+        #         self.tchunks[j] += 
+
+
+        # for tcindex in range(0, keylen):
+        #     self.tchunks[tcindex] = ""
+        #     for charindex in range(tcindex, len(ciphertext), keylen):
+        #         self.tchunks[tcindex] += ciphertext[charindex]
+
+        tchunks = []
+        for tcindex in range(0, keylen):
+            tchunks[tcindex] = ""
+            for charindex in range(tcindex, len(ciphertext), keylen):
+                tchunks[tcindex] += ciphertext[charindex]
+
 def hamming_code_distance(string1, string2):
     """
     Compute the Hamming Code distance between two strings
@@ -716,6 +752,19 @@ def chal07():
     plaintext = cipher.decrypt(ciphertext).decode()
     print(plaintext)
 
+def chal08():
+    f = open("data/challenge08.3132928.gist.txt")
+    hexes = [line.strip() for line in f.readlines()]
+    f.close()
+
+    for h in hexes:
+        asc = binascii.unhexlify(h)
+        #safeprint(h, unprintable=True, maxwidth=80)
+
+    ciphertext = binascii.unhexlify(hexes[0])
+    strace()
+    
+
 
 ########################################################################
 ## main()
@@ -727,34 +776,58 @@ def strace():
 def debugprint():
     pass
 
-def debug_trap(type, value, tb):
-    """
-    Print some diagnostics, colorize the important bits, and then automatically
-    drop into the debugger when there is an unhandled exception
-    """
-    import traceback, pdb
-    from pygments import highlight
-    from pygments.lexers import get_lexer_by_name
-    from pygments.formatters import TerminalFormatter
-    tbtext = ''.join(traceback.format_exception(type, value, tb))
-    lexer = get_lexer_by_name("pytb", stripall=True)
-    formatter = TerminalFormatter()
-    sys.stderr.write(highlight(tbtext, lexer, formatter))
-    pdb.pm()
-
 class DebugAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
+
         global CRYPTOPALS_DEBUG
         CRYPTOPALS_DEBUG = True
-        sys.excepthook = debug_trap
-
-        global strace
-        from pdb import set_trace as strace
 
         global debugprint
         def debugprint(text):
-            """Print the passed text if the program is being run in debug mode."""
+            """
+            Print the passed text if the program is being run in debug mode.
+            """
             safeprint("DEBUG: " + str(text))
+
+        try:
+            from IPython.core.debugger import Pdb
+
+            global strace 
+            strace = Pdb(color_scheme='Linux').set_trace
+
+            from IPython.core import ultratb
+            ftb = ultratb.FormattedTB(mode='Verbose', 
+                                      color_scheme='Linux', call_pdb=1)
+            sys.excepthook = ftb
+
+        except ImportError:
+            global strace
+            from pdb import set_trace as strace
+
+            global fallback_debug_trap
+            def fallback_debug_trap(type, value, tb):
+                """
+                Print some diagnostics, colorize the important bits, and then 
+                automatically drop into the debugger when there is an unhandled 
+                exception.
+
+                NOTE: If IPython is installed, this is never used! 
+                IPython.core.ultratb.FormattedTB() is used in that case. 
+                """
+                import traceback
+                import pdb
+                from pygments import highlight
+                from pygments.lexers import get_lexer_by_name
+                from pygments.formatters import TerminalFormatter
+                tbtext = ''.join(traceback.format_exception(type, value, tb))
+                lexer = get_lexer_by_name("pytb", stripall=True)
+                formatter = TerminalFormatter()
+                sys.stderr.write(highlight(tbtext, lexer, formatter))
+                pdb.pm()
+
+            sys.excepthook = fallback_debug_trap
+
+            
 
 if __name__=='__main__':
     argparser = argparse.ArgumentParser(description='Matasano Cryptopals Yay')
