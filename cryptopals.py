@@ -237,9 +237,12 @@ def winnow_unprintable_ascii(text):
         return True
 
 def winnow_punctuation(text):
-    """Return False if a text contains too many non-letter non-space characters; False otherwise."""
+    """
+    Return False if a text contains too many non-letter non-space characters,
+    True otherwise.
+    """
     count = char_counts(text)
-    if count['o'] < len(text)/12:
+    if count['o'] < len(text)/8:
         return True
     else:
         return False
@@ -252,7 +255,7 @@ def winnow_vowel_ratio(text):
         vc_ratio = count['v']/count['c']
     except ZeroDivisionError:
         vc_ratio = 1
-    if 0.20 < vc_ratio < 0.90:
+    if 0.20 < vc_ratio < 0.99:
         return True
     else:
         return False
@@ -386,7 +389,12 @@ class SingleCharCandidate(object):
     def __repr__(self):
         #return "xorchar: '{}'; hexstring: '{}'; plaintext: '{}'".format(
         #    self.xorchar, self.hexstring, self.plaintext)
-        pt = safefilter(self.plaintext, unprintable=True, newlines=True)
+        if len(self.plaintext) > 50:
+            pt = safefilter(self.plaintext[0:47] + "...", 
+                            unprintable=True, newlines=True)
+        else:
+            pt = safefilter(self.plaintext, 
+                            unprintable=True, newlines=True)
         r = "xorchar: {} plaintext: {}".format(self.xorchar, pt)
         return(r)
 
@@ -425,11 +433,12 @@ class TchunkCandidateSet(object):
         # now winnow the plaintexts down for each tchunk
         # TODO: note that right now this may have several winners! make sure to
         # handle that elsewhere
-        tcwin = winnow_plaintexts(self.candidates)[0]
-        if tcwin:
-            self.winners.append(tcwin)
+        tcwinners = winnow_plaintexts(self.candidates)
+
+        if tcwinners:
+            self.winners = tcwinners
         else:
-            self.winners.append(False)
+            self.winners = False
             self.solved = False
 
     def __repr__(self):
@@ -573,7 +582,6 @@ def hamming_code_distance(string1, string2):
         i +=1
     return hamming_distance
 
-
 def find_multichar_xor(hexstring):
     """
     Break a hexstring of repeating-key XOR ciphertext. 
@@ -586,7 +594,7 @@ def find_multichar_xor(hexstring):
         hexstring = "0"+hexstring
 
     keylenmin = 2
-    keylenmax = 40
+    keylenmax = 80
     cipherlen = len(hexstring)
 
     dp = "min key length: {} / ".format(keylenmin)
@@ -595,9 +603,14 @@ def find_multichar_xor(hexstring):
     debugprint(dp)
 
     attempts = []
+    # only operate on even-length keys because two hits is one charater:
     for keylen in range(keylenmin, keylenmax, 2):
-        # only operate on even-length keys because two hits is one charater
-        attempts += [MultiCharCandidate(hexstring, keylen)]
+        # if the MCC results in a winnowing error, ignore that keylen:
+        try:
+            na = [MultiCharCandidate(hexstring, keylen)]
+            attempts += na
+        except MCPWinnowingError:
+            debugprint("Winnowing exception for keylen {}".format(keylen))
 
     attempts_sorted  = sorted(attempts, key=lambda a: a.hdnorm, reverse=True)
     winner = attempts_sorted[0]
@@ -611,9 +624,7 @@ def find_multichar_xor(hexstring):
         print("########     ###################     ########")
         print()
 
-    strace()
-
-    return winner.plaintext
+    return winner
 
 
 ########################################################################
@@ -674,7 +685,11 @@ def chal06():
     gist = f.read().replace("\n","")
     f.close()
     hexcipher = base64_to_hex(gist)
-    print(find_multichar_xor(hexcipher))
+    winner = find_multichar_xor(hexcipher)
+    print("Winning plaintext:")
+    print(winner.plaintext)
+    print()
+    print("Key: '{}' of len {}".format(winner.key, winner.keylen))
 
 def chal06a():
     ex1="this is a test"
@@ -684,7 +699,8 @@ def chal06a():
 
 def chal06b():
     ciphertext = '1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'
-    print(find_multichar_xor(ciphertext))
+    winner = find_multichar_xor(ciphertext)
+    print(winner.plaintext)
 
 
 ########################################################################
