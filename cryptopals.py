@@ -10,19 +10,43 @@ import binascii
 ########################################################################
 ## Backend libraryish functions
 
-def safeprint(text, underscores=False, maxwidth=None):
+def safeprint(text, unprintable=False, newlines=False, maxwidth=None):
     """
     Attempt to print the passed text, but if a UnicodeEncodeError is 
     encountered, print a warning and move on. 
 
-    This is useful when printing 
-    candidate plaintext strings, because Windows will throw a UnicodeEncodeError
-    if you try to print a character it can't print or something, and your 
-    program will stop.
+    This is useful when printing candidate plaintext strings, because Windows
+    will throw a UnicodeEncodeError if you try to print a character it can't 
+    print or something, and your program will stop.
 
-    If `underscores` is set to True, any character not printable
+    If the appropriate options are passed, it will also filter the text through 
+    safefilter().
+
+    """
+
+    filtered = safefilter(text, 
+                          unprintable=unprintable, 
+                          newlines=newlines,
+                          maxwidth=maxwidth)
+
+    try:
+        print(filtered)
+    except UnicodeEncodeError:
+        # this (usually?) only happens on Windows
+        wt = "WARNING: Tried to print characters that could not be displayed on "
+        wt+= "this terminal. Skipping..."
+        print(wt)
+
+def safefilter(text, unprintable=False, newlines=False, maxwidth=None):
+    """
+    Filter out undesirable characters from input text. (Intended for debugging.)
+
+    If `unprintable` is set to True, any character not printable
     be rendered as an underscore. Note that of course you may have actual 
     underscores in your `text` as well! 
+
+    If `newlines` is set to True, ASCII characters 10 and 13 (CR and LF) will 
+    be rendered as an underscore.
 
     If `maxwidth` is set to an integer, text will be truncated and an elipsis
     inserted.
@@ -32,24 +56,21 @@ def safeprint(text, underscores=False, maxwidth=None):
         output1 = text[0:maxwidth-3] + "..."
     else:
         output1 = text
-    
-    output2 = ""
-    if underscores:
+
+    if unprintable or newlines:
+        output2 = ""
         for character in output1:
-            if character in string.printable:
-                output2 += character
-            else:
+            if unprintable and character not in string.printable:
                 output2 += "_"
+            elif newlines and ord(character) == 10 or ord(character) == 13:
+                output2 += "_"
+            else:
+                output2 += character
     else:
         output2 = output1
 
-    try:
-        print(output2)
-    except UnicodeEncodeError:
-        # this (usually?) only happens on Windows
-        wt = "WARNING: Tried to print characters that could not be displayed on "
-        wt+= "this terminal. Skipping..."
-        print(wt)
+    return output2
+
         
 # idk if these are like cheating or something because they're using the base64 
 # module? 
@@ -205,6 +226,11 @@ def winnow_unprintable_ascii(text):
     True otherwise.
     """
     cc = char_counts(text)
+
+    # spt = "UA: {} BLE: {} WUA: {}".format(
+    #     cc['unprintable'], cc['bad_lineendings'], text)
+    # safeprint(spt, unprintable=True)
+        
     if cc['unprintable'] > 0 or cc['bad_lineendings'] > 0:
         return False
     else:
@@ -233,7 +259,6 @@ def winnow_vowel_ratio(text):
 
 def winnow_plaintexts(candidates):
 
-    # winnowing based on ascii results in totally fucked output. wtf. 
     can2 = []
 
     if CRYPTOPALS_DEBUG:
@@ -246,10 +271,10 @@ def winnow_plaintexts(candidates):
             can2 += [c]
     if len(can2) == 0:
         et = "Unprintable ASCII winnowing failed. "
-        et+= "Found no candidates which didn't result in non-ascii characters "
+        et+= "Found no candidates which didn't result in unprintableascii characters "
         et+= "for this hexstring: \n    '{}'".format(
             candidates[0].hexstring[0:72] + "...")
-        raise Exception(et)
+        raise MCPWinnowingError(et)
     candidates = can2
 
     opt_winnowers = [winnow_punctuation,
@@ -290,10 +315,13 @@ def winnow_plaintexts(candidates):
 
 # TODO: test before next commit
 def detect_1char_xor(hexes):
-    candiates = []
+    candidates = []
     for h in hexes:
-        candidates = SingleCharCandidate.generate_set(h)
-    winner = winnow_plaintexts(candidates)[0]
+        candidates += SingleCharCandidate.generate_set(h)
+
+    can2 = winnow_plaintexts(candidates)
+    winner = can2[0]
+
     return winner
 
 def find_1char_xor(hexstring):
@@ -313,15 +341,23 @@ def find_1char_xor(hexstring):
     for i in range(0, 128):
         candidates += [SingleCharCandidate(hexstring, chr(i))]
 
-    candidates = winnow_plaintexts(candidates)
+    can2 = winnow_plaintexts(candidates)
+    candidates = can2
 
     #ideally there will be only one candidate butttt
     # TODO: winnow better so there's guaranteed to be just one candidate dummy
     if len(candidates) == 0:
         return False
     elif len(candidates) > 1:
-        debugprint("WINNOWING COMPLETE BUT {} CANDIDATES REMAIN".format(len(candidates)))
+        debugprint("WINNOWING COMPLETE BUT {} CANDIDATES REMAIN".format(
+            len(candidates)))
     return candidates[0]
+
+class MCPWinnowingError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 class SingleCharCandidate(object):
     """
@@ -348,8 +384,11 @@ class SingleCharCandidate(object):
         self.charcounts = char_counts(self.plaintext)
 
     def __repr__(self):
-        return "xorchar: '{}'; hexstring: '{}'; plaintext: '{}'".format(
-            self.xorchar, self.hexstring, self.plaintext)
+        #return "xorchar: '{}'; hexstring: '{}'; plaintext: '{}'".format(
+        #    self.xorchar, self.hexstring, self.plaintext)
+        pt = safefilter(self.plaintext, unprintable=True, newlines=True)
+        r = "xorchar: {} plaintext: {}".format(self.xorchar, pt)
+        return(r)
 
     @classmethod
     def generate_set(self, hexstring):
@@ -609,9 +648,12 @@ def chal04():
     hexes = [line.strip() for line in gist.readlines()]
     gist.close()
     winner = detect_1char_xor(hexes)
-    print("Detected plaintext '{}'".format(winner.plaintext))
-    print("From hex string '{}'".format(winner.hexstring))
-    print("XOR'd against character '{}'".format(winner.xorchar))
+    if winner:
+        print("Detected plaintext '{}'".format(winner.plaintext))
+        print("From hex string '{}'".format(winner.hexstring))
+        print("XOR'd against character '{}'".format(winner.xorchar))
+    else:
+        print("Could not find a winner.")
 
 def chal05():
     plaintext = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
