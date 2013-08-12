@@ -702,6 +702,20 @@ def chal06b():
     winner = find_multichar_xor(ciphertext)
     print(winner.plaintext)
 
+def chal07():
+    # note: requires pycrypto
+    from Crypto.Cipher import AES
+    key = b'YELLOW SUBMARINE'
+    cipher = AES.new(key, AES.MODE_ECB)
+
+    f = open("data/challenge07.3132853.gist.txt")
+    gist = f.read().replace("\n","")
+    f.close()
+    ciphertext = base64.b64decode(gist.encode())
+    
+    plaintext = cipher.decrypt(ciphertext).decode()
+    print(plaintext)
+
 
 ########################################################################
 ## main()
