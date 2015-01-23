@@ -68,7 +68,7 @@ char * normalize_hexstring(char * hexstring) {
         }
     }
     hexstring_norm[oidx] = '\0';
-    debug("Original hexstring '%s' len %i is normalized to '%s' len %i.\n",
+    debug("Original hexstring '%s' len %i is normalized to '%s' len %i.",
         hexstring, hexstring_len, (char*)hexstring_norm, 
         strlen(hexstring_norm));
 
@@ -258,3 +258,39 @@ void print_cryptopals_title(char *title) {
     printf("\n\n%s\n%s\n%s\n%s\n%s\n\n",
         divider, matatitle, divider, title, divider);
 }
+
+unsigned char *fixed_xor(size_t buf_sz, unsigned char *buf1, unsigned char *buf2) {
+    unsigned char *outbuf = malloc(sizeof(unsigned char) *buf_sz);
+    check_mem(outbuf);
+
+    int ix;
+    for (ix=0; ix<buf_sz; ix++) {
+        outbuf[ix] = buf1[ix] ^ buf2[ix];
+    }
+
+    return outbuf;
+error:
+    free(outbuf);
+    return NULL;
+}
+
+char hexidx[] = {'1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+char *buf2hex(unsigned char *buf, size_t buf_sz, char **outstring) {
+    int ix;
+    char *os=*outstring;
+    os = realloc(os, (buf_sz*2) +1);
+    check_mem(os);
+    os[buf_sz*2] = '\0';
+
+    for (ix=0; ix<buf_sz; ix++) {
+        os[ix*2 +0] = hexidx[ (buf[ix] >> 4) ];
+        os[ix*2 +1] = hexidx[ (buf[ix]) ];
+    }
+
+    outstring = &os;
+    return os;
+error:
+    free(*outstring);
+    return NULL;
+}
+
