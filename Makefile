@@ -16,19 +16,19 @@ $(warning Found these common source files: $(COMMONC) $(COMMONH))
 
 CODE=$(wildcard src/*.c)
 BINS=$(patsubst src/%.c,%,$(CODE))
-$(warning Found these main() program files: $(CODE))
+$(warning Found these main() source files: $(CODE))
 $(warning Will compile to these binaries: $(BINS))
 
 ###########################
 
-ALL: challenges
-
-bin:
-	mkdir bin
+all: challenges
 
 challenges: bin $(BINS) 
 $(BINS): $(CODE) $(COMMONC) $(COMMONH)
 	$(CC) $(DBGOPTS) $(COMMONC) src/$@.c -o bin/$@
+
+bin:
+	mkdir bin
 
 #challenges: $(CHALLENGES) $(COMMONC) $(COMMONH) 
 #	$(CC) $(CHALLENGES) $(COMMONC)
@@ -43,5 +43,5 @@ $(BINS): $(CODE) $(COMMONC) $(COMMONH)
 #	gdb ./love.exe -ex run
 #	./love.exe
 
-clean:
-	rmdir /s /q bin
+clean: 
+	-rmdir /s /q bin
