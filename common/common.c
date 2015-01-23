@@ -246,3 +246,15 @@ error:
     return NULL;
 }
 
+void print_cryptopals_title(char *title) {
+    size_t title_len=strlen(title);
+    int ix, divider_width=80;
+    char *divider, *matatitle="MATASANO CRYPTOPALS";
+
+    divider = malloc(sizeof(char) *divider_width +1);
+    divider[divider_width] = '\0';
+    for (ix=0; ix<divider_width; ix++) divider[ix] = '*';
+
+    printf("\n\n%s\n%s\n%s\n%s\n%s\n\n",
+        divider, matatitle, divider, title, divider);
+}

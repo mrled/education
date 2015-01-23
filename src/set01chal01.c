@@ -8,6 +8,9 @@ int main(int argc, char *argv[]) {
     unsigned char *buf=NULL;
     size_t buf_len;
 
+    const char *CHALLENGE_TITLE = "Convert hex to base64";
+    print_cryptopals_title(CHALLENGE_TITLE);
+
     printf("Printing arguments (if any)...\n");
     for(ix=1; ix<argc; ix++) {
         printf("Input buffer '%s' is '%i' bytes\n", argv[ix], strlen(argv[ix]));
