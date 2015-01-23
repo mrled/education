@@ -19,7 +19,6 @@ size_t hex2buf(char * hexstring, unsigned char ** outbuffer) {
     outbuffer_len = strlen(normhs)/2;
 
     free(normhs);
-
     return outbuffer_len;
 
 error:
@@ -39,14 +38,15 @@ error:
 char * normalize_hexstring(char * hexstring) {
     unsigned int iidx=0, oidx=0;
     char ca, cb;
-    char *hexstring_norm = (char*) malloc(sizeof(char) * strlen(hexstring) +1);
+    size_t hexstring_len = strlen(hexstring);
+    char *hexstring_norm = (char*) malloc(sizeof(char) * hexstring_len +2);
     check_mem(hexstring_norm);
 
     if (hexstring[0] == '0' && hexstring[1] == 'x') {
         iidx = 2;
     }
 
-    while (iidx < strlen(hexstring)) {
+    while (iidx < hexstring_len) {
 
         ca = hexstring[iidx];
         cb = hexstring[iidx +1];
@@ -67,8 +67,10 @@ char * normalize_hexstring(char * hexstring) {
             iidx++;
         }
     }
-    debug("Original hexstring: '%s'; normalized: '%s'\n", hexstring, 
-        (char*)hexstring_norm);
+    hexstring_norm[oidx] = '\0';
+    debug("Original hexstring '%s' len %i is normalized to '%s' len %i.\n",
+        hexstring, hexstring_len, (char*)hexstring_norm, 
+        strlen(hexstring_norm));
 
     return hexstring_norm;
 
@@ -103,7 +105,8 @@ unsigned char * nhex2int(char * hexstring) {
     for (ix=0; ix<buffer_len; ix++) {
         ia = hit2int(hexstring[2 * ix + 0]);
         ib = hit2int(hexstring[2 * ix + 1]);
-        check((ia >=0 && ib >=0), "Bad input");
+        check((ia >=0 && ib >=0), "Bad input. ix==%i, ia==%c, ib==%c",
+            ix, ia, ib);
         // shift ia four bits to the left, because four bits is half of one 
         // byte and ia is the first half of the byte representation.
         buffer[ix] = (ia << 4) | ib;
@@ -126,63 +129,6 @@ const char b64idx[] = {
     '4','5','6','7','8','9','+','/'
 };
 
-/* Take a buffer and convert to base64
- */
-/*
-char *buf2b64(char *buf, size_t buf_len) {
-    int bufctr, outctr;
-    size_t outstring_len;
-    char *inslice, *outstring;
-    char *outstring;
-    int maskA, maskB, maskC, maskD;
-    unsigned long long inslicell;
-
-    uint32_t incharA, incharB, incharC, inslice;
-
-    maskA = 63 << 18;
-    maskB = 63 << 12;
-    maskC = 63 << 6;
-    maskD = 63;
-
-    outstring_len = (buf_len/3) *4;
-    if (buf_len%3) outstring_len += 4;
-    outstring_len +=1;
-    outstring[outstring_len -1] = '\0';
-
-    inslice = malloc(sizeof(char) *4);
-    check_mem(inslice);
-
-    outstring = malloc(sizeof(char) *outstring_len);
-    check_mem(outstring);
-
-    for (bufctr=0, outctr=0; bufctr<buf_length;) {
-        incharA = bufctr<buf_length ? (unsigned char) buf[ bufctr++ ] : 0;
-        incharB = bufctr<buf_length ? (unsigned char) buf[ bufctr++ ] : 0;
-        incharC = bufctr<buf_length ? (unsigned char) buf[ bufctr++ ] : 0;
-
-        inslice = (incharA << 16) & (incharB << 8) & (incharC << 0)
-    }
-
-    outctr=0;
-    for (bufctr=0; bufctr<buf_len; bufctr+=3) {
-        strncpy(inslice, 3, &buf[bufctr]);
-        inslice[3] = '\0';
-
-        outstring[outctr++] = b64idx[ inslice & maskA ];
-        outstring[outctr++] = b64idx[ inslice & maskB ];
-        outstring[outctr++] = b64idx[ inslice & maskC ];
-        outstring[outctr++] = b64idx[ inslice & maskD ];
-    }
-
-    free(inslice);
-    return outstring;
-
-error:
-    free(inslice);
-    free(outstring);
-    return NULL;
-}
-*/
 
 /* Return a string that contains just ones and zeroes
  * You are expected to free() *outstring when you're done with it
