@@ -8,7 +8,7 @@
 # This basically doesn't work at all right now though
 
 CC=gcc
-CFLAGS=-Wno-format 
+#CFLAGS=-Wno-format 
 DBGOPTS=-g -O0
 
 COMMONC=$(wildcard common/*.c)
@@ -45,4 +45,8 @@ bin:
 #	./love.exe
 
 clean: 
+ifdef COMSPEC	
 	-rmdir /s /q bin
+else
+	rm -rf bin
+endif

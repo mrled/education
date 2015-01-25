@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     unsigned char *matbuf;
     size_t matbuf_len;
     matbuf_len = hex2buf(mathexstr, &matbuf);
-    check(matbuf_len >=0, "hex2buf() failed? returned length was %i", matbuf_len);
+    check(matbuf_len >=0, "hex2buf() failed? returned length was %zu", matbuf_len);
 
     printf("matasano hex string: \n%s\nHex'd & Base64'd: \n%s\n", 
         mathexstr, buf2b64(matbuf, matbuf_len, &binstr));

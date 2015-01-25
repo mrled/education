@@ -68,7 +68,7 @@ char * normalize_hexstring(char * hexstring) {
         }
     }
     hexstring_norm[oidx] = '\0';
-    debug("Original hexstring '%s' len %i is normalized to '%s' len %i.",
+    debug("Original hexstring '%s' len %zi is normalized to '%s' len %zi.",
         hexstring, hexstring_len, (char*)hexstring_norm, 
         strlen(hexstring_norm));
 
@@ -99,7 +99,7 @@ int hit2int(char hit) {
 unsigned char * nhex2int(char * hexstring) {
     size_t buffer_len = strlen(hexstring) / 2;
     unsigned char *buffer = malloc(buffer_len);
-    size_t ix;
+    int ix;
     int ia, ib;
 
     for (ix=0; ix<buffer_len; ix++) {
@@ -194,7 +194,7 @@ char *buf2b64(unsigned char *buf, size_t buf_len, char **outstring) {
     }
     ossz = (((buf_len +padding) *4) /3);
 
-    debug("ossz == %i", ossz);
+    debug("ossz == %zi", ossz);
     *outstring = realloc(*outstring, (sizeof(char) * ossz) +1);
     check_mem(*outstring);
     (*outstring)[ossz] = '\0';
@@ -262,10 +262,27 @@ void print_cryptopals_title(const char *title) {
 unsigned char *fixed_xor(size_t buf_sz, unsigned char *buf1, unsigned char *buf2) {
     unsigned char *outbuf = malloc(sizeof(unsigned char) *buf_sz);
     check_mem(outbuf);
+    char *binstr=NULL;
+    char byte1, byte2, byteout;
+
+    debug("Passed in buffers of length %zi", buf_sz);
+    debug("buf1: %s", buf1);
+    debug("buf2: %s", buf2);
 
     int ix;
     for (ix=0; ix<buf_sz; ix++) {
-        outbuf[ix] = buf1[ix] ^ buf2[ix];
+        byte1 = buf1[ix];
+        byte2 = buf2[ix];
+        byteout = byte2 ^ byte2;
+        outbuf[ix] = byteout;
+
+        debug("Doing A XOR on byte %i: \n"
+            "     byte1 (%c) (%3i)= %s\n"
+            "     byte2 (%c) (%3i)= %s\n"
+            "   byteout      = %s\n", ix,
+            byte1, (int) byte1, int2binstr( (int) byte1, &binstr), 
+            byte2, (int) byte2, int2binstr( (int) byte2, &binstr), 
+            int2binstr(byteout, &binstr));
     }
 
     return outbuf;
