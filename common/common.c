@@ -169,7 +169,7 @@ error:
 }
 
 
-char *buf2b64(char *buf, size_t buf_len, char **outstring) {
+char *buf2b64(unsigned char *buf, size_t buf_len, char **outstring) {
     int iidx, oidx;
     char inA, inB, inC;
     uint32_t inALL;
@@ -246,7 +246,7 @@ error:
     return NULL;
 }
 
-void print_cryptopals_title(char *title) {
+void print_cryptopals_title(const char *title) {
     size_t title_len=strlen(title);
     int ix, divider_width=80;
     char *divider, *matatitle="MATASANO CRYPTOPALS";

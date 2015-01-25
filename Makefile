@@ -8,6 +8,7 @@
 # This basically doesn't work at all right now though
 
 CC=gcc
+CFLAGS=-Wno-format 
 DBGOPTS=-g -O0
 
 COMMONC=$(wildcard common/*.c)
@@ -25,7 +26,7 @@ all: challenges
 
 challenges: bin $(BINS) 
 $(BINS): $(CODE) $(COMMONC) $(COMMONH)
-	$(CC) $(DBGOPTS) $(COMMONC) src/$@.c -o bin/$@
+	$(CC) $(CFLAGS) $(DBGOPTS) $(COMMONC) src/$@.c -o bin/$@
 
 bin:
 	mkdir bin

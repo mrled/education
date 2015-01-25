@@ -4,7 +4,7 @@
 
 #include "../common/common.h"
 
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
     char *binstr=NULL;
     uint32_t ix, shift;
     uint32_t inslice;
@@ -57,16 +57,16 @@ main(int argc, char *argv[]) {
 
     char *wps[] = { "sur", "sure", "sure.", NULL };
     for (ix=0; wps[ix]; ix++) {
-        printf("'%5s'  ==b64==> '%s'\n", wps[ix], buf2b64(wps[ix], strlen(wps[ix]), &binstr));
+        printf("'%5s'  ==b64==> '%s'\n", wps[ix], buf2b64( (unsigned char*) wps[ix], strlen(wps[ix]), &binstr));
     }
 
     char *wikipedia_sentence =
-    "Man is distinguished, not only by his reason, but by this singular passion from "
-    "other animals, which is a lust of the mind, that by a perseverance of delight "
-    "in the continued and indefatigable generation of knowledge, exceeds the short "
-    "vehemence of any carnal pleasure.";
+        "Man is distinguished, not only by his reason, but by this singular passion from "
+        "other animals, which is a lust of the mind, that by a perseverance of delight "
+        "in the continued and indefatigable generation of knowledge, exceeds the short "
+        "vehemence of any carnal pleasure.";
     printf("Wikipedia sentence: \n%s\nBase64'd: \n%s\n", 
-        wikipedia_sentence, buf2b64(wikipedia_sentence, strlen(wikipedia_sentence), &binstr));
+        wikipedia_sentence, buf2b64( (unsigned char*) wikipedia_sentence, strlen(wikipedia_sentence), &binstr));
 
     char *mathexstr = 
         "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
