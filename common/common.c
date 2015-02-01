@@ -327,3 +327,26 @@ error:
     return NULL;
 }
 
+unsigned char *repeating_xor(
+    unsigned char *buf, 
+    size_t buf_sz, 
+    unsigned char *xorbuf,
+    size_t xorbuf_sz) 
+{
+    unsigned char *outbuf = malloc(sizeof(unsigned char) * buf_sz);
+    for (int ix=0; ix<buf_sz; ix++) {
+        outbuf[ix] = buf[ix] ^ xorbuf[ix % xorbuf_sz];
+    }
+    return outbuf;
+}
+
+bool ascii_printable_buffer(char *buf, size_t buf_sz) {
+    for(int ix=0; ix<buf_sz; ix++) {
+        if (! ascii_printable_character( (int) buf[ix] )) return false;
+    }
+    return true;
+}
+
+//inline bool ascii_printable_character(char c) {
+//    return ( (int)' ' <= c <= 126);
+//}

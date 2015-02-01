@@ -8,6 +8,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <limits.h>
+#include <stdbool.h>
 
 #include "dbg.h"
 
@@ -20,5 +21,15 @@ char *buf2b64(unsigned char *buf, size_t buf_len, char **outstring);
 void print_cryptopals_title(const char *title);
 unsigned char *fixed_xor(size_t buf_sz, unsigned char *buf1, unsigned char *buf2);
 char *buf2hex(unsigned char *buf, size_t buf_sz, char **outstring);
+unsigned char *repeating_xor(
+    unsigned char *buf, 
+    size_t buf_sz, 
+    unsigned char *xorbuf,
+    size_t xorbuf_sz) ;
+bool ascii_printable_buffer(char *buf, size_t buf_sz);
+
+#define ascii_printable_character(c) ( (32 <= (c)) && ((c) <= 126) )
+
+//bool ascii_printable_character(char c);
 
 #endif
