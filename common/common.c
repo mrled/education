@@ -68,7 +68,7 @@ char * normalize_hexstring(char * hexstring) {
         }
     }
     hexstring_norm[oidx] = '\0';
-    debug("Original hexstring '%s' len %zi is normalized to '%s' len %zi.",
+    log_debug("Original hexstring '%s' len %zi is normalized to '%s' len %zi.",
         hexstring, hexstring_len, (char*)hexstring_norm, 
         strlen(hexstring_norm));
 
@@ -152,7 +152,6 @@ char *int2binstr (uint32_t num, char **outstring) {
     unsigned int mask = 0x80000000; 
     size_t bits = sizeof(num) * CHAR_BIT;
     int idx;
-    char bit;
 
     *outstring = realloc(*outstring, (sizeof(char) * bits) +1);
     check_mem(*outstring);
@@ -194,7 +193,7 @@ char *buf2b64(unsigned char *buf, size_t buf_len, char **outstring) {
     }
     ossz = (((buf_len +padding) *4) /3);
 
-    debug("ossz == %zi", ossz);
+    log_debug("ossz == %zi", ossz);
     *outstring = realloc(*outstring, (sizeof(char) * ossz) +1);
     check_mem(*outstring);
     (*outstring)[ossz] = '\0';
@@ -208,11 +207,11 @@ char *buf2b64(unsigned char *buf, size_t buf_len, char **outstring) {
         inALL = (inA<<16) | (inB<<8) | (inC<<0);
 
 #ifdef _CRYPTOMRL_DEBUG_BUF2B64    
-        debug("inA << 16 => %s", int2binstr(inA << 16, &binstr));
-        debug("inB <<  8 => %s", int2binstr(inB << 8, &binstr));
-        debug("inC       => %s", int2binstr(inC, &binstr));
+        log_debug("inA << 16 => %s", int2binstr(inA << 16, &binstr));
+        log_debug("inB <<  8 => %s", int2binstr(inB << 8, &binstr));
+        log_debug("inC       => %s", int2binstr(inC, &binstr));
 
-        debug("inALL => %s", int2binstr(inALL, &binstr));
+        log_debug("inALL => %s", int2binstr(inALL, &binstr));
 #endif
 
         outA = (inALL & omaskA) >> 6*3;
@@ -221,10 +220,10 @@ char *buf2b64(unsigned char *buf, size_t buf_len, char **outstring) {
         outD = (inALL & omaskD) >> 6*0;
 
 #ifdef _CRYPTOMRL_DEBUG_BUF2B64    
-        debug("outA => %s", int2binstr(outA, &binstr));
-        debug("outB => %s", int2binstr(outB, &binstr));
-        debug("outC => %s", int2binstr(outC, &binstr));
-        debug("outD => %s", int2binstr(outD, &binstr));
+        log_debug("outA => %s", int2binstr(outA, &binstr));
+        log_debug("outB => %s", int2binstr(outB, &binstr));
+        log_debug("outC => %s", int2binstr(outC, &binstr));
+        log_debug("outD => %s", int2binstr(outD, &binstr));
 #endif 
 
         (*outstring)[oidx++] = b64idx[ outA ];
@@ -237,7 +236,7 @@ char *buf2b64(unsigned char *buf, size_t buf_len, char **outstring) {
         else (*outstring)[oidx++] = '=';
     }
 
-    debug("*outstring: %s", *outstring);
+    log_debug("*outstring: %s", *outstring);
 
     free(binstr);
     return *outstring;
@@ -265,24 +264,35 @@ unsigned char *fixed_xor(size_t buf_sz, unsigned char *buf1, unsigned char *buf2
     char *binstr=NULL;
     char byte1, byte2, byteout;
 
-    debug("Passed in buffers of length %zi", buf_sz);
-    debug("buf1: %s", buf1);
-    debug("buf2: %s", buf2);
+#ifdef _CRYPTOMRL_DEBUG_FIXED_XOR
+    log_debug("Passed in buffers of length %zi"
+        "\n    buf1: %.*s"
+        "\n    buf2: %.*s",
+        buf_sz, (int)buf_sz, buf1, (int)buf_sz, buf2);
+    char *byte1bs=NULL, *byte2bs=NULL, *byteoutbs=NULL;
+#endif
 
     int ix;
     for (ix=0; ix<buf_sz; ix++) {
         byte1 = buf1[ix];
         byte2 = buf2[ix];
-        byteout = byte2 ^ byte2;
+        byteout = byte1 ^ byte2;
         outbuf[ix] = byteout;
 
-        debug("Doing A XOR on byte %i: \n"
-            "     byte1 (%c) (%3i)= %s\n"
-            "     byte2 (%c) (%3i)= %s\n"
-            "   byteout      = %s\n", ix,
-            byte1, (int) byte1, int2binstr( (int) byte1, &binstr), 
-            byte2, (int) byte2, int2binstr( (int) byte2, &binstr), 
-            int2binstr(byteout, &binstr));
+#ifdef _CRYPTOMRL_DEBUG_FIXED_XOR
+        byte1bs   = strdup(int2binstr(byte1,  &binstr));
+        byte2bs   = strdup(int2binstr(byte2,  &binstr));
+        byteoutbs = strdup(int2binstr(byteout, &binstr));
+
+        log_debug("Did a XOR on byte %i: \n"
+            "     byte1 (%1c) (%3i)= %s\n"
+            "     byte2 (%1c) (%3i)= %s\n"
+            "   byteout          = %s\n", ix,
+            byte1, (int)byte1, byte1bs,
+            byte2, (int)byte2, byte2bs,
+            byteoutbs);
+        free(byte1bs); free(byte2bs); free(byteoutbs);
+#endif
     }
 
     return outbuf;
@@ -291,22 +301,28 @@ error:
     return NULL;
 }
 
-char hexidx[] = {'1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+char hexidx[16] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 char *buf2hex(unsigned char *buf, size_t buf_sz, char **outstring) {
-    int ix;
-    char *os=*outstring;
-    os = realloc(os, (buf_sz*2) +1);
-    check_mem(os);
-    os[buf_sz*2] = '\0';
+    int ix, hex1, hex2, iy;
+    size_t os_sz = (buf_sz *2) +1; 
+    char *binstr=NULL;
+    *outstring = realloc(*outstring, os_sz);
+    check_mem(*outstring);
+    (*outstring)[os_sz -1] = '\0';
 
     for (ix=0; ix<buf_sz; ix++) {
-        os[ix*2 +0] = hexidx[ (buf[ix] >> 4) ];
-        os[ix*2 +1] = hexidx[ (buf[ix]) ];
+        iy = ix*2;
+        hex1 = hexidx[ buf[ix] >> 4 ];
+        hex2 = hexidx[ buf[ix] & 15 ];
+        (*outstring)[iy+0] = hex1;
+        (*outstring)[iy+1] = hex2;
+        log_debug("outstring[%i-%i] = binary %s = 0x%c%c", 
+            iy, iy+1, int2binstr(buf[ix], &binstr), hex1, hex2);
     }
 
-    outstring = &os;
-    return os;
+    return *outstring;
 error:
+    log_err("An error occurred");
     free(*outstring);
     return NULL;
 }
