@@ -9,92 +9,133 @@
 import Foundation
 
 class CalculatorBrain {
-    private enum Op {
-        case Operand(Double)
-        case UnaryOperation(String, Double -> Double)
-        case BinaryOperation(String, (Double, Double) -> Double)
+    private enum Op : Printable {
+        case Operand(symbol: String?, value: Double)
+        case UnaryOperation (symbol: String, operation: (Double)         -> Double)
+        case BinaryOperation(symbol: String, operation: (Double, Double) -> Double)
+        
+        var description : String {
+            switch self {
+            case .Operand(let symbol, let number):
+                if (symbol != nil) { return symbol! }
+                else { return "\(number)" }
+            case .UnaryOperation(let symbol, _): return symbol
+            case .BinaryOperation(let symbol, _): return symbol
+            }
+        }
     }
     private var opStack = [Op]()
-    private var inputStack = [Op]()
     private var knownOps = [String:Op]()
+    private var variableValues = [String:Double]()
 
     init() {
-        knownOps["×"] = Op.BinaryOperation("×", *)
-        knownOps["÷"] = Op.BinaryOperation("÷") {$1 / $0}
-        knownOps["+"] = Op.BinaryOperation("+", +)
-        knownOps["−"] = Op.BinaryOperation("−") {$1 - $0}
-        knownOps["√"]   = Op.UnaryOperation("√", sqrt)
-        knownOps["sin"] = Op.UnaryOperation("sin", sin)
-        knownOps["cos"] = Op.UnaryOperation("cos", cos)
-        knownOps["+/-"] = Op.UnaryOperation("+/-") {$0 * -1}
-        knownOps["π"] = Op.Operand(M_PI)
+        knownOps["×"] = Op.BinaryOperation(symbol: "×", operation: *)
+        knownOps["÷"] = Op.BinaryOperation(symbol: "÷", operation: {$1 / $0})
+        knownOps["+"] = Op.BinaryOperation(symbol: "+", operation: +)
+        knownOps["−"] = Op.BinaryOperation(symbol: "−", operation: {$1 - $0})
+        knownOps["√"]   = Op.UnaryOperation(symbol: "√", operation: sqrt)
+        knownOps["sin"] = Op.UnaryOperation(symbol: "sin", operation: sin)
+        knownOps["cos"] = Op.UnaryOperation(symbol: "cos", operation: cos)
+        knownOps["+/-"] = Op.UnaryOperation(symbol: "+/-", operation: {$0 * -1})
+        knownOps["π"] = Op.Operand(symbol: "π", value: M_PI)
     }
     
-    private func evaluate(ops: [Op]) -> (result: Double?, remainingOps: [Op]) {
+    var description: String {
+        get {
+            let (_, _, d) = evaluate(opStack)
+            return d
+        }
+    }
+    
+    private typealias evalRetVal = (result: Double?, remainingOps: [Op], description: String)
+    private func evaluate(ops: [Op]) -> evalRetVal {
+        var retval: evalRetVal = (result: nil, remainingOps: ops, description: "")
         if !ops.isEmpty {
             var remainingOps = ops
             let op = remainingOps.removeLast()
-
+    
             switch op {
-            case .Operand(let operand):
-                return (operand, remainingOps)
-            case .UnaryOperation(_, let operation):
+
+            case .Operand(let symbol, let operand):
+                // TODO: not ideal b/c the remainingOps aren't in the description. Maybe??
+                var opDesc = "\(operand)"
+                if (symbol != nil) { opDesc = symbol! }
+                retval = (operand, remainingOps, opDesc)
+
+            case .UnaryOperation(let symbol, let operation):
                 let operandEvaluation = evaluate(remainingOps)
                 if let operand = operandEvaluation.result {
-                    return (operation(operand), operandEvaluation.remainingOps)
+                    retval = (
+                        result:       operation(operand),
+                        remainingOps: operandEvaluation.remainingOps,
+                        description:  "\(symbol)(\(operandEvaluation.description))"
+                    )
                 }
-            case .BinaryOperation(_, let operation):
+
+            case .BinaryOperation(let symbol, let operation):
                 let op1eval = evaluate(remainingOps)
                 if let op1 = op1eval.result {
                     let op2eval = evaluate(op1eval.remainingOps)
                     if let op2 = op2eval.result {
-                        return (operation(op1, op2), op2eval.remainingOps)
+                        retval = (
+                            result:       operation(op1, op2),
+                            remainingOps: op2eval.remainingOps,
+                            description:  "(\(op2eval.description) \(symbol) \(op1eval.description))"
+                        )
                     }
                 }
+
             }
         }
-        return (nil, ops)
-    }
-    
-    func evaluate() -> Double? {
-        let (result, remainder) = evaluate(opStack)
-        return result 
+        return retval
     }
 
-    func pushInput(op: Double?) -> Double? {
-        if let unwrappedOp = op {
-            let operand = Op.Operand(unwrappedOp)
-            inputStack.append(operand)
+    func evaluate() -> Double? {
+        let (result, remainder, description) = evaluate(opStack)
+
+        if result == nil {
+            println("evaluate(): bad input")
+        }
+        else {
+            println("evaluate(): result: \(result!)")
+        }
+        println("evaluate(): remainingOps: \(remainder)")
+
+        println("evaluate(): Full stack: \(opStack)")
+        
+        return result
+    }
+    
+    func pushInput(value: Double?) -> Double? {
+        if let unwrappedValue = value {
+            let operand = Op.Operand(symbol: nil, value: unwrappedValue)
             opStack.append(operand)
             return evaluate()
         }
         return nil
     }
     
-    func pushInput(op: String?) -> Double? {
-        if let unwrappedOp = op {
-            if let knownOp = knownOps[unwrappedOp] {
-                inputStack.append(knownOp)
-                opStack.append(knownOp)
-                return evaluate()
+    func pushInput(symbol: String?) -> Double? {
+        var appendOp: Op? = nil
+        if let unwrappedSymbol = symbol {
+            if let knownOp = knownOps[unwrappedSymbol] {
+                appendOp = knownOp
+            }
+            else if let knownVar = variableValues[unwrappedSymbol] {
+                appendOp = Op.Operand(symbol: unwrappedSymbol, value: knownVar)
             }
         }
-        return nil
-    }
-    
-    func performOperation(symbol: String) -> Double? {
-        if let operation = knownOps[symbol] {
-            opStack.append(operation)
+        
+        if (appendOp != nil) {
+            opStack.append(appendOp!)
+            return evaluate()
         }
-        return evaluate()
-    }
-
-    func clearStack() {
-        inputStack.removeAll()
-        opStack.removeAll()
+        else {
+            return nil
+        }
     }
     
-    func retrieveInputs() -> String {
-        return "\(inputStack)"
+    func clearStack() {
+        opStack.removeAll()
     }
 }

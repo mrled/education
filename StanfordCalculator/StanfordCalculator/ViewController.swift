@@ -18,15 +18,24 @@ class ViewController: UIViewController {
     
     var brain = CalculatorBrain()
     
-    // TODO: This must be an optional for homework purposes
-    //       That might actually make error handling easier
-    var displayValue: Double {
+    var displayValue: Double? {
         get {
-            return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
+            if let dText = display.text {
+                if let nsnum = NSNumberFormatter().numberFromString(dText) {
+                    return nsnum.doubleValue
+                }
+            }
+            return nil
         }
         set {
-            display.text = "\(newValue)"
-            midTyping = false
+            if let nv = newValue {
+                display.text = "\(nv)"
+                history.text = brain.description
+                midTyping = false
+            }
+            else {
+                displayError()
+            }
         }
     }
     
@@ -65,7 +74,7 @@ class ViewController: UIViewController {
         
         var success = false
         if let operation = sender.currentTitle {
-            if let result = brain.performOperation(operation) {
+            if let result = brain.pushInput(operation) {
                 displayValue = result
                 success = true
             }
@@ -78,7 +87,6 @@ class ViewController: UIViewController {
     @IBAction func enter() {
         clearError()
         midTyping = false
-        history.text = brain.retrieveInputs()
         if let result = brain.pushInput(displayValue) {
             displayValue = result
         }
@@ -89,7 +97,7 @@ class ViewController: UIViewController {
     
     @IBAction func backspace() {
         clearError()
-        let lastDigit = countElements(display.text!) - 1
+        let lastDigit = count(display.text!) - 1
         if lastDigit >= 0 {
             let idx = advance(display.text!.startIndex, lastDigit)
             display.text = display.text!.substringToIndex(idx)
@@ -108,7 +116,7 @@ class ViewController: UIViewController {
         clearError()
         midTyping = false
         brain.clearStack()
-        history.text = brain.retrieveInputs()
+        history.text = brain.description
         clear()
     }
     
@@ -120,12 +128,6 @@ class ViewController: UIViewController {
         else {
             displayError()
         }
-    }
-    
-    func performInsertConstant(constant: Double) {
-        if midTyping { enter() }
-        brain.pushInput(constant)
-        displayValue = constant
     }
     
     func displayError() {
