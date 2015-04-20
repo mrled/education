@@ -13,6 +13,7 @@
 		304A1B9B1A9A852700279EB0 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 304A1B9A1A9A852700279EB0 /* Images.xcassets */; };
 		304A1B9E1A9A852700279EB0 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 304A1B9C1A9A852700279EB0 /* LaunchScreen.xib */; };
 		304A1BAA1A9A852800279EB0 /* StanfordCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304A1BA91A9A852800279EB0 /* StanfordCalculatorTests.swift */; };
+		309D6B591ACCDB5000321782 /* CalculatorBrain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309D6B581ACCDB5000321782 /* CalculatorBrain.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +37,7 @@
 		304A1BA31A9A852800279EB0 /* StanfordCalculatorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StanfordCalculatorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		304A1BA81A9A852800279EB0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		304A1BA91A9A852800279EB0 /* StanfordCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StanfordCalculatorTests.swift; sourceTree = "<group>"; };
+		309D6B581ACCDB5000321782 /* CalculatorBrain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalculatorBrain.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -77,11 +79,9 @@
 		304A1B901A9A852700279EB0 /* StanfordCalculator */ = {
 			isa = PBXGroup;
 			children = (
-				304A1B931A9A852700279EB0 /* AppDelegate.swift */,
+				309D6B581ACCDB5000321782 /* CalculatorBrain.swift */,
 				304A1B951A9A852700279EB0 /* ViewController.swift */,
 				304A1B971A9A852700279EB0 /* Main.storyboard */,
-				304A1B9A1A9A852700279EB0 /* Images.xcassets */,
-				304A1B9C1A9A852700279EB0 /* LaunchScreen.xib */,
 				304A1B911A9A852700279EB0 /* Supporting Files */,
 			);
 			path = StanfordCalculator;
@@ -90,6 +90,9 @@
 		304A1B911A9A852700279EB0 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				304A1B9A1A9A852700279EB0 /* Images.xcassets */,
+				304A1B9C1A9A852700279EB0 /* LaunchScreen.xib */,
+				304A1B931A9A852700279EB0 /* AppDelegate.swift */,
 				304A1B921A9A852700279EB0 /* Info.plist */,
 			);
 			name = "Supporting Files";
@@ -212,6 +215,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				309D6B591ACCDB5000321782 /* CalculatorBrain.swift in Sources */,
 				304A1B961A9A852700279EB0 /* ViewController.swift in Sources */,
 				304A1B941A9A852700279EB0 /* AppDelegate.swift in Sources */,
 			);
@@ -407,6 +411,7 @@
 				304A1BAF1A9A852800279EB0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		304A1BB01A9A852800279EB0 /* Build configuration list for PBXNativeTarget "StanfordCalculatorTests" */ = {
 			isa = XCConfigurationList;
@@ -415,6 +420,7 @@
 				304A1BB21A9A852800279EB0 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
