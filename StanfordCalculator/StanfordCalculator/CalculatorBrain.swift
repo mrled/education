@@ -47,8 +47,8 @@ class CalculatorBrain {
     
     var description: String {
         get {
-            let (_, _, d) = evaluate(opStack)
-            return d
+            let (_, desc, _) = evaluate(opStack)
+            return desc
         }
     }
     
@@ -56,14 +56,14 @@ class CalculatorBrain {
     private typealias evalRetVal = (
         result: Double?,
         description: String,
-        remainingOps: [Op],
-        remainingOpDesc: String)
+        remainingOps: [Op])
+        //remainingOpDesc: String)
     private func evaluate(ops: [Op]) -> evalRetVal {
         var retval: evalRetVal = (
             result: nil,
             description: "",
-            remainingOps: ops,
-            remainingOpDesc: "")
+            remainingOps: ops)
+            //remainingOpDesc: "")
         
         if !ops.isEmpty {
             var remainingOps = ops
@@ -78,9 +78,9 @@ class CalculatorBrain {
                 var roDesc = ""
                 if (!remainingOps.isEmpty) {
                     // Return the opDesc from evaluating remaining ops as remainingOpDesc
-                    (_, roDesc, _, _) = evaluate(remainingOps)
+                    (_, roDesc, _) = evaluate(remainingOps)
                 }
-                retval = (operand, opDesc, remainingOps, roDesc)
+                retval = (operand, opDesc, remainingOps)
 
             case .UnaryOperation(let symbol, let operation):
                 let operandEvaluation = evaluate(remainingOps)
@@ -88,8 +88,7 @@ class CalculatorBrain {
                     retval = (
                         result:          operation(operand),
                         description:     "\(symbol)(\(operandEvaluation.description))",
-                        remainingOps:    operandEvaluation.remainingOps,
-                        remainingOpDesc: operandEvaluation.remainingOpDesc
+                        remainingOps:    operandEvaluation.remainingOps
                     )
                 }
 
@@ -112,12 +111,16 @@ class CalculatorBrain {
                     v = value
                 }
                 var opDesc = symbol
-                if (!remainingOps.isEmpty) {
-                    var remainingOpDesc: String
-                    (_, _, remainingOpDesc) = evaluate(remainingOps)
-                    opDesc = "\(remainingOpDesc), \(opDesc)"
-                }
-                retval = (v, remainingOps, symbol)
+//                if (!remainingOps.isEmpty) {
+//                    var remainingOpDesc: String
+//                    (_, _, remainingOpDesc) = evaluate(remainingOps)
+//                    opDesc = "\(remainingOpDesc), \(opDesc)"
+//                }
+                retval = (
+                    result: v,
+                    remainingOps: remainingOps,
+                    description: symbol
+                )
             
             }
         }
