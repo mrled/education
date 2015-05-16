@@ -28,20 +28,19 @@ class ViewController: UIViewController {
             return nil
         }
         set {
+            history.text = brain.description
+            midTyping = false
             if let nv = newValue {
                 display.text = "\(nv)"
-                history.text = brain.description
-                midTyping = false
             }
             else {
-                displayError()
+                display.text = ""
             }
         }
     }
     
     @IBAction func appendDigit(sender: UIButton) {
         let digit = sender.currentTitle!
-        clearError()
         if midTyping {
             display.text = display.text! + digit
         }
@@ -51,15 +50,10 @@ class ViewController: UIViewController {
         }
     }
     @IBAction func appendDecimal() {
-        clearError()
-        
         let cdecimal: Character = "."
         if let dText = display.text {
-            if let idx = find(dText, cdecimal) {
-                // If there's already a decimal in the display, error
-                displayError()
-            }
-            else {
+            // if there's already a decimal in the display, do nothing
+            if find(dText, cdecimal) == nil {
                 display.text = dText + "."
             }
         }
@@ -70,50 +64,35 @@ class ViewController: UIViewController {
 
     @IBAction func operate(sender: UIButton) {
         if midTyping { enter() }
-        clearError()
-        
+        displayValue = nil
         var success = false
+        history.text = brain.description
         if let operation = sender.currentTitle {
             if let result = brain.pushInput(operation) {
                 displayValue = result
-                success = true
             }
-        }
-        if !success {
-            displayError()
         }
     }
     
     @IBAction func enter() {
-        clearError()
         midTyping = false
-        if let result = brain.pushInput(displayValue) {
-            displayValue = result
-        }
-        else {
-            displayError()
-        }
+        displayValue = brain.pushInput(displayValue)
     }
     
     @IBAction func backspace() {
-        clearError()
         let lastDigit = count(display.text!) - 1
         if lastDigit >= 0 {
             let idx = advance(display.text!.startIndex, lastDigit)
             display.text = display.text!.substringToIndex(idx)
         }
-        else {
-            displayError()
-        }
+        // TODO: think about this, not sure if covers pathological cases
     }
     
     @IBAction func clear() {
-        clearError()
-        displayValue = 0
+        displayValue = nil
     }
     
     @IBAction func clearStack() {
-        clearError()
         midTyping = false
         brain.clearStack()
         history.text = brain.description
@@ -121,22 +100,19 @@ class ViewController: UIViewController {
     }
     
     @IBAction func insertConstant(sender: UIButton) {
-        clearError()
-        if let evaluation = brain.pushInput(sender.currentTitle) {
-            displayValue = evaluation
-        }
-        else {
-            displayError()
-        }
+        displayValue = brain.pushInput(sender.currentTitle)
     }
     
-    func displayError() {
-        display.hidden = true
-        errorLabel.hidden = false
+    @IBAction func saveMem(sender: UIButton) {
+        midTyping = false
+        // chop off the leading → character & assign the value
+        var memSymbol = sender.currentTitle!
+        memSymbol.removeAtIndex(memSymbol.startIndex)
+        brain.assignVariable(memSymbol, value: displayValue!)
     }
-    func clearError() {
-        display.hidden = false
-        errorLabel.hidden = true
+    @IBAction func recallMem(sender: UIButton) {
+        if midTyping { enter() }
+        brain.pushVariable(sender.currentTitle!)
     }
 }
 
