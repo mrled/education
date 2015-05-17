@@ -26,6 +26,15 @@ class CalculatorBrain {
             }
         }
     }
+    
+
+    private class CalculatorEvaluation {
+        var result: Double? = nil
+        var description: String = ""
+        var remainingOps: [Op] = []
+        var remainingEvaluation: CalculatorEvaluation? = nil
+    }
+    
     private var opStack = [Op]()
     private var knownOps = [String:Op]()
     private var variableValues = [String:Double]()
@@ -47,80 +56,82 @@ class CalculatorBrain {
     
     var description: String {
         get {
-            let (_, desc, _) = evaluate(opStack)
+            var ops: [Op]? = opStack
+            var desc = ""
+            while ops != nil {
+                let evaluation = evaluate(ops!)
+                if desc.isEmpty {
+                    desc = evaluation.description
+                }
+                else {
+                    desc = "\(evaluation.description), \(desc)"
+                }
+                ops = evaluation.remainingEvaluation?.remainingOps
+            }
+            println("var description: \(desc)")
             return desc
         }
     }
     
-    //private typealias evalRetVal = (result: Double?, remainingOps: [Op], description: String)
-    private typealias evalRetVal = (
-        result: Double?,
-        description: String,
-        remainingOps: [Op])
-        //remainingOpDesc: String)
-    private func evaluate(ops: [Op]) -> evalRetVal {
-        var retval: evalRetVal = (
-            result: nil,
-            description: "",
-            remainingOps: ops)
-            //remainingOpDesc: "")
+    private func evaluate(ops: [Op]) -> CalculatorEvaluation {
+        var retval = CalculatorEvaluation()
         
         if !ops.isEmpty {
-            var remainingOps = ops
-            let op = remainingOps.removeLast()
-    
+            var remainOps = ops
+            let op = remainOps.removeLast()
+            
             switch op {
 
             case .Operand(let symbol, let operand):
-                // TODO: not ideal b/c the remainingOps aren't in the description. Maybe??
-                var opDesc = "\(operand)"
-                if (symbol != nil) { opDesc = symbol! }
-                var roDesc = ""
-                if (!remainingOps.isEmpty) {
-                    // Return the opDesc from evaluating remaining ops as remainingOpDesc
-                    (_, roDesc, _) = evaluate(remainingOps)
+                var desc = "\(operand)"
+                if let s = symbol {
+                    desc = s
                 }
-                retval = (operand, opDesc, remainingOps)
+                var remainEval: CalculatorEvaluation? = nil
+                if (!remainOps.isEmpty) {
+                    remainEval = evaluate(remainOps)
+                }
+                retval.result = operand
+                retval.description = desc
+                retval.remainingOps = remainOps
+                retval.remainingEvaluation = remainEval
 
             case .UnaryOperation(let symbol, let operation):
-                let operandEvaluation = evaluate(remainingOps)
-                if let operand = operandEvaluation.result {
-                    retval = (
-                        result:          operation(operand),
-                        description:     "\(symbol)(\(operandEvaluation.description))",
-                        remainingOps:    operandEvaluation.remainingOps
-                    )
+                let opEval = evaluate(remainOps)
+                if let operand = opEval.result {
+                    retval.result = operand
+                    retval.description = "\(symbol)(\(opEval.description))"
+                    retval.remainingOps = opEval.remainingOps
+                    retval.remainingEvaluation = opEval.remainingEvaluation
                 }
 
             case .BinaryOperation(let symbol, let operation):
-                let op1eval = evaluate(remainingOps)
-                if let op1 = op1eval.result {
-                    let op2eval = evaluate(op1eval.remainingOps)
-                    if let op2 = op2eval.result {
-                        retval = (
-                            result:       operation(op1, op2),
-                            remainingOps: op2eval.remainingOps,
-                            description:  "(\(op2eval.description) \(symbol) \(op1eval.description))"
-                        )
+                if remainOps.count > 0 {
+                    let eval1 = evaluate(remainOps)
+                    if let operand1 = eval1.result {
+                        if eval1.remainingOps.count > 0 {
+                            let remainOps2 = eval1.remainingOps
+                            let eval2 = evaluate(remainOps2)
+                            if let operand = eval2.result {
+                                retval.result = operand
+                                retval.description = "(\(eval2.description) \(symbol) \(eval1.description))"
+                                retval.remainingOps = eval2.remainingOps
+                                retval.remainingEvaluation = eval2.remainingEvaluation
+                            }
+                        }
                     }
                 }
-            
+
             case .Variable(let symbol, let value):
-                var v: Double? = nil
-                if (value != nil) {
-                    v = value
+                retval.result = value
+                retval.description = symbol
+                retval.remainingOps = []
+                retval.remainingEvaluation = nil
+                if !remainOps.isEmpty {
+                    retval.remainingOps = remainOps
+                    retval.remainingEvaluation = evaluate(remainOps)
                 }
-                var opDesc = symbol
-//                if (!remainingOps.isEmpty) {
-//                    var remainingOpDesc: String
-//                    (_, _, remainingOpDesc) = evaluate(remainingOps)
-//                    opDesc = "\(remainingOpDesc), \(opDesc)"
-//                }
-                retval = (
-                    result: v,
-                    remainingOps: remainingOps,
-                    description: symbol
-                )
+                
             
             }
         }
@@ -128,19 +139,19 @@ class CalculatorBrain {
     }
 
     func evaluate() -> Double? {
-        let (result, remainder, description) = evaluate(opStack)
+        let evaluation = evaluate(opStack)
 
-        if result == nil {
+        if evaluation.result == nil {
             println("evaluate(): bad input")
         }
         else {
-            println("evaluate(): result: \(result!)")
+            println("evaluate(): result: \(evaluation.result!)")
         }
-        println("evaluate(): remainingOps: \(remainder)")
+        println("evaluate(): remainingOps: \(evaluation.remainingOps)")
         println("evaluate(): Full stack: \(opStack)")
         println("evaluate(): memory: \(variableValues)")
         
-        return result
+        return evaluation.result
     }
     
     func pushInput(value: Double?) -> Double? {
