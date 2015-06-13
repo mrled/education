@@ -77,6 +77,7 @@ class ViewController: UIViewController {
     @IBAction func enter() {
         midTyping = false
         displayValue = brain.pushInput(displayValue)
+        println("==== ENTER ====")
     }
     
     @IBAction func backspace() {
