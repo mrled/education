@@ -140,7 +140,7 @@ public class CalculatorBrain {
             if opEval.result == nil {
                 return emptyEval
             }
-            evaluation.result = opEval.result!
+            evaluation.result = operation(opEval.result!)
             evaluation.desc = "\(symbol)(\(opEval.description))"
             evaluation.remainingOps = opEval.remainingOps
             evaluation.remainingEvaluation = opEval.remainingEvaluation
