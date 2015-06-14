@@ -9,13 +9,13 @@
 import Foundation
 
 public class CalculatorBrain {
-    private enum Op : Printable {
+    private enum Op: Printable {
         case Operand(symbol: String?, value: Double)
         case Variable(symbol: String, value: Double?)
         case UnaryOperation (symbol: String, operation: (Double)         -> Double)
         case BinaryOperation(symbol: String, operation: (Double, Double) -> Double)
         
-        var description : String {
+        var description: String {
             switch self {
             case .Operand(let symbol, let number):
                 if (symbol != nil) { return symbol! }
@@ -26,7 +26,6 @@ public class CalculatorBrain {
             }
         }
     }
-    
 
     private class CalculatorEvaluation: Printable {
         var result: Double?
@@ -42,20 +41,14 @@ public class CalculatorBrain {
             self.remainingEvaluation = nil
         }
         var description: String {
-            if let result = self.result {
-                switch self.ops[0] {
-                case .Operand:
-                    return "\(self.desc)"
-                case .Variable:
-                    return "\(self.desc)"
-                case .BinaryOperation:
-                    return "\(self.desc) = \(result)"
-                case .UnaryOperation:
-                    return "\(self.desc) = \(result)"
-                }
-            }
-            else {
+            if self.result == nil {
                 return ""
+            }
+            switch self.ops[0] {
+            case .Operand, .Variable:
+                return "\(self.desc)"
+            case .UnaryOperation, .BinaryOperation:
+                return "\(self.desc) = \(self.result!)"
             }
         }
     }
@@ -84,19 +77,14 @@ public class CalculatorBrain {
             var ops = opStack
             var calculating = true
             var iterator = 0
-
             let ev = evaluate(ops, silent: true)
             var desc = "\(ev)"
-
             if !ev.remainingOps.isEmpty {
                 desc += ", remaining: "
                 for ro in ev.remainingOps {
                     desc += "\(ro) "
                 }
             }
-            
-            println(desc)
-        
             return desc
         }
     }
