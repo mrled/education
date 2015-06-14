@@ -28,45 +28,35 @@ public class CalculatorBrain {
     }
     
 
-    private class CalculatorEvaluation {
+    private class CalculatorEvaluation: Printable {
         var result: Double?
         var desc: String
+        var ops: [Op]
         var remainingOps: [Op]
         var remainingEvaluation: CalculatorEvaluation?
         init() {
             self.result = nil
             self.desc = ""
+            self.ops = []
             self.remainingOps = []
             self.remainingEvaluation = nil
         }
-        func resultDesc() -> String {
-            var ret = ""
-            if self.result != nil {
-                ret = "\(self.desc) = \(self.result!)"
-            }
-            return ret
-        }
-        func remainDesc() -> String {
-            var ret = ""
-            if !self.remainingOps.isEmpty {
-                ret = "remaining: \(self.remainingOps)"
-            }
-            return ret
-        }
         var description: String {
-            return self.resultDesc()
-//            if !self.desc.isEmpty && !self.remainingOps.isEmpty {
-//                return "\(self.resultDesc()); \(self.remainDesc())"
-//            }
-//            else if !self.desc.isEmpty {
-//                return self.resultDesc()
-//            }
-//            else if !self.remainingOps.isEmpty {
-//                return self.remainDesc()
-//            }
-//            else {
-//                return ""
-//            }
+            if let result = self.result {
+                switch self.ops[0] {
+                case .Operand:
+                    return "\(self.desc)"
+                case .Variable:
+                    return "\(self.desc)"
+                case .BinaryOperation:
+                    return "\(self.desc) = \(result)"
+                case .UnaryOperation:
+                    return "\(self.desc) = \(result)"
+                }
+            }
+            else {
+                return ""
+            }
         }
     }
     
@@ -96,11 +86,10 @@ public class CalculatorBrain {
             var iterator = 0
 
             let ev = evaluate(ops, silent: true)
-            var desc = ev.resultDesc()
+            var desc = "\(ev)"
 
             if !ev.remainingOps.isEmpty {
-                //desc += ", \(ev.remainDesc())"
-                desc += ", REMAINING: "
+                desc += ", remaining: "
                 for ro in ev.remainingOps {
                     desc += "\(ro) "
                 }
@@ -111,131 +100,22 @@ public class CalculatorBrain {
             return desc
         }
     }
-    public var ____description: String {
-        get {
-            var desc = ""
-            var ops = opStack
-            var calculating = true
-            var iterator = 0
-            while calculating {
-                let ev = evaluate(ops, silent: true)
-                
-                if desc.isEmpty { // on first loop iter
-                    desc = ev.description
-                    if !ev.remainingOps.isEmpty {
-                        desc += ", remaining: \(ev.remainingOps)"
-                    }
-                } else {          // on subsequent loop iters
-                    desc = "\(ev.description), \(desc)"
-                }
-                
-                if let remEval = ev.remainingEvaluation {
-                    ops = remEval.remainingOps
-                } else {
-                    calculating = false
-                }
-                
-                //                if iterator == 0 {
-                //                    print()
-                //                }
-                //                iterator++
-                
-                
-            }
-            
-            return desc
-        }
-    }
-    public var ___description: String {
-        get {
-            var desc = ""
-            var ops = opStack
-            var calculating = true
-            while calculating {
-                let evaluation = evaluate(ops, silent: true)
-                
-                if desc.isEmpty {
-                    desc = evaluation.description
-                } else {
-                    desc = "\(evaluation.description), \(desc)"
-                }
-                
-                if let remEval = evaluation.remainingEvaluation {
-                    ops = remEval.remainingOps
-                } else {
-                    calculating = false
-                }
-            }
-            
-            return desc
-        }
-    }
-    public var __description: String {
-        get {
-            var desc = ""
-            var ops = opStack
-            var calculating = true
-            while !ops.isEmpty {
-                let evaluation = evaluate(ops, silent: false)
-                
-                if desc.isEmpty {
-                    desc = evaluation.description
-                } else {
-                    desc = "\(evaluation.description), \(desc)"
-                }
-                
-                if let remEval = evaluation.remainingEvaluation {
-                    ops = remEval.remainingOps
-                } else {
-                    ops = []
-                }
-            }
-            
-            return desc
-        }
-    }
-    public var asdfdescription: String {
-        get {
-            var desc = ""
-            var ops = opStack
-            var calculating = true
-            while true {
-                let evaluation = evaluate(ops, silent: false)
-                
-                if desc.isEmpty {
-                    desc = evaluation.resultDesc()
-                } else {
-                    desc = "\(evaluation.resultDesc()), \(desc)"
-                }
-                
-                if let remEval = evaluation.remainingEvaluation {
-                    ops = remEval.remainingOps
-                } else {
-                    ops = []
-                }
-            }
-            
-            return desc
-        }
-    }
     
     private func evaluate(ops: [Op], silent: Bool=false, iterator: Int32=0) -> CalculatorEvaluation {
         let emptyEval = CalculatorEvaluation()  // Just for clarity in function
         var evaluation = CalculatorEvaluation()
+        evaluation.ops = ops
         if ops.isEmpty {
             return emptyEval
         }
 
         var myIterator = iterator
-        var css = NSThread.callStackSymbols()
         if !silent {
-            //if myIterator == 0 {
             var padding = ""
             for _ in 0...myIterator {
                 padding += "  "
             }
             println("\(padding)evaluate(ops: [Op]) #\(myIterator++) called with \(ops).")
-            //println("    caller=\(css[0])")
         }
         
         var remainOps = ops
