@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="web-FU-oMI">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <scenes>
+        <!--Split View Controller-->
+        <scene sceneID="cji-Tn-AJm">
+            <objects>
+                <splitViewController id="web-FU-oMI" sceneMemberID="viewController">
+                    <connections>
+                        <segue destination="qLa-JL-Qex" kind="relationship" relationship="masterViewController" id="Z6r-9H-V7L"/>
+                        <segue destination="gt4-kh-wpX" kind="relationship" relationship="detailViewController" id="FgZ-s9-dnH"/>
+                    </connections>
+                </splitViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ses-AM-IHg" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-829" y="247"/>
+        </scene>
+        <!--GOTHAM PSYCH WARD-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="PsychologistViewController" customModule="Psychologist" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
+                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="WHAT DOES IT SEE WHEN IT DREAMS?" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="12" translatesAutoresizingMaskIntoConstraints="NO" id="9mN-yl-z0v">
+                                <rect key="frame" x="16" y="64" width="568" height="43"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="36"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6NQ-0t-nDi">
+                                <rect key="frame" x="188" y="279" width="224" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="262" id="vjW-65-Wao"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <state key="normal" title="STYGIAN HORRORS">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="vjW-65-Wao"/>
+                                    </mask>
+                                </variation>
+                                <connections>
+                                    <segue destination="gt4-kh-wpX" kind="showDetail" identifier="Diagnose Stygian Horrors" id="uZJ-SO-GH7"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bCn-oX-7hA">
+                                <rect key="frame" x="178" y="230" width="244" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="262" id="5hU-ff-r8e"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <state key="normal" title="CHITTERING INSECTS">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="5hU-ff-r8e"/>
+                                    </mask>
+                                </variation>
+                                <connections>
+                                    <segue destination="gt4-kh-wpX" kind="showDetail" identifier="Diagnose Chittering Insects" id="DB9-rc-EEo"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9xD-ka-luc">
+                                <rect key="frame" x="185" y="328" width="230" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="262" id="L68-jB-aBN"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <state key="normal" title="FLESHY HELLSCAPE">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="L68-jB-aBN"/>
+                                    </mask>
+                                </variation>
+                                <connections>
+                                    <segue destination="gt4-kh-wpX" kind="showDetail" identifier="Diagnose Fleshy Hellscape" id="N8i-Fe-iAO"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="9mN-yl-z0v" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="3Hw-Er-poZ"/>
+                            <constraint firstAttribute="centerX" secondItem="6NQ-0t-nDi" secondAttribute="centerX" id="H3H-tT-8qt"/>
+                            <constraint firstItem="bCn-oX-7hA" firstAttribute="centerX" secondItem="6NQ-0t-nDi" secondAttribute="centerX" id="MNl-MG-NMi"/>
+                            <constraint firstItem="9mN-yl-z0v" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="OYW-Ul-7Ai"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="6NQ-0t-nDi" secondAttribute="bottom" constant="285" id="Vht-lj-A4O"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="9mN-yl-z0v" secondAttribute="bottom" constant="467" id="ekq-dd-nNm"/>
+                            <constraint firstItem="9xD-ka-luc" firstAttribute="centerX" secondItem="6NQ-0t-nDi" secondAttribute="centerX" id="jaS-9L-5mh"/>
+                            <constraint firstItem="9xD-ka-luc" firstAttribute="top" secondItem="6NQ-0t-nDi" secondAttribute="bottom" constant="8" symbolic="YES" id="mgJ-p8-7Lf"/>
+                            <constraint firstItem="6NQ-0t-nDi" firstAttribute="top" secondItem="bCn-oX-7hA" secondAttribute="bottom" constant="8" symbolic="YES" id="nPq-6f-ch2"/>
+                            <constraint firstItem="6NQ-0t-nDi" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="o1G-lK-V9L"/>
+                            <constraint firstItem="6NQ-0t-nDi" firstAttribute="centerX" secondItem="9mN-yl-z0v" secondAttribute="centerX" id="oNC-IS-dKS"/>
+                            <constraint firstItem="9mN-yl-z0v" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="or3-F1-0FW"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="oNC-IS-dKS"/>
+                                <exclude reference="Vht-lj-A4O"/>
+                                <exclude reference="ekq-dd-nNm"/>
+                            </mask>
+                        </variation>
+                    </view>
+                    <navigationItem key="navigationItem" title="GOTHAM PSYCH WARD" id="abY-9P-8EV"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="736" y="-143"/>
+        </scene>
+        <!--Diagnosis View Controller-->
+        <scene sceneID="xj1-E9-BC9">
+            <objects>
+                <viewController id="gt4-kh-wpX" customClass="DiagnosisViewController" customModule="Psychologist" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="OHe-rD-bLd"/>
+                        <viewControllerLayoutGuide type="bottom" id="2iE-LU-6ct"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="9qW-bV-9Rp">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zC6-VX-fcP" customClass="FaceView" customModule="Psychologist" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="zC6-VX-fcP" secondAttribute="trailing" id="0QT-Nb-MVq"/>
+                            <constraint firstItem="zC6-VX-fcP" firstAttribute="top" secondItem="9qW-bV-9Rp" secondAttribute="top" id="4fz-FG-oi8"/>
+                            <constraint firstItem="zC6-VX-fcP" firstAttribute="leading" secondItem="9qW-bV-9Rp" secondAttribute="leading" id="baD-YI-sFB"/>
+                            <constraint firstItem="zC6-VX-fcP" firstAttribute="bottom" secondItem="2iE-LU-6ct" secondAttribute="top" id="lxl-yh-3hY"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="faceView" destination="zC6-VX-fcP" id="uc8-bm-VfA"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="hMq-Yc-Myq" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="504" y="666"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="1f8-vR-AII">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="qLa-JL-Qex" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="Vkj-py-BP2">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="ZzI-AD-ITo"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="WZe-E5-2fR" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-80" y="-138"/>
+        </scene>
+    </scenes>
+    <inferredMetricsTieBreakers>
+        <segue reference="uZJ-SO-GH7"/>
+    </inferredMetricsTieBreakers>
+</document>
