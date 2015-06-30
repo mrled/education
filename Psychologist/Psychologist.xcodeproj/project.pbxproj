@@ -15,6 +15,8 @@
 		3019EE071B3A64CF00656894 /* PsychologistTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3019EE061B3A64CF00656894 /* PsychologistTests.swift */; };
 		3019EE3F1B3A670100656894 /* DiagnosisViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3019EE3E1B3A670100656894 /* DiagnosisViewController.swift */; };
 		3019EE411B3A6C0400656894 /* FaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3019EE401B3A6C0400656894 /* FaceView.swift */; };
+		301C40661B4248E400B997CC /* DiagHistoryVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 301C40651B4248E400B997CC /* DiagHistoryVC.swift */; };
+		3080E5651B424D98005491FB /* DiagnosisWithHistoryVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3080E5641B424D98005491FB /* DiagnosisWithHistoryVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +42,8 @@
 		3019EE061B3A64CF00656894 /* PsychologistTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PsychologistTests.swift; sourceTree = "<group>"; };
 		3019EE3E1B3A670100656894 /* DiagnosisViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiagnosisViewController.swift; sourceTree = "<group>"; };
 		3019EE401B3A6C0400656894 /* FaceView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FaceView.swift; path = ../FaceView.swift; sourceTree = "<group>"; };
+		301C40651B4248E400B997CC /* DiagHistoryVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiagHistoryVC.swift; sourceTree = "<group>"; };
+		3080E5641B424D98005491FB /* DiagnosisWithHistoryVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DiagnosisWithHistoryVC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +89,8 @@
 				3019EE3E1B3A670100656894 /* DiagnosisViewController.swift */,
 				3019EE401B3A6C0400656894 /* FaceView.swift */,
 				3019EDF41B3A64CF00656894 /* Main.storyboard */,
+				3080E5641B424D98005491FB /* DiagnosisWithHistoryVC.swift */,
+				301C40651B4248E400B997CC /* DiagHistoryVC.swift */,
 				3019EDEE1B3A64CF00656894 /* Supporting Files */,
 			);
 			path = Psychologist;
@@ -220,9 +226,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				3019EDF31B3A64CF00656894 /* PsychologistViewController.swift in Sources */,
+				301C40661B4248E400B997CC /* DiagHistoryVC.swift in Sources */,
 				3019EDF11B3A64CF00656894 /* AppDelegate.swift in Sources */,
 				3019EE411B3A6C0400656894 /* FaceView.swift in Sources */,
 				3019EE3F1B3A670100656894 /* DiagnosisViewController.swift in Sources */,
+				3080E5651B424D98005491FB /* DiagnosisWithHistoryVC.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

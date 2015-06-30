@@ -11,8 +11,13 @@ import UIKit
 class PsychologistViewController: UIViewController {
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        
+        var destination = segue.destinationViewController as? UIViewController
+        if let navCon = destination as? UINavigationController {
+            destination = navCon.visibleViewController
+        }
 
-        if let hvc = segue.destinationViewController as? DiagnosisViewController {
+        if let hvc = destination as? DiagnosisViewController {
             if let identifier = segue.identifier {
 
                 switch identifier {

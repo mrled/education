@@ -11,7 +11,7 @@
                 <splitViewController id="web-FU-oMI" sceneMemberID="viewController">
                     <connections>
                         <segue destination="qLa-JL-Qex" kind="relationship" relationship="masterViewController" id="Z6r-9H-V7L"/>
-                        <segue destination="gt4-kh-wpX" kind="relationship" relationship="detailViewController" id="FgZ-s9-dnH"/>
+                        <segue destination="Cdh-Xz-NFx" kind="relationship" relationship="detailViewController" id="FgZ-s9-dnH"/>
                     </connections>
                 </splitViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ses-AM-IHg" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -51,7 +51,7 @@
                                     </mask>
                                 </variation>
                                 <connections>
-                                    <segue destination="gt4-kh-wpX" kind="showDetail" identifier="Diagnose Stygian Horrors" id="uZJ-SO-GH7"/>
+                                    <segue destination="Cdh-Xz-NFx" kind="showDetail" identifier="Diagnose Stygian Horrors" id="uZJ-SO-GH7"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bCn-oX-7hA">
@@ -69,7 +69,7 @@
                                     </mask>
                                 </variation>
                                 <connections>
-                                    <segue destination="gt4-kh-wpX" kind="showDetail" identifier="Diagnose Chittering Insects" id="DB9-rc-EEo"/>
+                                    <segue destination="Cdh-Xz-NFx" kind="showDetail" identifier="Diagnose Chittering Insects" id="DB9-rc-EEo"/>
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9xD-ka-luc">
@@ -87,7 +87,7 @@
                                     </mask>
                                 </variation>
                                 <connections>
-                                    <segue destination="gt4-kh-wpX" kind="showDetail" identifier="Diagnose Fleshy Hellscape" id="N8i-Fe-iAO"/>
+                                    <segue destination="Cdh-Xz-NFx" kind="showDetail" identifier="Diagnose Fleshy Hellscape" id="N8i-Fe-iAO"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -114,24 +114,16 @@
                             </mask>
                         </variation>
                     </view>
-                    <navigationItem key="navigationItem" title="PSYCH WARD" id="abY-9P-8EV">
-                        <barButtonItem key="rightBarButtonItem" title="PERMANENT FILE" id="B8c-dd-Dom">
-                            <connections>
-                                <segue destination="eCa-kj-I4j" kind="popoverPresentation" identifier="Recall Permanent File" popoverAnchorBarButtonItem="B8c-dd-Dom" id="VyT-Hn-6VY">
-                                    <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
-                                </segue>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="PSYCH WARD" id="abY-9P-8EV"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="736" y="-143"/>
+            <point key="canvasLocation" x="796" y="-57"/>
         </scene>
-        <!--View Controller-->
+        <!--Diag HistoryVC-->
         <scene sceneID="FPd-QJ-d7F">
             <objects>
-                <viewController id="eCa-kj-I4j" sceneMemberID="viewController">
+                <viewController id="eCa-kj-I4j" customClass="DiagHistoryVC" customModule="Psychologist" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="qa2-G2-mbm"/>
                         <viewControllerLayoutGuide type="bottom" id="6az-xe-Nry"/>
@@ -140,25 +132,33 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OBw-mI-3IJ">
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" text="HAHA I'M SURE YOU'RE FINE, JUST FINE, TOTALLY FINE, DEFINITELY FINE, JUST NOTHING WRONG WITH YOU AT ALL, FINE, FINE" translatesAutoresizingMaskIntoConstraints="NO" id="OBw-mI-3IJ">
                                 <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
                                 <fontDescription key="fontDescription" type="system" pointSize="24"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="OBw-mI-3IJ" firstAttribute="bottom" secondItem="6az-xe-Nry" secondAttribute="top" id="HHa-h9-ryv"/>
+                            <constraint firstAttribute="trailing" secondItem="OBw-mI-3IJ" secondAttribute="trailing" id="ISb-hs-lqM"/>
+                            <constraint firstItem="OBw-mI-3IJ" firstAttribute="leading" secondItem="5i9-2d-LRE" secondAttribute="leading" id="QKQ-6X-StE"/>
+                            <constraint firstItem="OBw-mI-3IJ" firstAttribute="top" secondItem="5i9-2d-LRE" secondAttribute="top" id="Xl5-fA-U69"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="textView" destination="OBw-mI-3IJ" id="tX7-rM-X8J"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dPl-p0-jH4" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1424" y="-456"/>
+            <point key="canvasLocation" x="1992" y="808"/>
         </scene>
-        <!--Diagnosis View Controller-->
+        <!--Diagnosis With HistoryVC-->
         <scene sceneID="xj1-E9-BC9">
             <objects>
-                <viewController id="gt4-kh-wpX" customClass="DiagnosisViewController" customModule="Psychologist" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="gt4-kh-wpX" customClass="DiagnosisWithHistoryVC" customModule="Psychologist" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="OHe-rD-bLd"/>
                         <viewControllerLayoutGuide type="bottom" id="2iE-LU-6ct"/>
@@ -180,13 +180,22 @@
                             <constraint firstItem="zC6-VX-fcP" firstAttribute="bottom" secondItem="2iE-LU-6ct" secondAttribute="top" id="lxl-yh-3hY"/>
                         </constraints>
                     </view>
+                    <navigationItem key="navigationItem" id="Aun-Lc-QRy">
+                        <barButtonItem key="rightBarButtonItem" title="PERMANENT FILE" id="B8c-dd-Dom">
+                            <connections>
+                                <segue destination="eCa-kj-I4j" kind="popoverPresentation" identifier="Recall Permanent File" popoverAnchorBarButtonItem="B8c-dd-Dom" id="VyT-Hn-6VY">
+                                    <popoverArrowDirection key="popoverArrowDirection" up="YES" down="YES" left="YES" right="YES"/>
+                                </segue>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="faceView" destination="zC6-VX-fcP" id="uc8-bm-VfA"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="hMq-Yc-Myq" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="504" y="666"/>
+            <point key="canvasLocation" x="1264" y="808"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="1f8-vR-AII">
@@ -206,8 +215,26 @@
             </objects>
             <point key="canvasLocation" x="-80" y="-138"/>
         </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="EqB-TC-r0H">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Cdh-Xz-NFx" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="jm0-pb-79b">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="gt4-kh-wpX" kind="relationship" relationship="rootViewController" id="Hbk-uN-the"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="VTb-v6-vZk" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="328" y="690"/>
+        </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="N8i-Fe-iAO"/>
+        <segue reference="uZJ-SO-GH7"/>
     </inferredMetricsTieBreakers>
 </document>
