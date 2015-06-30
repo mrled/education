@@ -162,6 +162,7 @@
 		3019EDE31B3A64CF00656894 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Micah R Ledbetter";
 				TargetAttributes = {
@@ -419,6 +420,7 @@
 				3019EE0C1B3A64CF00656894 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		3019EE0D1B3A64CF00656894 /* Build configuration list for PBXNativeTarget "PsychologistTests" */ = {
 			isa = XCConfigurationList;
@@ -427,6 +429,7 @@
 				3019EE0F1B3A64CF00656894 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

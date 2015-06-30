@@ -11,8 +11,10 @@ import UIKit
 class PsychologistViewController: UIViewController {
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+
         if let hvc = segue.destinationViewController as? DiagnosisViewController {
             if let identifier = segue.identifier {
+
                 switch identifier {
                 case "Diagnose Stygian Horrors":    hvc.happiness = 20
                 case "Diagnose Chittering Insects": hvc.happiness = 45
@@ -21,7 +23,11 @@ class PsychologistViewController: UIViewController {
                 }
             }
         }
+        else {
+            return
+        }
+        
+        
     }
-    
 }
 
