@@ -68,9 +68,9 @@ public class CalculatorBrain {
         knownOps["tan"] = Op.UnaryOperation(symbol: "tan", operation: tan)
         knownOps["+/-"] = Op.UnaryOperation(symbol: "+/-", operation: {$0 * -1})
         knownOps["π"] = Op.Operand(symbol: "π", value: M_PI)
-        variableValues["X"] = nil
-        variableValues["Y"] = nil
-        variableValues["Z"] = nil
+        variableValues["M"] = nil
+        //variableValues["Y"] = nil
+        //variableValues["Z"] = nil
     }
     
     public var description: String {

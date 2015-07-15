@@ -155,7 +155,7 @@
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qef-xe-F3W">
                                 <rect key="frame" x="356.5" y="181" width="106.5" height="96.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                <state key="normal" title="+/-">
+                                <state key="normal" title="× −1">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                                 <connections>
@@ -185,19 +185,16 @@
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Lqs-nT-QC0">
                                 <rect key="frame" x="16" y="77" width="105.5" height="96.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                <state key="normal" title="C">
+                                <state key="normal" title="C/CA">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Q2M-ZH-nB3">
                                 <rect key="frame" x="243" y="77" width="105.5" height="96.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                <state key="normal" title="M">
+                                <state key="normal" title="M/→M">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
-                                <connections>
-                                    <action selector="recallMem:" destination="BYZ-38-t0r" eventType="touchUpInside" id="TeG-pf-UcS"/>
-                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="53X-nh-G1d">
                                 <rect key="frame" x="243" y="181" width="105.5" height="96.5"/>
@@ -430,6 +427,7 @@
                         <outlet property="display" destination="tVi-jX-zQy" id="nWe-T5-d6R"/>
                         <outlet property="fourButton" destination="INC-sO-x0p" id="hXG-nn-gaY"/>
                         <outlet property="history" destination="fg5-g4-5EE" id="Gu5-RQ-mob"/>
+                        <outlet property="memoryButton" destination="Q2M-ZH-nB3" id="6Cj-Vv-y5D"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

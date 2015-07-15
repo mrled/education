@@ -14,11 +14,13 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
     @IBOutlet weak var blankButton: PlaceholderButton!
     @IBOutlet weak var fourButton: UIButton!
     @IBOutlet weak var clearButton: UIButton!
+    @IBOutlet weak var memoryButton: UIButton!
     @IBOutlet weak var display: UILabel!
     @IBOutlet weak var history: UILabel!
     
     private struct Constants {
         static let TrigSegueIdentifier = "Show Trig Functions"
+        static let CalcBrainMemId = "M"
     }
     
     var midTyping = false;
@@ -111,16 +113,13 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
         displayValue = brain.pushInput(sender.currentTitle)
     }
     
-    @IBAction func saveMem(sender: UIButton) {
+    func saveMem() {
         midTyping = false
-        // chop off the leading → character & assign the value
-        var memSymbol = sender.currentTitle!
-        memSymbol.removeAtIndex(memSymbol.startIndex)
-        brain.assignVariable(memSymbol, value: displayValue!)
+        brain.assignVariable(Constants.CalcBrainMemId, value: displayValue!)
     }
-    @IBAction func recallMem(sender: UIButton) {
+    func recallMem() {
         if midTyping { enter() }
-        brain.pushVariable(sender.currentTitle!)
+        brain.pushVariable(Constants.CalcBrainMemId)
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
@@ -144,16 +143,23 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
         return UIModalPresentationStyle.None
     }
     
-    func setupClearButtonGestures() {
+    func setupGestures() {
+        // clearButton:
         let clearButtonTap = UITapGestureRecognizer(target: self, action:"clear")
         clearButtonTap.numberOfTapsRequired = 1
         let clearButtonLongPress = UILongPressGestureRecognizer(target: self, action:"clearStack")
         clearButton.addGestureRecognizer(clearButtonTap)
         clearButton.addGestureRecognizer(clearButtonLongPress)
+        // memoryButton:
+        let memButtonTap = UITapGestureRecognizer(target: self, action:"recallMem")
+        memButtonTap.numberOfTapsRequired = 1
+        let memButtonLongPress = UILongPressGestureRecognizer(target:self, action:"saveMem")
+        memoryButton.addGestureRecognizer(memButtonTap)
+        memoryButton.addGestureRecognizer(memButtonLongPress)
     }
     
     override func viewDidLoad() {
-        setupClearButtonGestures()
+        setupGestures()
     }
 
 }
