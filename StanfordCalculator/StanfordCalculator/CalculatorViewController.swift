@@ -13,6 +13,7 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
 
     @IBOutlet weak var blankButton: PlaceholderButton!
     @IBOutlet weak var fourButton: UIButton!
+    @IBOutlet weak var clearButton: UIButton!
     @IBOutlet weak var display: UILabel!
     @IBOutlet weak var history: UILabel!
     
@@ -95,11 +96,11 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
         // TODO: think about this, not sure if covers pathological cases
     }
     
-    @IBAction func clear() {
+    func clear() {
         displayValue = nil
     }
     
-    @IBAction func clearStack() {
+    func clearStack() {
         midTyping = false
         brain.clearStack()
         history.text = brain.description
@@ -142,9 +143,18 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
     func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
         return UIModalPresentationStyle.None
     }
-
-    override func prepareForInterfaceBuilder() {
-        display.text = "HI"
+    
+    func setupClearButtonGestures() {
+        let clearButtonTap = UITapGestureRecognizer(target: self, action:"clear")
+        clearButtonTap.numberOfTapsRequired = 1
+        let clearButtonLongPress = UILongPressGestureRecognizer(target: self, action:"clearStack")
+        clearButton.addGestureRecognizer(clearButtonTap)
+        clearButton.addGestureRecognizer(clearButtonLongPress)
     }
+    
+    override func viewDidLoad() {
+        setupClearButtonGestures()
+    }
+
 }
 
