@@ -14,6 +14,8 @@
 		304A1B9E1A9A852700279EB0 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 304A1B9C1A9A852700279EB0 /* LaunchScreen.xib */; };
 		304A1BAA1A9A852800279EB0 /* StanfordCalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304A1BA91A9A852800279EB0 /* StanfordCalculatorTests.swift */; };
 		304C58F51B4E3B4400E3D6F9 /* ToDo.markdown in Sources */ = {isa = PBXBuildFile; fileRef = 304C58F41B4E3B4400E3D6F9 /* ToDo.markdown */; };
+		304C58F71B51EA5800E3D6F9 /* TrigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304C58F61B51EA5800E3D6F9 /* TrigViewController.swift */; };
+		3069AA751B52FE2C00DF2DE5 /* PlaceholderButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3069AA741B52FE2C00DF2DE5 /* PlaceholderButton.swift */; };
 		309361351B09616500C96923 /* CalculatorBrain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309361341B09616500C96923 /* CalculatorBrain.swift */; };
 /* End PBXBuildFile section */
 
@@ -39,7 +41,9 @@
 		304A1BA81A9A852800279EB0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		304A1BA91A9A852800279EB0 /* StanfordCalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StanfordCalculatorTests.swift; sourceTree = "<group>"; };
 		304C58F41B4E3B4400E3D6F9 /* ToDo.markdown */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = ToDo.markdown; sourceTree = "<group>"; };
+		304C58F61B51EA5800E3D6F9 /* TrigViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TrigViewController.swift; sourceTree = "<group>"; };
 		3056B2FA1B09604800BC1812 /* Playculator.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = Playculator.playground; sourceTree = "<group>"; };
+		3069AA741B52FE2C00DF2DE5 /* PlaceholderButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderButton.swift; sourceTree = "<group>"; };
 		309361341B09616500C96923 /* CalculatorBrain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CalculatorBrain.swift; path = Playculator.playground/Sources/CalculatorBrain.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,6 +88,8 @@
 			children = (
 				309361341B09616500C96923 /* CalculatorBrain.swift */,
 				304A1B951A9A852700279EB0 /* CalculatorViewController.swift */,
+				3069AA741B52FE2C00DF2DE5 /* PlaceholderButton.swift */,
+				304C58F61B51EA5800E3D6F9 /* TrigViewController.swift */,
 				304A1B971A9A852700279EB0 /* Main.storyboard */,
 				304A1B911A9A852700279EB0 /* Supporting Files */,
 				3056B2FA1B09604800BC1812 /* Playculator.playground */,
@@ -221,9 +227,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				304C58F51B4E3B4400E3D6F9 /* ToDo.markdown in Sources */,
+				3069AA751B52FE2C00DF2DE5 /* PlaceholderButton.swift in Sources */,
 				304A1B961A9A852700279EB0 /* CalculatorViewController.swift in Sources */,
 				309361351B09616500C96923 /* CalculatorBrain.swift in Sources */,
 				304A1B941A9A852700279EB0 /* AppDelegate.swift in Sources */,
+				304C58F71B51EA5800E3D6F9 /* TrigViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -8,11 +8,17 @@
 
 import UIKit
 
-class CalculatorViewController: UIViewController {
-    
+@IBDesignable
+class CalculatorViewController: UIViewController, UIPopoverPresentationControllerDelegate {
+
+    @IBOutlet weak var blankButton: PlaceholderButton!
+    @IBOutlet weak var fourButton: UIButton!
     @IBOutlet weak var display: UILabel!
     @IBOutlet weak var history: UILabel!
-    @IBOutlet weak var errorLabel: UILabel!
+    
+    private struct Constants {
+        static let TrigSegueIdentifier = "Show Trig Functions"
+    }
     
     var midTyping = false;
     
@@ -114,6 +120,31 @@ class CalculatorViewController: UIViewController {
     @IBAction func recallMem(sender: UIButton) {
         if midTyping { enter() }
         brain.pushVariable(sender.currentTitle!)
+    }
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if let identifier = segue.identifier {
+            switch identifier {
+            case Constants.TrigSegueIdentifier:
+                if let trigvc = segue.destinationViewController as? TrigViewController {
+                    trigvc.calculatorButtonHeight = fourButton.frame.height
+                    trigvc.calculatorButtonWidth = fourButton.frame.width
+                    trigvc.calculatorVC = self
+                    if let ppc = trigvc.popoverPresentationController {
+                        ppc.delegate = self
+                    }
+                }
+            default: break
+            }
+        }
+    }
+    
+    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController) -> UIModalPresentationStyle {
+        return UIModalPresentationStyle.None
+    }
+
+    override func prepareForInterfaceBuilder() {
+        display.text = "HI"
     }
 }
 

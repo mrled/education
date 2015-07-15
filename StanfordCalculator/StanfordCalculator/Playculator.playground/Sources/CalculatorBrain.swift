@@ -65,6 +65,7 @@ public class CalculatorBrain {
         knownOps["√"]   = Op.UnaryOperation(symbol: "√", operation: sqrt)
         knownOps["sin"] = Op.UnaryOperation(symbol: "sin", operation: sin)
         knownOps["cos"] = Op.UnaryOperation(symbol: "cos", operation: cos)
+        knownOps["tan"] = Op.UnaryOperation(symbol: "tan", operation: tan)
         knownOps["+/-"] = Op.UnaryOperation(symbol: "+/-", operation: {$0 * -1})
         knownOps["π"] = Op.Operand(symbol: "π", value: M_PI)
         variableValues["X"] = nil
