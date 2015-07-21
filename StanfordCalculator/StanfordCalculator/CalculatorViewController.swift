@@ -164,3 +164,28 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
 
 }
 
+
+@IBDesignable
+extension UIButton {
+    var placeholderBackgroundColor: UIColor { return self.currentTitleColor }
+    @IBInspectable var isPlaceholder: Bool {
+        get {
+            #if TARGET_INTERFACE_BUILDER
+                return self.backgroundColor == self.placeholderBackgroundColor
+            #else
+                return false
+            #endif
+        }
+        set {
+            #if TARGET_INTERFACE_BUILDER
+                if oldValue { // oldValue was true, so make this false, i.e. make this not a placeholder
+                    self.backgroundColor = super.backgroundColor
+                }
+                else { // oldValue was false, so make this true, i.e. make this a placeholder
+                    self.backgroundColor = self.placeholderBackgroundColor
+                }
+            #endif
+        }
+    }
+}
+*/

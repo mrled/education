@@ -10,16 +10,14 @@ import UIKit
 
 @IBDesignable
 class PlaceholderButton: UIButton {
-    override var backgroundColor: UIColor? {
-        get {
+    var placeholderBackgroundColor: UIColor { return self.currentTitleColor }
+    @IBInspectable var isPlaceholder: Bool = false {
+        willSet {
             #if TARGET_INTERFACE_BUILDER
-                return self.currentTitleColor
-            #else
-                return super.backgroundColor
+                if newValue == true {
+                    self.backgroundColor = self.placeholderBackgroundColor
+                }
             #endif
-        }
-        set {
-            super.backgroundColor = backgroundColor
         }
     }
 }

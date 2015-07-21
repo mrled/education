@@ -142,16 +142,6 @@
                                     <action selector="operate:" destination="BYZ-38-t0r" eventType="touchUpInside" id="eP9-EE-zRH"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RF7-bQ-8t0">
-                                <rect key="frame" x="470.5" y="390" width="105.5" height="96.5"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                <state key="normal" title="×">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="operate:" destination="BYZ-38-t0r" eventType="touchUpInside" id="cGz-3t-Ugz"/>
-                                </connections>
-                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qef-xe-F3W">
                                 <rect key="frame" x="356.5" y="181" width="106.5" height="96.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="24"/>
@@ -288,11 +278,23 @@
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JmZ-RE-Zxe" customClass="PlaceholderButton" customModule="StanfordCalculator" customModuleProvider="target">
                                 <rect key="frame" x="16" y="495" width="105" height="96.5"/>
-                                <color key="backgroundColor" red="0.74117648599999997" green="0.76470595600000002" blue="0.93333339689999995" alpha="1" colorSpace="deviceRGB"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="24"/>
                                 <state key="normal">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="boolean" keyPath="isPlaceholder" value="YES"/>
+                                </userDefinedRuntimeAttributes>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RF7-bQ-8t0">
+                                <rect key="frame" x="470" y="390" width="105.5" height="96.5"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <state key="normal" title="×">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="operate:" destination="BYZ-38-t0r" eventType="touchUpInside" id="cGz-3t-Ugz"/>
+                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
@@ -446,27 +448,6 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yle-Ou-Jhp">
-                                <rect key="frame" x="281.5" y="20" width="38" height="560"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="110" id="1zf-tm-vRt"/>
-                                    <constraint firstAttribute="width" constant="60.5" id="b3h-MI-7TH"/>
-                                </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
-                                <state key="normal" title="cos">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <variation key="default">
-                                    <mask key="constraints">
-                                        <exclude reference="1zf-tm-vRt"/>
-                                        <exclude reference="b3h-MI-7TH"/>
-                                    </mask>
-                                </variation>
-                                <connections>
-                                    <action selector="callTrigFunction:" destination="whf-f4-UjX" eventType="touchUpInside" id="Fgo-Dv-hFv"/>
-                                    <action selector="operate:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Xfb-IZ-kOr"/>
-                                </connections>
-                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="N65-EL-3us">
                                 <rect key="frame" x="243.5" y="279.5" width="30" height="41"/>
                                 <constraints>
@@ -509,6 +490,27 @@
                                     <action selector="operate:" destination="BYZ-38-t0r" eventType="touchUpInside" id="vNx-aW-pK4"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yle-Ou-Jhp">
+                                <rect key="frame" x="281" y="20" width="38" height="560"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="110" id="1zf-tm-vRt"/>
+                                    <constraint firstAttribute="width" constant="60.5" id="b3h-MI-7TH"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <state key="normal" title="cos">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <variation key="default">
+                                    <mask key="constraints">
+                                        <exclude reference="1zf-tm-vRt"/>
+                                        <exclude reference="b3h-MI-7TH"/>
+                                    </mask>
+                                </variation>
+                                <connections>
+                                    <action selector="callTrigFunction:" destination="whf-f4-UjX" eventType="touchUpInside" id="Fgo-Dv-hFv"/>
+                                    <action selector="operate:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Xfb-IZ-kOr"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
@@ -526,8 +528,8 @@
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
-                                <exclude reference="znW-g7-Rjy"/>
                                 <exclude reference="B82-lE-Ndl"/>
+                                <exclude reference="znW-g7-Rjy"/>
                                 <exclude reference="SzC-md-Hig"/>
                                 <exclude reference="q6A-1D-lGp"/>
                             </mask>

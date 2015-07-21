@@ -2,7 +2,7 @@
 
 ## Before Assignment 3
 
-- Fix my memory buttons. Memory is not working right now
+- Fix my memory buttons. Memory is not working right now @done
 - I guess I don't need the other two memory buttons - get rud of Y and Z, and rename X->M @done
 - Use the tap / longpress for the memory button too @done
 
@@ -12,6 +12,7 @@
 - Figure out better layouts for each screen size. You can't have a layout for portrait vs landscape? That's kinda fuckin weird...
 - Implement a popover somewhere, like Papa does for his trig functions @done
 - Do long presses for ClearAll @done
+- Make my placeholder button workd! @done
 
 ## Assignment 3
 
