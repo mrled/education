@@ -165,6 +165,7 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
 }
 
 
+/*
 @IBDesignable
 extension UIButton {
     var placeholderBackgroundColor: UIColor { return self.currentTitleColor }

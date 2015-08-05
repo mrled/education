@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3019D15D1B6F004B00D692C0 /* AxesDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3019D15C1B6F004B00D692C0 /* AxesDrawer.swift */; };
 		304A1B941A9A852700279EB0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304A1B931A9A852700279EB0 /* AppDelegate.swift */; };
 		304A1B961A9A852700279EB0 /* CalculatorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304A1B951A9A852700279EB0 /* CalculatorViewController.swift */; };
 		304A1B991A9A852700279EB0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 304A1B971A9A852700279EB0 /* Main.storyboard */; };
@@ -17,6 +18,8 @@
 		304C58F71B51EA5800E3D6F9 /* TrigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304C58F61B51EA5800E3D6F9 /* TrigViewController.swift */; };
 		3069AA751B52FE2C00DF2DE5 /* PlaceholderButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3069AA741B52FE2C00DF2DE5 /* PlaceholderButton.swift */; };
 		309361351B09616500C96923 /* CalculatorBrain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309361341B09616500C96923 /* CalculatorBrain.swift */; };
+		30AD5CA11B5EABD2003DCFD1 /* GraphViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30AD5CA01B5EABD2003DCFD1 /* GraphViewController.swift */; };
+		30AD5CA31B5EAC1C003DCFD1 /* GraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30AD5CA21B5EAC1C003DCFD1 /* GraphView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -30,6 +33,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3019D15C1B6F004B00D692C0 /* AxesDrawer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AxesDrawer.swift; sourceTree = "<group>"; };
 		304A1B8E1A9A852700279EB0 /* StanfordCalculator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StanfordCalculator.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		304A1B921A9A852700279EB0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		304A1B931A9A852700279EB0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -45,6 +49,8 @@
 		3056B2FA1B09604800BC1812 /* Playculator.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = Playculator.playground; sourceTree = "<group>"; };
 		3069AA741B52FE2C00DF2DE5 /* PlaceholderButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceholderButton.swift; sourceTree = "<group>"; };
 		309361341B09616500C96923 /* CalculatorBrain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CalculatorBrain.swift; path = Playculator.playground/Sources/CalculatorBrain.swift; sourceTree = "<group>"; };
+		30AD5CA01B5EABD2003DCFD1 /* GraphViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GraphViewController.swift; path = StanfordCalculator/GraphViewController.swift; sourceTree = "<group>"; };
+		30AD5CA21B5EAC1C003DCFD1 /* GraphView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = GraphView.swift; path = StanfordCalculator/GraphView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +74,9 @@
 		304A1B851A9A852700279EB0 = {
 			isa = PBXGroup;
 			children = (
+				30AD5CA01B5EABD2003DCFD1 /* GraphViewController.swift */,
+				3019D15C1B6F004B00D692C0 /* AxesDrawer.swift */,
+				30AD5CA21B5EAC1C003DCFD1 /* GraphView.swift */,
 				304A1B901A9A852700279EB0 /* StanfordCalculator */,
 				304A1BA61A9A852800279EB0 /* StanfordCalculatorTests */,
 				304A1B8F1A9A852700279EB0 /* Products */,
@@ -228,10 +237,13 @@
 			files = (
 				304C58F51B4E3B4400E3D6F9 /* ToDo.markdown in Sources */,
 				3069AA751B52FE2C00DF2DE5 /* PlaceholderButton.swift in Sources */,
+				30AD5CA11B5EABD2003DCFD1 /* GraphViewController.swift in Sources */,
 				304A1B961A9A852700279EB0 /* CalculatorViewController.swift in Sources */,
 				309361351B09616500C96923 /* CalculatorBrain.swift in Sources */,
+				3019D15D1B6F004B00D692C0 /* AxesDrawer.swift in Sources */,
 				304A1B941A9A852700279EB0 /* AppDelegate.swift in Sources */,
 				304C58F71B51EA5800E3D6F9 /* TrigViewController.swift in Sources */,
+				30AD5CA31B5EAC1C003DCFD1 /* GraphView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
