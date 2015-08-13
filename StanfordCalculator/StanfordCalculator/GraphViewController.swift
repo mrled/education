@@ -9,7 +9,20 @@
 import UIKit
 
 class GraphViewController: UIViewController {
-    @IBOutlet weak var graphView: GraphView!
+
+    @IBOutlet weak var graphView: GraphView! {
+        didSet {
+            let pinchGest = UIPinchGestureRecognizer(
+                target: graphView,
+                action: "scaleFromPinch:")
+            graphView.addGestureRecognizer(pinchGest)
+            let panGest = UIPanGestureRecognizer(
+                target: graphView,
+                action: "orientFromPan:")
+            graphView.addGestureRecognizer(panGest)
+        }
+    }
+
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator) {
         graphView?.setNeedsDisplay()
     }
