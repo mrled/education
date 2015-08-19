@@ -16,7 +16,12 @@ class GraphView: UIView {
     }
 
     var centerInMyCoords: CGPoint {
-        return self.convertPoint(self.center, fromCoordinateSpace: self.superview!)
+        if let sv = self.superview {
+            return self.convertPoint(self.center, fromCoordinateSpace: self.superview!)
+        }
+        else {
+            return Constants.InitialCenter
+        }
     }
 
     var axesArtist = AxesDrawer()
@@ -31,13 +36,14 @@ class GraphView: UIView {
     var axesOrigin: CGPoint = CGPoint(x: 50, y: 50) {
         didSet { self.setNeedsDisplay() }
     }
-    
+
     // This doesnt:
-    var initialCenter = self.convertPoint(self.center, fromCoordinateSpace: self.superview!)
-    var axesOrigin: CGPoint = self.initialCenter {
+//    var initialCenter = self.convertPoint(self.center, fromCoordinateSpace: self.superview!)
+    let asd = CGPointZero
+    var axesOrigin = self.centerInMyCoords {
         didSet { self.setNeedsDisplay() }
     }
-    
+
     // This also doesnt: 
     var axesOrigin: CGPoint = self.centerInMyCoords {
         didSet { self.setNeedsDisplay() }
