@@ -8,7 +8,7 @@
 
 import UIKit
 
-class GraphViewController: UIViewController {
+class GraphViewController: UIViewController, GraphViewDataSource {
 
     @IBOutlet weak var graphView: GraphView! {
         didSet {
@@ -20,7 +20,14 @@ class GraphViewController: UIViewController {
                 target: graphView,
                 action: "orientFromPan:")
             graphView.addGestureRecognizer(panGest)
+            
+            graphView.dataSource = self
         }
+    }
+    
+    var brain: CalculatorBrain?
+    func getGraphingBrain() -> CalculatorBrain? {
+        return self.brain
     }
 
     override func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator) {

@@ -8,10 +8,18 @@
 
 import Foundation
 
+let CalculatorBrainDebug = false
+
+func debugprintln(message: String) {
+    if CalculatorBrainDebug {
+        println(message)
+    }
+}
+
 public class CalculatorBrain {
     private enum Op: Printable {
         case Operand(symbol: String?, value: Double)
-        case Variable(symbol: String, value: Double?)
+        case Variable(symbol: String)
         case UnaryOperation (symbol: String, operation: (Double)         -> Double)
         case BinaryOperation(symbol: String, operation: (Double, Double) -> Double)
         
@@ -20,7 +28,7 @@ public class CalculatorBrain {
             case .Operand(let symbol, let number):
                 if (symbol != nil) { return symbol! }
                 else { return "\(number)" }
-            case .Variable(let symbol, _): return symbol
+            case .Variable(let symbol): return symbol
             case .UnaryOperation(let symbol, _): return symbol
             case .BinaryOperation(let symbol, _): return symbol
             }
@@ -90,10 +98,11 @@ public class CalculatorBrain {
         }
     }
     
-    private func evaluate(ops: [Op], silent: Bool=false, iterator: Int32=0) -> CalculatorEvaluation {
+    private func evaluate(ops: [Op], silent: Bool=true, iterator: Int32=0) -> CalculatorEvaluation {
         let emptyEval = CalculatorEvaluation()  // Just for clarity in function
         var evaluation = CalculatorEvaluation()
         evaluation.ops = ops
+        debugprintln("Running evaluate() with opStack: \(ops)")
         if ops.isEmpty {
             return emptyEval
         }
@@ -104,8 +113,9 @@ public class CalculatorBrain {
             for _ in 0...myIterator {
                 padding += "  "
             }
-            println("\(padding)evaluate(ops: [Op]) #\(myIterator++) called with \(ops).")
+            println("\(padding)evaluate(ops: [Op]) #\(myIterator) called with \(ops).")
         }
+        myIterator += 1
         
         var remainOps = ops
         let op = remainOps.removeLast()
@@ -113,6 +123,7 @@ public class CalculatorBrain {
         switch op {
             
         case .Operand(let symbol, let operand):
+            debugprintln("op was an Operand: \(operand)")
             evaluation.result = operand
             evaluation.desc = "\(operand)"
             if let s = symbol {
@@ -125,6 +136,7 @@ public class CalculatorBrain {
             }
             
         case .UnaryOperation(let symbol, let operation):
+            debugprintln("op was a Unary Operation: \(symbol)")
             let opEval = evaluate(remainOps, silent:silent, iterator:myIterator)
             if opEval.result == nil {
                 return emptyEval
@@ -135,15 +147,19 @@ public class CalculatorBrain {
             evaluation.remainingEvaluation = opEval.remainingEvaluation
             
         case .BinaryOperation(let symbol, let operation):
+            debugprintln("op was a Binary Operation: \(symbol)")
             if !(remainOps.count >= 2) {
+                debugprintln("Not enough remainingOps")
                 return emptyEval
             }
             let eval1 = evaluate(remainOps, silent:silent, iterator:myIterator)
             if eval1.result == nil {
+                debugprintln("eval1: no result")
                 return emptyEval
             }
             let eval2 = evaluate(eval1.remainingOps, silent:silent, iterator:myIterator)
             if eval2.result == nil {
+                debugprintln("eval2: no result")
                 return emptyEval
             }
             evaluation.result = operation(eval1.result!, eval2.result!)
@@ -151,11 +167,11 @@ public class CalculatorBrain {
             evaluation.remainingOps = eval2.remainingOps
             evaluation.remainingEvaluation = eval2.remainingEvaluation
             
-        case .Variable(let symbol, let value):
-            evaluation.result = value
+        case .Variable(let symbol):
+            evaluation.result = self.retrieveVariable(symbol)
             evaluation.desc = symbol
-            evaluation.remainingOps = []
             evaluation.remainingEvaluation = nil
+            debugprintln("op was a Variable: \(symbol): \(evaluation.result)")
             if !remainOps.isEmpty {
                 evaluation.remainingOps = remainOps
                 evaluation.remainingEvaluation = evaluate(remainOps, silent:silent, iterator:myIterator)
@@ -195,9 +211,6 @@ public class CalculatorBrain {
             if let knownOp = knownOps[unwrappedSymbol] {
                 appendOp = knownOp
             }
-            else if let knownVar = variableValues[unwrappedSymbol] {
-                appendOp = Op.Operand(symbol: unwrappedSymbol, value: knownVar)
-            }
         }
         
         if (appendOp != nil) {
@@ -210,13 +223,15 @@ public class CalculatorBrain {
     }
     
     public func pushVariable(symbol: String) -> Double? {
-        let appendVar = Op.Variable(symbol: symbol, value: variableValues[symbol])
-        opStack.append(appendVar)
+        opStack.append(Op.Variable(symbol: symbol))
         return evaluate()
     }
-    public func assignVariable(symbol: String, value: Double) -> Double? {
+    public func assignVariable(symbol: String, value: Double?) -> Double? {
         variableValues[symbol] = value
         return evaluate()
+    }
+    public func retrieveVariable(symbol: String) -> Double? {
+        return self.variableValues[symbol]
     }
     
     public func clearStack() {

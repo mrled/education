@@ -8,16 +8,30 @@
 
 import UIKit
 
+protocol GraphViewDataSource: class {
+    func getGraphingBrain() -> CalculatorBrain?
+}
+
+
+/* NOTES
+- "graph view": a UIView subclass responsible for the graph, where points are analogous to pixels (though retina complicates this)
+- "graph plot": the graph's x,y coordinate system, where X is a variable and Y is the output for a given X. This does NOT coorespond directly to a UIView!
+*/
+
+
 class GraphView: UIView {
-    
+
     private struct Constants {
-        static let InitialPPU: CGFloat = 50
-        static let InitialCenter = CGPoint(x: 50, y: 50)
+        static let InitialPPU: CGFloat = 20
+        static let InitialCenter = CGPoint(x: 0, y: 0)
+        static let CalcBrainMemId = "M"
+        static let PointsToDraw = 50.0
+        static let GraphLineColor = UIColor.orangeColor()
     }
 
-    var centerInMyCoords: CGPoint {
+    var centerInOwnCoords: CGPoint {
         if let sv = self.superview {
-            return self.convertPoint(self.center, fromCoordinateSpace: self.superview!)
+            return self.convertPoint(self.center, fromCoordinateSpace: sv)
         }
         else {
             return Constants.InitialCenter
@@ -26,67 +40,104 @@ class GraphView: UIView {
 
     var axesArtist = AxesDrawer()
     
-    /*
-    // Original implementation (no panning):
-    var axesOrigin: CGPoint {
-        return self.convertPoint(self.center, fromCoordinateSpace: self.superview!)
-    }
-
-    //This works:
-    var axesOrigin: CGPoint = CGPoint(x: 50, y: 50) {
-        didSet { self.setNeedsDisplay() }
-    }
-
-    // This doesnt:
-//    var initialCenter = self.convertPoint(self.center, fromCoordinateSpace: self.superview!)
-    let asd = CGPointZero
-    var axesOrigin = self.centerInMyCoords {
-        didSet { self.setNeedsDisplay() }
-    }
-
-    // This also doesnt: 
-    var axesOrigin: CGPoint = self.centerInMyCoords {
-        didSet { self.setNeedsDisplay() }
-    }
+    weak var dataSource: GraphViewDataSource?
     
-    // This works but means I have to keep a dumb InitialCenter constant around:
-    var axesOrigin: CGPoint = Constants.InitialCenter {
-        didSet { self.setNeedsDisplay() }
-    }
-    */
     
-    // ... and of course this works but means I have to keep an explicit backing variable around:
-    var _axesOrigin: CGPoint?
-    var axesOrigin: CGPoint {
+    //MARK: Graph Plot stuff {
+    private var _plotOriginInViewCoordinates: CGPoint?
+    var plotOriginInViewCoordinates: CGPoint {
         get {
-            if let ao = self._axesOrigin { return ao }
-            else { return self.centerInMyCoords }
+            if let ao = self._plotOriginInViewCoordinates { return ao }
+            else { return self.centerInOwnCoords }
         }
         set {
-            self._axesOrigin = newValue
+            self._plotOriginInViewCoordinates = newValue
             self.setNeedsDisplay()
         }
     }
     
-    var axesPPU: CGFloat = Constants.InitialPPU {
+    // The AxesDrawer class calls this exact concept "points per unit", but that name doesn't disambiguate a damn thing
+    var viewPointsPerPlotPoint: CGFloat = Constants.InitialPPU {
         didSet { self.setNeedsDisplay() }
     }
     
+    var plotRect: CGRect {
+        let plotVisibleSize = CGSize(
+            width:  self.bounds.size.width  / self.viewPointsPerPlotPoint,
+            height: self.bounds.size.height / self.viewPointsPerPlotPoint)
+        
+        // We want this to be the lowest-most, left-most VISIBLE point in the plot's coordinate system
+        let plotPointAtLowerLeft = CGPoint(
+            x: -(self.plotOriginInViewCoordinates.x / viewPointsPerPlotPoint ),
+            // The "self.bounds.maxY - ..."  because the UIView's coordinate space has a FLIPPED Y AXIS and we have to reverse this
+            y: -((self.bounds.maxY - self.plotOriginInViewCoordinates.y) / viewPointsPerPlotPoint))
+        
+        let myRect = CGRect(origin: plotPointAtLowerLeft, size: plotVisibleSize)
+        //println("Visible size: \(plotVisibleSize); Plot point at lower left: \(plotPointAtLowerLeft); minX/maxX/minY/maxY: \(myRect.minX)/\(myRect.maxX)/\(myRect.minY)/\(myRect.maxY)")
+        return myRect
+    }
+    
+    private func viewCoordinatesForPlotPoint(point: CGPoint) -> CGPoint {
+        return CGPoint(
+            x:  (point.x * viewPointsPerPlotPoint) + plotOriginInViewCoordinates.x,
+            y: -(point.y * viewPointsPerPlotPoint) + plotOriginInViewCoordinates.y)
+    }
+    //MARK: }
+    
+    //MARK: Gesture handling {
     func scaleFromPinch(gesture: UIPinchGestureRecognizer) {
         if ((gesture.state != .Changed) && (gesture.state != .Ended)) { return }
-        self.axesPPU *= gesture.scale
+        self.viewPointsPerPlotPoint *= gesture.scale
         gesture.scale = 1
     }
     
     func orientFromPan(gesture: UIPanGestureRecognizer) {
         if ((gesture.state != .Changed) && (gesture.state != .Ended)) { return }
         let translation = gesture.translationInView(self)
-        axesOrigin.x += translation.x
-        axesOrigin.y += translation.y
+        self.plotOriginInViewCoordinates.x += translation.x
+        self.plotOriginInViewCoordinates.y += translation.y
         gesture.setTranslation(CGPointZero, inView: self)
     }
+    //MARK: }
 
     override func drawRect(rect: CGRect) {
-        axesArtist.drawAxesInRect(rect, origin: axesOrigin, pointsPerUnit: axesPPU)
+        
+        axesArtist.drawAxesInRect(rect,
+            origin: self.plotOriginInViewCoordinates,
+            pointsPerUnit: self.viewPointsPerPlotPoint)
+        
+        if let brain = dataSource?.getGraphingBrain() {
+            
+            var color = Constants.GraphLineColor
+            color.set()
+            let path = UIBezierPath()
+            
+            var lastValidPoint: CGPoint?
+            let oldMemoryValue = brain.retrieveVariable(Constants.CalcBrainMemId)
+
+            for var x  = Double(self.plotRect.minX);
+                    x <= Double(self.plotRect.maxX);
+                    x += Double(self.plotRect.width) / Constants.PointsToDraw
+            {
+                //var msg = "\(x) -> M; "
+                if let y = brain.assignVariable(Constants.CalcBrainMemId, value: x) {
+                    let plotPoint = CGPoint(x:x, y:y)
+                    let plotPointInView = viewCoordinatesForPlotPoint(plotPoint)
+                    //msg += "plotPoint: \(plotPoint); plotPointInView: \(plotPointInView); self.bounds: \(self.bounds); "
+                    if lastValidPoint != nil {
+                        path.addLineToPoint(plotPointInView) }
+                    else {
+                        path.moveToPoint(plotPointInView) }
+                    lastValidPoint = plotPointInView
+                }
+                else {
+                    //msg += "No Y result for this M"
+                    lastValidPoint = nil
+                }
+                //println(msg)
+            }
+            path.stroke()
+            brain.assignVariable(Constants.CalcBrainMemId, value: oldMemoryValue)
+        }
     }
 }

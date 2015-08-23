@@ -12,6 +12,9 @@ var brain = CalculatorBrain()
 //var calcVC = CalculatorViewController()
 
 
-//var ctrl = ()
-// ctrl.viewDidLoad() //Not needed
-//ctrl.view
+brain.pushInput(2)
+brain.pushInput(3)
+brain.pushInput("×")
+brain.pushInput("M")
+brain.evaluate()
+brain.assignVariable("M", value: 4)

@@ -20,7 +20,9 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
     
     private struct Constants {
         static let TrigSegueIdentifier = "Show Trig Functions"
+        static let GraphSegueIdentifier = "Show Graph"
         static let CalcBrainMemId = "M"
+        static let CalcBrainMemDefaultKey = "CalcBrainMemId"
     }
     
     var midTyping = false;
@@ -134,6 +136,22 @@ class CalculatorViewController: UIViewController, UIPopoverPresentationControlle
                         ppc.delegate = self
                     }
                 }
+            case Constants.GraphSegueIdentifier:
+                
+                var destination: GraphViewController?
+                if let navCon = segue.destinationViewController as? UINavigationController {
+                    if let graphvc = navCon.visibleViewController as? GraphViewController {
+                        destination = graphvc
+                    }
+                }
+                else if let graphvc = segue.destinationViewController as? GraphViewController {
+                    destination = graphvc
+                }
+                else {
+                    return
+                }
+                
+                if (destination != nil) { destination!.brain = self.brain }
             default: break
             }
         }

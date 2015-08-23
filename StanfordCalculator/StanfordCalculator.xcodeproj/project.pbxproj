@@ -74,8 +74,8 @@
 		304A1B851A9A852700279EB0 = {
 			isa = PBXGroup;
 			children = (
-				30AD5CA01B5EABD2003DCFD1 /* GraphViewController.swift */,
 				3019D15C1B6F004B00D692C0 /* AxesDrawer.swift */,
+				30AD5CA01B5EABD2003DCFD1 /* GraphViewController.swift */,
 				30AD5CA21B5EAC1C003DCFD1 /* GraphView.swift */,
 				304A1B901A9A852700279EB0 /* StanfordCalculator */,
 				304A1BA61A9A852800279EB0 /* StanfordCalculatorTests */,
