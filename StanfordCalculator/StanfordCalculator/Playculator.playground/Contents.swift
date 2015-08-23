@@ -18,3 +18,9 @@ brain.pushInput("×")
 brain.pushInput("M")
 brain.evaluate()
 brain.assignVariable("M", value: 4)
+
+var y: Int
+for x in 1...10 {
+    y = x
+    println(y)
+}
