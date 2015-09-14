@@ -12,6 +12,9 @@ class TweetTableViewCell: UITableViewCell {
     
     struct Constants {
         static let ImageDownloadQueueName = "ImageDownloadQueue" // TODO: test w/ a serial queue w/ this name/
+        static let TweetHashtagColor = UIColor.lightGrayColor()
+        static let TweetMentionColor = UIColor.magentaColor()
+        static let TweetUrlColor = UIColor.blueColor()
     }
 
     @IBOutlet weak var userField: UILabel!
@@ -25,9 +28,35 @@ class TweetTableViewCell: UITableViewCell {
         tweetField.text = nil
         userImageView.image = nil
         if let tweet = self.tweet {
+
+            var attributedTweet = NSMutableAttributedString(string: tweet.text)
+            for hashtag in tweet.hashtags {
+                macrolog("Found a hashtag of \(hashtag)")
+                attributedTweet.addAttribute(
+                    NSForegroundColorAttributeName,
+                    value: Constants.TweetHashtagColor,
+                    range: hashtag.nsrange)
+            }
+            for url in tweet.urls {
+                macrolog("Found a url of \(url)")
+                attributedTweet.addAttribute(
+                    NSForegroundColorAttributeName,
+                    value: Constants.TweetUrlColor,
+                    range: url.nsrange)
+            }
+            for mention in tweet.userMentions {
+                macrolog("Found a mention of \(mention)")
+                attributedTweet.addAttribute(
+                    NSForegroundColorAttributeName,
+                    value: Constants.TweetMentionColor,
+                    range: mention.nsrange)
+            }
+
+            tweetField.attributedText = attributedTweet
+            
             let screenName = tweet.user.screenName
             userField.text = "\(tweet.user)"
-            tweetField.text = tweet.text
+
             if let userImageUrl = tweet.user.profileImageURL {
                 let cache = ImageCache.sharedManager
                 
