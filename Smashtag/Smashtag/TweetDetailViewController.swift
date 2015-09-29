@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import SafariServices
 
 enum TweetDetailItemType {
     case TweetText
@@ -110,7 +111,7 @@ class TweetDetailViewController: UITableViewController {
             return cell
         }
     }
-
+    
     /*
     // MARK: - Navigation
 
@@ -120,5 +121,27 @@ class TweetDetailViewController: UITableViewController {
         // Pass the selected object to the new view controller.
     }
     */
-
+    
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        let section = tweetDetails[indexPath.section]
+        let cell = section.items[indexPath.row]
+        
+        switch section.type {
+        case .Url:
+            guard let url = NSURL(string: cell.textData) else {
+                print("Bad URL")
+                return
+            }
+            
+            if #available(iOS 9.0, *) {
+                let svc = SFSafariViewController(URL: url)
+                presentViewController(svc, animated: true, completion: nil)
+            }
+            else {
+                print("We're not on iOS 9 so throw a fit or something I guess")
+            }
+        default:
+            return
+        }
+    }
 }
