@@ -29,23 +29,20 @@ class TweetTableViewCell: UITableViewCell {
         userImageView.image = nil
         if let tweet = self.tweet {
 
-            var attributedTweet = NSMutableAttributedString(string: tweet.text)
+            let attributedTweet = NSMutableAttributedString(string: tweet.text)
             for hashtag in tweet.hashtags {
-                macrolog("Found a hashtag of \(hashtag)")
                 attributedTweet.addAttribute(
                     NSForegroundColorAttributeName,
                     value: Constants.TweetHashtagColor,
                     range: hashtag.nsrange)
             }
             for url in tweet.urls {
-                macrolog("Found a url of \(url)")
                 attributedTweet.addAttribute(
                     NSForegroundColorAttributeName,
                     value: Constants.TweetUrlColor,
                     range: url.nsrange)
             }
             for mention in tweet.userMentions {
-                macrolog("Found a mention of \(mention)")
                 attributedTweet.addAttribute(
                     NSForegroundColorAttributeName,
                     value: Constants.TweetMentionColor,

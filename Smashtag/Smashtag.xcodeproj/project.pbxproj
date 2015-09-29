@@ -21,6 +21,9 @@
 		3063F5C71B9E4427001DDDCB /* TweetTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F5C61B9E4427001DDDCB /* TweetTableViewCell.swift */; };
 		3063F5C91BA662BD001DDDCB /* ququtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F5C81BA662BD001DDDCB /* ququtility.swift */; };
 		3063F5CD1BA674F4001DDDCB /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F5CC1BA674F4001DDDCB /* ImageCache.swift */; };
+		3063F5D11BA7CF58001DDDCB /* TweetDetailViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F5D01BA7CF58001DDDCB /* TweetDetailViewCell.swift */; };
+		3063F5D31BA7D8D8001DDDCB /* TweetDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F5D21BA7D8D8001DDDCB /* TweetDetailViewController.swift */; };
+		309333CF1BB9110C003C49EC /* IBConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309333CE1BB9110C003C49EC /* IBConstants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,6 +55,9 @@
 		3063F5C61B9E4427001DDDCB /* TweetTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TweetTableViewCell.swift; sourceTree = "<group>"; };
 		3063F5C81BA662BD001DDDCB /* ququtility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ququtility.swift; sourceTree = "<group>"; };
 		3063F5CC1BA674F4001DDDCB /* ImageCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
+		3063F5D01BA7CF58001DDDCB /* TweetDetailViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TweetDetailViewCell.swift; sourceTree = "<group>"; };
+		3063F5D21BA7D8D8001DDDCB /* TweetDetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TweetDetailViewController.swift; sourceTree = "<group>"; };
+		309333CE1BB9110C003C49EC /* IBConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IBConstants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,10 +101,13 @@
 			children = (
 				3063F59D1B994A03001DDDCB /* Main.storyboard */,
 				3063F59B1B994A03001DDDCB /* ViewController.swift */,
-				3063F5C61B9E4427001DDDCB /* TweetTableViewCell.swift */,
 				3063F5CC1BA674F4001DDDCB /* ImageCache.swift */,
+				309333CE1BB9110C003C49EC /* IBConstants.swift */,
 				3063F5C81BA662BD001DDDCB /* ququtility.swift */,
 				3063F5C41B99526C001DDDCB /* TweetTableViewController.swift */,
+				3063F5C61B9E4427001DDDCB /* TweetTableViewCell.swift */,
+				3063F5D21BA7D8D8001DDDCB /* TweetDetailViewController.swift */,
+				3063F5D01BA7CF58001DDDCB /* TweetDetailViewCell.swift */,
 				3063F5BB1B994B37001DDDCB /* Twitter Swift 1.2 */,
 				3063F5971B994A03001DDDCB /* Supporting Files */,
 			);
@@ -188,6 +197,8 @@
 		3063F58C1B994A03001DDDCB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftMigration = 0700;
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0640;
 				ORGANIZATIONNAME = "Micah R Ledbetter";
 				TargetAttributes = {
@@ -246,10 +257,13 @@
 			files = (
 				3063F5CD1BA674F4001DDDCB /* ImageCache.swift in Sources */,
 				3063F5C51B99526C001DDDCB /* TweetTableViewController.swift in Sources */,
+				3063F5D11BA7CF58001DDDCB /* TweetDetailViewCell.swift in Sources */,
 				3063F59C1B994A03001DDDCB /* ViewController.swift in Sources */,
 				3063F5C21B994B37001DDDCB /* TwitterRequest.swift in Sources */,
+				3063F5D31BA7D8D8001DDDCB /* TweetDetailViewController.swift in Sources */,
 				3063F5C31B994B37001DDDCB /* User.swift in Sources */,
 				3063F5C91BA662BD001DDDCB /* ququtility.swift in Sources */,
+				309333CF1BB9110C003C49EC /* IBConstants.swift in Sources */,
 				3063F59A1B994A03001DDDCB /* AppDelegate.swift in Sources */,
 				3063F5C01B994B37001DDDCB /* MediaItem.swift in Sources */,
 				3063F5C11B994B37001DDDCB /* Tweet.swift in Sources */,

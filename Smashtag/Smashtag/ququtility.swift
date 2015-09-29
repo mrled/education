@@ -10,7 +10,7 @@
 
 import Foundation
 
-// NOTE: the __MACRO__ -like thing are defined in the CALLING context!
+// NOTE: the __MACRO__ -like thing are expanded in the CALLING context b/c they're in the parameter block!
 // (Which is exactly what we want)
 // See: https://developer.apple.com/swift/blog/?id=15
 // Also helpful: http://practicalswift.com/2014/06/10/list-of-implicitly-defined-variables-in-swift/
@@ -20,5 +20,6 @@ func macrolog(
     file: String = __FILE__,
     line: Int = __LINE__)
 {
-    println("\(message) - in \(function) @ \(file.lastPathComponent):\(line)")
+    let uFile = NSURL(fileURLWithPath: file)
+    print("\(message) - in \(function) @ \(uFile.lastPathComponent):\(line)")
 }
