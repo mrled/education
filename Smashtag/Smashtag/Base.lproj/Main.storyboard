@@ -76,7 +76,7 @@
                                     <outlet property="tweetField" destination="foz-fH-9Gz" id="P2M-cR-zHq"/>
                                     <outlet property="userField" destination="Kmp-9d-LOK" id="dPA-2i-gey"/>
                                     <outlet property="userImageView" destination="KXF-rN-M0U" id="1ZW-D3-iNX"/>
-                                    <segue destination="aP9-0V-jsg" kind="show" identifier="ShowTweetDetail" id="ejF-ZX-9QO"/>
+                                    <segue destination="v64-cf-5oh" kind="show" identifier="ShowTweetDetail" id="7H0-I0-DDA"/>
                                 </connections>
                             </tableViewCell>
                         </prototypes>
@@ -263,24 +263,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="7lH-XJ-eHx" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="474" y="354"/>
-        </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="ijA-DZ-SOh">
-            <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="aP9-0V-jsg" sceneMemberID="viewController">
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="IDt-u6-4Cw">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="v64-cf-5oh" kind="relationship" relationship="rootViewController" id="8AI-RP-1HF"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="UbM-BT-JKN" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1172" y="354"/>
         </scene>
     </scenes>
 </document>
