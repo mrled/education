@@ -11,7 +11,7 @@ import UIKit
 class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     
     struct Constants {
-        static let DefaultTwitterSearch: String = "xcode"
+        static let DefaultTwitterSearch: String = "MicahXcodeTest"
     }
     
     @IBOutlet weak var navItem: UINavigationItem!

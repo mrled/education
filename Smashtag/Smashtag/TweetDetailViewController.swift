@@ -27,7 +27,11 @@ struct TweetDetailSection {
 
 class TweetDetailViewController: UITableViewController {
 
-    var tweet: Tweet?
+    @IBOutlet weak var navItem: UINavigationItem!
+
+    var tweet: Tweet? {
+        didSet { navItem.title = "Tweet Detail" }
+    }
     
     var tweetDetails: [TweetDetailSection] {
         var td = [TweetDetailSection]()
@@ -40,27 +44,27 @@ class TweetDetailViewController: UITableViewController {
                     hashtags.append(TweetDetailItem(type: .Hashtag, textData: hashtag.keyword))
                 }
                 td.append(TweetDetailSection(type: .Hashtag, items: hashtags))
-                if tweet.media.count > 0 {
-                    var medias = [TweetDetailItem]()
-                    for medium in tweet.media {
-                        medias.append(TweetDetailItem(type: .Media, textData: medium.description))
-                    }
-                    td.append(TweetDetailSection(type: .Media, items: medias))
+            }
+            if tweet.media.count > 0 {
+                var medias = [TweetDetailItem]()
+                for medium in tweet.media {
+                    medias.append(TweetDetailItem(type: .Media, textData: "\(medium.url)"))
                 }
-                if tweet.userMentions.count > 0 {
-                    var mentions = [TweetDetailItem]()
-                    for mention in tweet.userMentions {
-                        mentions.append(TweetDetailItem(type: .Mention, textData: mention.keyword))
-                    }
-                    td.append(TweetDetailSection(type: .Mention, items: mentions))
+                td.append(TweetDetailSection(type: .Media, items: medias))
+            }
+            if tweet.userMentions.count > 0 {
+                var mentions = [TweetDetailItem]()
+                for mention in tweet.userMentions {
+                    mentions.append(TweetDetailItem(type: .Mention, textData: mention.keyword))
                 }
-                if tweet.urls.count > 0 {
-                    var urls = [TweetDetailItem]()
-                    for url in tweet.urls {
-                        urls.append(TweetDetailItem(type: .Url, textData: url.keyword))
-                    }
-                    td.append(TweetDetailSection(type: .Url, items: urls))
+                td.append(TweetDetailSection(type: .Mention, items: mentions))
+            }
+            if tweet.urls.count > 0 {
+                var urls = [TweetDetailItem]()
+                for url in tweet.urls {
+                    urls.append(TweetDetailItem(type: .Url, textData: url.keyword))
                 }
+                td.append(TweetDetailSection(type: .Url, items: urls))
             }
         }
         return td
@@ -95,7 +99,7 @@ class TweetDetailViewController: UITableViewController {
         
         let section = tweetDetails[indexPath.section]
         let sectionText = section.items[indexPath.row].textData
-
+        
         switch section.type {
         case .TweetText:
             let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetCellReuseId, forIndexPath: indexPath) as! TweetTableViewCell
@@ -103,6 +107,7 @@ class TweetDetailViewController: UITableViewController {
             return cell
         case .Media:
             let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailMediaItemCell, forIndexPath: indexPath) as! TweetDetailMediaCell
+            print("Found a media section!")
             cell.cellText = sectionText
             return cell
         default:
@@ -132,14 +137,8 @@ class TweetDetailViewController: UITableViewController {
                 print("Bad URL")
                 return
             }
-            
-            if #available(iOS 9.0, *) {
-                let svc = SFSafariViewController(URL: url)
-                presentViewController(svc, animated: true, completion: nil)
-            }
-            else {
-                print("We're not on iOS 9 so throw a fit or something I guess")
-            }
+            let svc = SFSafariViewController(URL: url)
+            presentViewController(svc, animated: true, completion: nil)
         default:
             return
         }

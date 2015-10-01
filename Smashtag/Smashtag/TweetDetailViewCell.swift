@@ -9,9 +9,35 @@
 import UIKit
 
 class TweetDetailMediaCell: UITableViewCell {
+    @IBOutlet weak var mediaView: UIImageView!
     @IBOutlet weak var label: UILabel!
-    var cellText: String? { didSet { label.text = cellText } }
-    var cellImage: UIImage?
+    var cellText: String? {
+        didSet {
+            guard let cellText = cellText else { return }
+            label.text = cellText
+            if let url = NSURL(string: cellText) {
+                ImageCache.fetchImageWithURL(url, debugging: true) {
+                    (image: UIImage) -> () in
+                    self.cellImage = image
+                }
+            }
+        }
+    }
+    var cellImage: UIImage? {
+        didSet {
+            if let cellImage = cellImage {
+                label.hidden = true
+                mediaView.hidden = false
+                mediaView.image = cellImage
+                mediaView.setNeedsDisplay()
+            }
+            else {
+                label.hidden = false
+                mediaView.hidden = true
+            }
+            self.setNeedsDisplay()
+        }
+    }
 }
 class TweetDetailTextCell: UITableViewCell {
     @IBOutlet weak var label: UILabel!

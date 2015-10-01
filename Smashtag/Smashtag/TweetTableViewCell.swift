@@ -51,30 +51,14 @@ class TweetTableViewCell: UITableViewCell {
 
             tweetField.attributedText = attributedTweet
             
-            let screenName = tweet.user.screenName
+            //let screenName = tweet.user.screenName
             userField.text = "\(tweet.user)"
 
             if let userImageUrl = tweet.user.profileImageURL {
-                let cache = ImageCache.sharedManager
-                
-                // TODO: not sure this line is doing what I think it's doing...? but it does seem to be so???.
-                if let image = cache.objectForKey(userImageUrl) as! UIImage? {
+                ImageCache.fetchImageWithURL(userImageUrl) {
+                    (image: UIImage) -> () in
                     self.userImageView.image = image
                     self.userImageView.setNeedsDisplay()
-                }
-                else {
-                    let imageRequestQueue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0)
-                    dispatch_async(imageRequestQueue) {
-                        if let userImageData = NSData(contentsOfURL: userImageUrl) {
-                            if let userImage = UIImage(data: userImageData) {
-                                cache.setObject(userImage, forKey: userImageUrl)
-                                dispatch_async(dispatch_get_main_queue()) {
-                                    self.userImageView.image = userImage
-                                    self.userImageView.setNeedsDisplay()
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }

@@ -23,3 +23,4 @@ func macrolog(
     let uFile = NSURL(fileURLWithPath: file)
     print("\(message) - in \(function) @ \(uFile.lastPathComponent):\(line)")
 }
+
