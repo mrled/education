@@ -16,13 +16,32 @@ enum TweetDetailItemType {
     case Url
     case Media
 }
-struct TweetDetailItem {
+class TweetDetailItem {
     var type: TweetDetailItemType
     var textData: String
+    var mediaData: MediaItem?
+    init(type: TweetDetailItemType, textData: String, mediaData: MediaItem? = nil) {
+        self.type = type
+        self.textData = textData
+        self.mediaData = mediaData
+    }
 }
-struct TweetDetailSection {
-    var type: TweetDetailItemType
-    var items: [TweetDetailItem]
+
+extension Tweet {
+    struct TweetExtension {
+        var media: [MediaItem]
+        var hashtags: [String]
+        var urls: [String]
+        var mentions: [String]
+    }
+    var detailItems: TweetExtension {
+        var ext: TweetExtension = TweetExtension(media: [MediaItem](), hashtags: [String](), urls: [String](), mentions: [String]())
+        for medium in self.media         { ext.media.append(medium) }
+        for hashtag in self.hashtags     { ext.hashtags.append(hashtag.keyword) }
+        for url in self.urls             { ext.urls.append(url.keyword) }
+        for mention in self.userMentions { ext.mentions.append(mention.keyword) }
+        return ext
+    }
 }
 
 class TweetDetailViewController: UITableViewController {
@@ -33,38 +52,37 @@ class TweetDetailViewController: UITableViewController {
         didSet { navItem.title = "Tweet Detail" }
     }
     
-    var tweetDetails: [TweetDetailSection] {
-        var td = [TweetDetailSection]()
+    var tweetDetails: [[TweetDetailItem]] {
+        var td = [[TweetDetailItem]]()
         if let tweet = self.tweet {
-            let textItem = TweetDetailItem(type: .TweetText, textData: tweet.text)
-            td.append(TweetDetailSection(type: .TweetText, items: [textItem]))
+            td.append([TweetDetailItem(type: .TweetText, textData: tweet.text)])
+            if tweet.media.count > 0 {
+                var media = [TweetDetailItem]()
+                for medium in tweet.media {
+                    media.append(TweetDetailItem(type: .Media, textData: "\(medium.url)", mediaData: medium))
+                }
+                td.append(media)
+            }
             if tweet.hashtags.count > 0 {
                 var hashtags = [TweetDetailItem]()
                 for hashtag in tweet.hashtags {
                     hashtags.append(TweetDetailItem(type: .Hashtag, textData: hashtag.keyword))
                 }
-                td.append(TweetDetailSection(type: .Hashtag, items: hashtags))
-            }
-            if tweet.media.count > 0 {
-                var medias = [TweetDetailItem]()
-                for medium in tweet.media {
-                    medias.append(TweetDetailItem(type: .Media, textData: "\(medium.url)"))
-                }
-                td.append(TweetDetailSection(type: .Media, items: medias))
-            }
-            if tweet.userMentions.count > 0 {
-                var mentions = [TweetDetailItem]()
-                for mention in tweet.userMentions {
-                    mentions.append(TweetDetailItem(type: .Mention, textData: mention.keyword))
-                }
-                td.append(TweetDetailSection(type: .Mention, items: mentions))
+                td.append(hashtags)
             }
             if tweet.urls.count > 0 {
                 var urls = [TweetDetailItem]()
                 for url in tweet.urls {
                     urls.append(TweetDetailItem(type: .Url, textData: url.keyword))
                 }
-                td.append(TweetDetailSection(type: .Url, items: urls))
+                td.append(urls)
+            }
+            if tweet.userMentions.count > 0 {
+                var mentions = [TweetDetailItem]()
+                for mention in tweet.userMentions {
+                    mentions.append(TweetDetailItem(type: .Mention, textData: mention.keyword))
+                }
+                td.append(mentions)
             }
         }
         return td
@@ -72,13 +90,38 @@ class TweetDetailViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-//        tableView.estimatedRowHeight = tableView.rowHeight  // magic
+        tableView.estimatedRowHeight = tableView.rowHeight  // magic
 //        tableView.rowHeight = UITableViewAutomaticDimension
     }
 
     // TODO: why do I need this wtf
-    override func tableView(tableView: UITableView, estimatedHeightForRowAtIndexPath: NSIndexPath) -> CGFloat {
-        return UITableViewAutomaticDimension
+    override func tableView(
+        tableView: UITableView,
+        estimatedHeightForRowAtIndexPath indexPath: NSIndexPath)
+        -> CGFloat
+    {
+        
+        let rowData = tweetDetails[indexPath.section][indexPath.row]
+        switch rowData.type {
+
+        case .Media:
+            /*
+            - set a max height value. 1/2 the screen? # of pixels? somethin like that
+            - set a min height value - actually this should just be the default row height or w/e
+            - if image is over the max
+              - scale it down til it hits the max HEIGHT, keeping aspect ratio
+            - if it's under the min
+              - scale it up til it hits the max WIDTH, keeping aspect ratio
+            - if it's between the two
+              - display it as is
+            - center it in the view
+            - TODO: tweets with multiple images?
+*/
+            return UITableViewAutomaticDimension
+
+        default:
+            return UITableViewAutomaticDimension
+        }
     }
     
     // MARK: - Table view data source
@@ -88,7 +131,7 @@ class TweetDetailViewController: UITableViewController {
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return tweetDetails[section].items.count
+        return tweetDetails[section].count
     }
     
     override func tableView(
@@ -96,23 +139,30 @@ class TweetDetailViewController: UITableViewController {
         cellForRowAtIndexPath indexPath: NSIndexPath)
         -> UITableViewCell
     {
+        let row = tweetDetails[indexPath.section][indexPath.row]
         
-        let section = tweetDetails[indexPath.section]
-        let sectionText = section.items[indexPath.row].textData
-        
-        switch section.type {
+        switch row.type {
+
         case .TweetText:
             let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetCellReuseId, forIndexPath: indexPath) as! TweetTableViewCell
             cell.tweet = tweet
             return cell
+
         case .Media:
             let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailMediaItemCell, forIndexPath: indexPath) as! TweetDetailMediaCell
-            print("Found a media section!")
-            cell.cellText = sectionText
+            cell.cellText = row.textData
+            if let url = NSURL(string: row.textData) {
+                ImageCache.fetchImageWithURL(url, debugging: true) {
+                    (image: UIImage) -> () in
+                    cell.cellImage = image
+                }
+            }
+            
             return cell
+
         default:
             let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailTextItemCell, forIndexPath: indexPath) as! TweetDetailTextCell
-            cell.cellText = sectionText
+            cell.cellText = row.textData
             return cell
         }
     }
@@ -128,10 +178,9 @@ class TweetDetailViewController: UITableViewController {
     */
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let section = tweetDetails[indexPath.section]
-        let cell = section.items[indexPath.row]
+        let cell = tweetDetails[indexPath.section][indexPath.row]
         
-        switch section.type {
+        switch cell.type {
         case .Url:
             guard let url = NSURL(string: cell.textData) else {
                 print("Bad URL")

@@ -15,8 +15,9 @@ class ImageCache: NSCache {
     
     override init() {
         super.init()
-        
-        observer = NSNotificationCenter.defaultCenter().addObserverForName(UIApplicationDidReceiveMemoryWarningNotification, object: nil, queue: nil) { [unowned self] notification in
+        observer = NSNotificationCenter.defaultCenter().addObserverForName(UIApplicationDidReceiveMemoryWarningNotification, object: nil, queue: nil)
+        {
+            [unowned self] notification in
             self.removeAllObjects()
         }
     }
