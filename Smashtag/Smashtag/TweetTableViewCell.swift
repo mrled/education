@@ -27,39 +27,36 @@ class TweetTableViewCell: UITableViewCell {
         userField.text = nil
         tweetField.text = nil
         userImageView.image = nil
-        if let tweet = self.tweet {
+        guard let tweet = self.tweet else { return }
 
-            let attributedTweet = NSMutableAttributedString(string: tweet.text)
-            for hashtag in tweet.hashtags {
-                attributedTweet.addAttribute(
-                    NSForegroundColorAttributeName,
-                    value: Constants.TweetHashtagColor,
-                    range: hashtag.nsrange)
-            }
-            for url in tweet.urls {
-                attributedTweet.addAttribute(
-                    NSForegroundColorAttributeName,
-                    value: Constants.TweetUrlColor,
-                    range: url.nsrange)
-            }
-            for mention in tweet.userMentions {
-                attributedTweet.addAttribute(
-                    NSForegroundColorAttributeName,
-                    value: Constants.TweetMentionColor,
-                    range: mention.nsrange)
-            }
-
-            tweetField.attributedText = attributedTweet
-            
-            //let screenName = tweet.user.screenName
-            userField.text = "\(tweet.user)"
-
-            if let userImageUrl = tweet.user.profileImageURL {
-                ImageCache.fetchImageWithURL(userImageUrl) {
-                    (image: UIImage) -> () in
-                    self.userImageView.image = image
-                    self.userImageView.setNeedsDisplay()
-                }
+        let attributedTweet = NSMutableAttributedString(string: tweet.text)
+        for hashtag in tweet.hashtags {
+            attributedTweet.addAttribute(
+                NSForegroundColorAttributeName,
+                value: Constants.TweetHashtagColor,
+                range: hashtag.nsrange)
+        }
+        for url in tweet.urls {
+            attributedTweet.addAttribute(
+                NSForegroundColorAttributeName,
+                value: Constants.TweetUrlColor,
+                range: url.nsrange)
+        }
+        for mention in tweet.userMentions {
+            attributedTweet.addAttribute(
+                NSForegroundColorAttributeName,
+                value: Constants.TweetMentionColor,
+                range: mention.nsrange)
+        }
+        
+        tweetField.attributedText = attributedTweet
+        userField.text = "\(tweet.user)"
+        
+        if let userImageUrl = tweet.user.profileImageURL {
+            ImageCache.fetchImageWithURL(userImageUrl) {
+                (image: UIImage) -> () in
+                self.userImageView.image = image
+                self.userImageView.setNeedsDisplay()
             }
         }
     }

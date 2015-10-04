@@ -47,6 +47,8 @@ extension Tweet {
 class TweetDetailViewController: UITableViewController {
 
     @IBOutlet weak var navItem: UINavigationItem!
+    
+    var tweetImage: UIImage?
 
     var tweet: Tweet? {
         didSet { navItem.title = "Tweet Detail" }
@@ -70,10 +72,17 @@ class TweetDetailViewController: UITableViewController {
                 }
                 td.append(hashtags)
             }
-            if tweet.urls.count > 0 {
+//            if tweet.urls.count > 0 {
+//                var urls = [TweetDetailItem]()
+//                for url in tweet.urls {
+//                    urls.append(TweetDetailItem(type: .Url, textData: url.keyword))
+//                }
+//                td.append(urls)
+//            }
+            if tweet.expanded_urls.count > 0 {
                 var urls = [TweetDetailItem]()
-                for url in tweet.urls {
-                    urls.append(TweetDetailItem(type: .Url, textData: url.keyword))
+                for url in tweet.expanded_urls {
+                    urls.append(TweetDetailItem(type: .Url, textData: url))
                 }
                 td.append(urls)
             }
@@ -91,37 +100,30 @@ class TweetDetailViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.estimatedRowHeight = tableView.rowHeight  // magic
-//        tableView.rowHeight = UITableViewAutomaticDimension
+        //tableView.rowHeight = UITableViewAutomaticDimension
+    }
+    
+    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        let rowData = tweetDetails[indexPath.section][indexPath.row]
+
+        switch rowData.type {
+
+        case .Media:
+            return CGFloat(self.view.frame.height / 4)
+            
+        default:
+            return UITableViewAutomaticDimension
+        
+        }
     }
 
-    // TODO: why do I need this wtf
+    // TODO: why the fuck do I need this wtf
     override func tableView(
         tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath)
         -> CGFloat
     {
-        
-        let rowData = tweetDetails[indexPath.section][indexPath.row]
-        switch rowData.type {
-
-        case .Media:
-            /*
-            - set a max height value. 1/2 the screen? # of pixels? somethin like that
-            - set a min height value - actually this should just be the default row height or w/e
-            - if image is over the max
-              - scale it down til it hits the max HEIGHT, keeping aspect ratio
-            - if it's under the min
-              - scale it up til it hits the max WIDTH, keeping aspect ratio
-            - if it's between the two
-              - display it as is
-            - center it in the view
-            - TODO: tweets with multiple images?
-*/
-            return UITableViewAutomaticDimension
-
-        default:
-            return UITableViewAutomaticDimension
-        }
+        return UITableViewAutomaticDimension
     }
     
     // MARK: - Table view data source
@@ -151,12 +153,18 @@ class TweetDetailViewController: UITableViewController {
         case .Media:
             let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailMediaItemCell, forIndexPath: indexPath) as! TweetDetailMediaCell
             cell.cellText = row.textData
-            if let url = NSURL(string: row.textData) {
-                ImageCache.fetchImageWithURL(url, debugging: true) {
-                    (image: UIImage) -> () in
-                    cell.cellImage = image
-                }
-            }
+//            if let url = NSURL(string: row.textData) {
+//                ImageCache.fetchImageWithURL(url, debugging: true) {
+//                    (image: UIImage) -> () in
+//                    // TODO: can I do this without having to save the image in 2 places?
+//                    cell.cellImage = image
+//                    self.tweetImage = image
+//                    self.view.setNeedsDisplay()
+//                    self.tableView.setNeedsDisplay()
+//                    cell.setNeedsDisplay()
+//                    cell.imageView?.setNeedsDisplay()
+//                }
+//            }
             
             return cell
 
@@ -167,15 +175,27 @@ class TweetDetailViewController: UITableViewController {
         }
     }
     
-    /*
     // MARK: - Navigation
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using [segue destinationViewController].
-        // Pass the selected object to the new view controller.
+        guard let identifier = segue.identifier else { return }
+        switch identifier {
+        case IBConstants.DetailImageSegueId:
+            guard let tweetImage = self.tweetImage else { return }
+            var destination: TweetDetailImageViewController?
+            if let navCon = segue.destinationViewController as? UINavigationController {
+                if let imageVC = navCon.visibleViewController as? TweetDetailImageViewController {
+                    destination = imageVC
+                }
+            }
+            else if let imageVC = segue.destinationViewController as? TweetDetailImageViewController {
+                destination = imageVC
+            }
+            destination?.image = tweetImage
+        default:
+            return
+        }
     }
-    */
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let cell = tweetDetails[indexPath.section][indexPath.row]

@@ -11,14 +11,24 @@ import UIKit
 class TweetDetailMediaCell: UITableViewCell {
     @IBOutlet weak var mediaView: UIImageView!
     @IBOutlet weak var label: UILabel!
+    var imageScale: CGFloat = 1.0 { didSet { setNeedsDisplay() } }
     var cellText: String? {
         didSet {
             label.text = cellText
+
+            guard let cellText = cellText, let url = NSURL(string: cellText) else { return }
+
+            ImageCache.fetchImageWithURL(url, debugging: true) {
+                (image: UIImage) -> () in
+                self.cellImage = image
+            }
+
         }
     }
     var cellImage: UIImage? {
         didSet {
             mediaView.image = cellImage
+            mediaView.setNeedsDisplay()
             if cellImage != nil {
                 label.hidden = true
                 mediaView.hidden = false
@@ -27,8 +37,6 @@ class TweetDetailMediaCell: UITableViewCell {
                 label.hidden = false
                 mediaView.hidden = true
             }
-            mediaView.setNeedsDisplay()
-            label.setNeedsDisplay()
         }
     }
 }
@@ -36,7 +44,3 @@ class TweetDetailTextCell: UITableViewCell {
     @IBOutlet weak var label: UILabel!
     var cellText: String? { didSet { label.text = cellText } }
 }
-//class TweetDetailTweetTextCell: UITableViewCell {
-//    @IBOutlet weak var label: UILabel!
-//    var cellText: String? { didSet { label.text = cellText } }
-//}

@@ -194,7 +194,7 @@
                                             <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                             <nil key="highlightedColor"/>
                                         </label>
-                                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="deR-lj-v8X">
+                                        <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="deR-lj-v8X">
                                             <rect key="frame" x="12" y="12" width="576" height="169.5"/>
                                             <animations/>
                                         </imageView>
@@ -224,6 +224,7 @@
                                     <outlet property="imageView" destination="deR-lj-v8X" id="f6O-37-23t"/>
                                     <outlet property="label" destination="lTE-1Y-XzD" id="TkG-MK-xfT"/>
                                     <outlet property="mediaView" destination="deR-lj-v8X" id="EuC-CR-IsL"/>
+                                    <segue destination="ubM-oK-day" kind="show" identifier="ShowDetailImage" id="SzY-1f-3lm"/>
                                 </connections>
                             </tableViewCell>
                             <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="TweetDetailTextItemCell" id="ZYp-ME-vC0" customClass="TweetDetailTextCell" customModule="Smashtag" customModuleProvider="target">
@@ -277,6 +278,40 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="jAe-43-AKP" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1895" y="354"/>
+        </scene>
+        <!--Tweet Detail Image View Controller-->
+        <scene sceneID="lAp-9e-kp6">
+            <objects>
+                <viewController id="ubM-oK-day" customClass="TweetDetailImageViewController" customModule="Smashtag" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="8Ke-Or-gj0"/>
+                        <viewControllerLayoutGuide type="bottom" id="Kpr-Mb-kOc"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="OgX-ND-eeY">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="NdB-Pt-vXj" customClass="TweetDetailImageView" customModule="Smashtag" customModuleProvider="target">
+                                <rect key="frame" x="20" y="64" width="560" height="536"/>
+                                <animations/>
+                            </imageView>
+                        </subviews>
+                        <animations/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="NdB-Pt-vXj" firstAttribute="top" secondItem="8Ke-Or-gj0" secondAttribute="bottom" id="5aX-vH-hNU"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="NdB-Pt-vXj" secondAttribute="trailing" id="8W6-WH-cVE"/>
+                            <constraint firstItem="Kpr-Mb-kOc" firstAttribute="top" secondItem="NdB-Pt-vXj" secondAttribute="bottom" id="I1O-9O-8wB"/>
+                            <constraint firstItem="NdB-Pt-vXj" firstAttribute="leading" secondItem="OgX-ND-eeY" secondAttribute="leadingMargin" id="wob-S9-eee"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="imageView" destination="NdB-Pt-vXj" id="ErP-gh-0uO"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="vLp-v7-nS5" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2609" y="354"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="V0I-H2-kB9">

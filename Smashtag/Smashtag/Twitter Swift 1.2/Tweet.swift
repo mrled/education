@@ -23,6 +23,7 @@ public class Tweet : CustomStringConvertible
     public let media: [MediaItem]
     public let hashtags: [IndexedKeyword]
     public let urls: [IndexedKeyword]
+    public let expanded_urls: [String]
     public let userMentions: [IndexedKeyword]
 
     public struct IndexedKeyword: CustomStringConvertible
@@ -97,6 +98,20 @@ public class Tweet : CustomStringConvertible
         urls = Tweet.getIndexedKeywords(urlMentionsArray, inText: text, prefix: "h")
         let userMentionsArray = data?.valueForKeyPath(TwitterKey.Entities.UserMentions) as? NSArray
         userMentions = Tweet.getIndexedKeywords(userMentionsArray, inText: text, prefix: "@")
+        
+        
+        var expoUrls = [String]()
+        if let uma = urlMentionsArray {
+            for urlItem in uma {
+                if let urlDict = urlItem as? NSDictionary {
+                    let expanded = urlDict.valueForKeyPath("expanded_url") as! String
+                    print(expanded)
+                    expoUrls.append(expanded)
+                }
+            }
+        }
+        self.expanded_urls = expoUrls
+
         
         if user == nil || text == nil || created == nil {
             return nil
