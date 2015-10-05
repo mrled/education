@@ -8,7 +8,7 @@
 //  Copyright (c) 2015 Micah R Ledbetter. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
 // NOTE: the __MACRO__ -like thing are expanded in the CALLING context b/c they're in the parameter block!
 // (Which is exactly what we want)
@@ -24,3 +24,19 @@ func macrolog(
     print("\(message) - in \(function) @ \(uFile.lastPathComponent):\(line)")
 }
 
+func unwrapNavigationControllerForSegue<ControllerType>(
+    segue: UIStoryboardSegue,
+    ofType: ControllerType)
+    -> ControllerType?
+{
+    var destination: ControllerType?
+    if let navVC = segue.destinationViewController as? UINavigationController {
+        if let targetVC = navVC.visibleViewController as? ControllerType {
+            destination = targetVC
+        }
+    }
+    else if let targetVC = segue.destinationViewController as? ControllerType {
+        destination = targetVC
+    }
+    return destination
+}

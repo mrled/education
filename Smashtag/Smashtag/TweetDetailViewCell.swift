@@ -15,13 +15,13 @@ class TweetDetailMediaCell: UITableViewCell {
     var cellText: String? {
         didSet {
             label.text = cellText
-
-            guard let cellText = cellText, let url = NSURL(string: cellText) else { return }
-
-            ImageCache.fetchImageWithURL(url, debugging: true) {
-                (image: UIImage) -> () in
-                self.cellImage = image
-            }
+//
+//            guard let cellText = cellText, let url = NSURL(string: cellText) else { return }
+//
+//            ImageCache.fetchImageWithURL(url, debugging: true) {
+//                (image: UIImage) -> () in
+//                self.cellImage = image
+//            }
 
         }
     }

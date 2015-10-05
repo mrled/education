@@ -12,8 +12,11 @@ struct IBConstants {
     static let TweetCellReuseId: String = "TweetCell"
     static let DetailSegueId = "ShowTweetDetail"
     static let DetailImageSegueId = "ShowDetailImage"
+    static let SearchFromDetailSegueId = "ShowSearchFromDetail"
     static let TweetDetailMediaItemCell: String = "TweetDetailMediaItemCell"
-    static let TweetDetailTextItemCell: String = "TweetDetailTextItemCell"
+    static let TweetDetailUrlCell: String = "TweetDetailUrlCell"
+    static let TweetDetailHashtagCell: String = "TweetDetailHashtagCell"
+    static let TweetDetailMentionCell: String = "TweetDetailMentionCell"
     static let TweetDetailTweetTextItemCell: String = "TweetDetailTweetTextItemCell"
     static let TweetDetailMediaTextItemCell: String = "TweetDetailMediaTextItemCell"
 }

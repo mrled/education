@@ -17,6 +17,7 @@ class TweetDetailImageViewController: UIViewController {
     }
     var image: UIImage? {
         didSet {
+            print ("IMAGE DONE SET BEEN YA \(self.image)")
             imageView?.image = image
             imageView?.setNeedsDisplay()
         }

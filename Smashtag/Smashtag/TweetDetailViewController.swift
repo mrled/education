@@ -27,23 +27,6 @@ class TweetDetailItem {
     }
 }
 
-extension Tweet {
-    struct TweetExtension {
-        var media: [MediaItem]
-        var hashtags: [String]
-        var urls: [String]
-        var mentions: [String]
-    }
-    var detailItems: TweetExtension {
-        var ext: TweetExtension = TweetExtension(media: [MediaItem](), hashtags: [String](), urls: [String](), mentions: [String]())
-        for medium in self.media         { ext.media.append(medium) }
-        for hashtag in self.hashtags     { ext.hashtags.append(hashtag.keyword) }
-        for url in self.urls             { ext.urls.append(url.keyword) }
-        for mention in self.userMentions { ext.mentions.append(mention.keyword) }
-        return ext
-    }
-}
-
 class TweetDetailViewController: UITableViewController {
 
     @IBOutlet weak var navItem: UINavigationItem!
@@ -54,9 +37,11 @@ class TweetDetailViewController: UITableViewController {
         didSet { navItem.title = "Tweet Detail" }
     }
     
+    // TODO: I hate this code but I dunno how I can make it better
     var tweetDetails: [[TweetDetailItem]] {
         var td = [[TweetDetailItem]]()
         if let tweet = self.tweet {
+            
             td.append([TweetDetailItem(type: .TweetText, textData: tweet.text)])
             if tweet.media.count > 0 {
                 var media = [TweetDetailItem]()
@@ -72,13 +57,6 @@ class TweetDetailViewController: UITableViewController {
                 }
                 td.append(hashtags)
             }
-//            if tweet.urls.count > 0 {
-//                var urls = [TweetDetailItem]()
-//                for url in tweet.urls {
-//                    urls.append(TweetDetailItem(type: .Url, textData: url.keyword))
-//                }
-//                td.append(urls)
-//            }
             if tweet.expanded_urls.count > 0 {
                 var urls = [TweetDetailItem]()
                 for url in tweet.expanded_urls {
@@ -96,7 +74,7 @@ class TweetDetailViewController: UITableViewController {
         }
         return td
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.estimatedRowHeight = tableView.rowHeight  // magic
@@ -153,25 +131,35 @@ class TweetDetailViewController: UITableViewController {
         case .Media:
             let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailMediaItemCell, forIndexPath: indexPath) as! TweetDetailMediaCell
             cell.cellText = row.textData
-//            if let url = NSURL(string: row.textData) {
-//                ImageCache.fetchImageWithURL(url, debugging: true) {
-//                    (image: UIImage) -> () in
-//                    // TODO: can I do this without having to save the image in 2 places?
-//                    cell.cellImage = image
-//                    self.tweetImage = image
-//                    self.view.setNeedsDisplay()
-//                    self.tableView.setNeedsDisplay()
-//                    cell.setNeedsDisplay()
-//                    cell.imageView?.setNeedsDisplay()
-//                }
-//            }
-            
+            if let url = NSURL(string: row.textData) {
+                ImageCache.fetchImageWithURL(url, debugging: true) {
+                    (image: UIImage) -> () in
+                    // TODO: can I do this without having to save the image in 2 places?
+                    cell.cellImage = image
+                    self.tweetImage = image
+                    self.view.setNeedsDisplay()
+                    self.tableView.setNeedsDisplay()
+                    cell.setNeedsDisplay()
+                    cell.imageView?.setNeedsDisplay()
+                }
+            }
             return cell
 
-        default:
-            let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailTextItemCell, forIndexPath: indexPath) as! TweetDetailTextCell
+        case .Hashtag:
+            let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailHashtagCell, forIndexPath: indexPath) as! TweetDetailTextCell
             cell.cellText = row.textData
             return cell
+            
+        case .Url:
+            let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailUrlCell, forIndexPath: indexPath) as! TweetDetailTextCell
+            cell.cellText = row.textData
+            return cell
+            
+        case .Mention:
+            let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailMentionCell, forIndexPath: indexPath) as! TweetDetailTextCell
+            cell.cellText = row.textData
+            return cell
+
         }
     }
     
@@ -181,17 +169,17 @@ class TweetDetailViewController: UITableViewController {
         guard let identifier = segue.identifier else { return }
         switch identifier {
         case IBConstants.DetailImageSegueId:
+            print(IBConstants.DetailImageSegueId)
             guard let tweetImage = self.tweetImage else { return }
-            var destination: TweetDetailImageViewController?
-            if let navCon = segue.destinationViewController as? UINavigationController {
-                if let imageVC = navCon.visibleViewController as? TweetDetailImageViewController {
-                    destination = imageVC
+            let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetDetailImageViewController())
+            destination?.image = tweetImage
+        case IBConstants.SearchFromDetailSegueId:
+            let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetTableViewController())
+            if let selectedIndexPath = tableView.indexPathForSelectedRow {
+                if let cell = tableView.cellForRowAtIndexPath(selectedIndexPath) as? TweetDetailTextCell {
+                    destination?.searchText = cell.cellText
                 }
             }
-            else if let imageVC = segue.destinationViewController as? TweetDetailImageViewController {
-                destination = imageVC
-            }
-            destination?.image = tweetImage
         default:
             return
         }
@@ -202,10 +190,7 @@ class TweetDetailViewController: UITableViewController {
         
         switch cell.type {
         case .Url:
-            guard let url = NSURL(string: cell.textData) else {
-                print("Bad URL")
-                return
-            }
+            guard let url = NSURL(string: cell.textData) else { return }
             let svc = SFSafariViewController(URL: url)
             presentViewController(svc, animated: true, completion: nil)
         default:

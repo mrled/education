@@ -32,6 +32,7 @@ class ImageCache: NSCache {
         callback: (image: UIImage)->() )
     {
         let cache = ImageCache.sharedManager
+        
         if let image = cache.objectForKey(url) as! UIImage? {
             if (debugging) { print("fetchImageWithURL: Found image in cache for \(url)") }
             callback(image: image)

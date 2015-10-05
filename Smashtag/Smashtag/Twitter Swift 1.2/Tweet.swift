@@ -99,13 +99,11 @@ public class Tweet : CustomStringConvertible
         let userMentionsArray = data?.valueForKeyPath(TwitterKey.Entities.UserMentions) as? NSArray
         userMentions = Tweet.getIndexedKeywords(userMentionsArray, inText: text, prefix: "@")
         
-        
         var expoUrls = [String]()
         if let uma = urlMentionsArray {
             for urlItem in uma {
                 if let urlDict = urlItem as? NSDictionary {
                     let expanded = urlDict.valueForKeyPath("expanded_url") as! String
-                    print(expanded)
                     expoUrls.append(expanded)
                 }
             }

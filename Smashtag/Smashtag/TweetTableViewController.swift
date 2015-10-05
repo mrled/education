@@ -105,22 +105,10 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
             switch identifier {
 
             case IBConstants.DetailSegueId:
-
-                var destination: TweetDetailViewController?
-                if let navCon = segue.destinationViewController as? UINavigationController {
-                    if let detailVC = navCon.visibleViewController as? TweetDetailViewController {
-                        destination = detailVC
-                    }
-                }
-                else if let detailVC = segue.destinationViewController as? TweetDetailViewController {
-                    destination = detailVC
-                }
-
-                if let destination = destination {
-                    if let selectedIndexPath = tableView.indexPathForSelectedRow {
-                        if let cell = tableView.cellForRowAtIndexPath(selectedIndexPath) as? TweetTableViewCell {
-                            destination.tweet = cell.tweet
-                        }
+                let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetDetailViewController())
+                if let selectedIndexPath = tableView.indexPathForSelectedRow {
+                    if let cell = tableView.cellForRowAtIndexPath(selectedIndexPath) as? TweetTableViewCell {
+                        destination?.tweet = cell.tweet
                     }
                 }
 
