@@ -37,39 +37,22 @@ class TweetDetailViewController: UITableViewController {
         didSet { navItem.title = "Tweet Detail" }
     }
     
-    // TODO: I hate this code but I dunno how I can make it better
     var tweetDetails: [[TweetDetailItem]] {
         var td = [[TweetDetailItem]]()
         if let tweet = self.tweet {
             
             td.append([TweetDetailItem(type: .TweetText, textData: tweet.text)])
             if tweet.media.count > 0 {
-                var media = [TweetDetailItem]()
-                for medium in tweet.media {
-                    media.append(TweetDetailItem(type: .Media, textData: "\(medium.url)", mediaData: medium))
-                }
-                td.append(media)
+                td.append(tweet.media.map { TweetDetailItem(type: .Media, textData: "\($0.url)", mediaData: $0) })
             }
             if tweet.hashtags.count > 0 {
-                var hashtags = [TweetDetailItem]()
-                for hashtag in tweet.hashtags {
-                    hashtags.append(TweetDetailItem(type: .Hashtag, textData: hashtag.keyword))
-                }
-                td.append(hashtags)
+                td.append(tweet.hashtags.map { TweetDetailItem(type: .Hashtag, textData: $0.keyword) })
             }
             if tweet.expanded_urls.count > 0 {
-                var urls = [TweetDetailItem]()
-                for url in tweet.expanded_urls {
-                    urls.append(TweetDetailItem(type: .Url, textData: url))
-                }
-                td.append(urls)
+                td.append(tweet.expanded_urls.map { TweetDetailItem(type: .Url, textData: $0) })
             }
             if tweet.userMentions.count > 0 {
-                var mentions = [TweetDetailItem]()
-                for mention in tweet.userMentions {
-                    mentions.append(TweetDetailItem(type: .Mention, textData: mention.keyword))
-                }
-                td.append(mentions)
+                td.append(tweet.userMentions.map { TweetDetailItem(type: .Mention, textData: $0.keyword) })
             }
         }
         return td
