@@ -14,27 +14,32 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
         static let DefaultTwitterSearch: String = "MicahXcodeTest"
     }
     
-    @IBOutlet weak var navItem: UINavigationItem!
-    @IBOutlet weak var searchField: UITextField!
-    
+    @IBOutlet weak var navItem: UINavigationItem! { didSet { navItem.title    = navItemTitle }}
+    @IBOutlet weak var searchField:  UITextField! { didSet { searchField.text = searchFieldText }}
+
     var searchText: String? {
         didSet {
-            navItem.title = "Search: \(Constants.DefaultTwitterSearch)"
+            navItem?.title = navItemTitle
+            searchField?.text = searchFieldText
             tweets.removeAll()
-            tableView.reloadData()
+            tableView?.reloadData()
             lastSuccessfulRequest = nil
             refresh()
         }
     }
-    var tweets = [[Tweet]]()
+    var searchFieldText: String { return searchText == nil ? "" : searchText! }
+    var navItemTitle:    String { return searchText == nil ? "" : "Search: \(searchText!)" }
 
+    var tweets = [[Tweet]]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        searchText = Constants.DefaultTwitterSearch
+        if searchText == nil {
+            searchText = Constants.DefaultTwitterSearch
+        }
         searchField.delegate = self
         tableView.estimatedRowHeight = tableView.rowHeight  // magic
         tableView.rowHeight = UITableViewAutomaticDimension
-        searchField.text = Constants.DefaultTwitterSearch
         refresh()
     }
     

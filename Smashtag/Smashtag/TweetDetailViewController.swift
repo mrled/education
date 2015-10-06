@@ -167,12 +167,15 @@ class TweetDetailViewController: UITableViewController {
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         guard let identifier = segue.identifier else { return }
+ 
         switch identifier {
+
         case IBConstants.DetailImageSegueId:
             print(IBConstants.DetailImageSegueId)
             guard let tweetImage = self.tweetImage else { return }
             let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetDetailImageViewController())
             destination?.image = tweetImage
+
         case IBConstants.SearchFromDetailSegueId:
             let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetTableViewController())
             if let selectedIndexPath = tableView.indexPathForSelectedRow {
@@ -180,9 +183,11 @@ class TweetDetailViewController: UITableViewController {
                     destination?.searchText = cell.cellText
                 }
             }
+
         default:
             return
         }
+
     }
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
