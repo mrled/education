@@ -253,8 +253,8 @@
                                     </constraints>
                                     <variation key="default">
                                         <mask key="constraints">
-                                            <exclude reference="bZ3-JU-1tm"/>
                                             <exclude reference="9vt-yL-20E"/>
+                                            <exclude reference="bZ3-JU-1tm"/>
                                         </mask>
                                     </variation>
                                 </tableViewCellContentView>
@@ -326,8 +326,8 @@
                                     </constraints>
                                     <variation key="default">
                                         <mask key="constraints">
-                                            <exclude reference="aka-Dv-nwn"/>
                                             <exclude reference="acI-2x-Mcz"/>
+                                            <exclude reference="aka-Dv-nwn"/>
                                         </mask>
                                     </variation>
                                 </tableViewCellContentView>

@@ -40,29 +40,22 @@ class TweetDetailViewController: UITableViewController {
     var tweetDetails: [[TweetDetailItem]] {
         var td = [[TweetDetailItem]]()
         if let tweet = self.tweet {
-            
-            td.append([TweetDetailItem(type: .TweetText, textData: tweet.text)])
-            if tweet.media.count > 0 {
-                td.append(tweet.media.map { TweetDetailItem(type: .Media, textData: "\($0.url)", mediaData: $0) })
-            }
-            if tweet.hashtags.count > 0 {
-                td.append(tweet.hashtags.map { TweetDetailItem(type: .Hashtag, textData: $0.keyword) })
-            }
-            if tweet.expanded_urls.count > 0 {
-                td.append(tweet.expanded_urls.map { TweetDetailItem(type: .Url, textData: $0) })
-            }
-            if tweet.userMentions.count > 0 {
-                td.append(tweet.userMentions.map { TweetDetailItem(type: .Mention, textData: $0.keyword) })
+            let potentialNewSections =  [
+                [TweetDetailItem(type: .TweetText, textData: tweet.text)],
+                tweet.media.map         { TweetDetailItem(type: .Media,   textData: "\($0.url)", mediaData: $0) },
+                tweet.hashtags.map      { TweetDetailItem(type: .Hashtag, textData: $0.keyword) },
+                tweet.expanded_urls.map { TweetDetailItem(type: .Url,     textData: $0) },
+                tweet.userMentions.map  { TweetDetailItem(type: .Mention, textData: $0.keyword) }]
+            for potential in potentialNewSections {
+                if potential.count > 0 { td.append(potential) }
             }
         }
         return td
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        tableView.estimatedRowHeight = tableView.rowHeight  // magic
-        //tableView.rowHeight = UITableViewAutomaticDimension
-    }
+//    override func viewDidLoad() {
+//        super.viewDidLoad()
+//    }
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         let rowData = tweetDetails[indexPath.section][indexPath.row]
