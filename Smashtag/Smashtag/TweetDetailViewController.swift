@@ -51,6 +51,12 @@ class TweetDetailViewController: UITableViewController {
         return td
     }
     
+    @IBAction func refresh() {
+        refreshControl?.beginRefreshing()
+        tableView.reloadData()
+        refreshControl?.endRefreshing()
+    }
+    
 //    override func viewDidLoad() {
 //        super.viewDidLoad()
 //    }
@@ -116,12 +122,15 @@ class TweetDetailViewController: UITableViewController {
         case .Media:
             let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailMediaItemCell, forIndexPath: indexPath) as! TweetDetailMediaCell
             cell.cellText = row.textData
+            let indexSet = NSIndexSet.init(index: indexPath.section)
             if let url = NSURL(string: row.textData) {
                 ImageCache.fetchImageWithURL(url, debugging: true) {
                     image in
+                    // Only do reloadSections() if the image isn't already set, to prevent an endless loop
                     if cell.cellImage != image {
                         cell.cellImage = image
-                        self.tableView.reloadData()
+                        // For some reason, tableView.reloadData() does NOT get the desired effect but reloadSections() does??
+                        self.tableView.reloadSections(indexSet, withRowAnimation: .None)
                     }
                 }
             }

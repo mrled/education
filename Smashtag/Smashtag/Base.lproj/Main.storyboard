@@ -345,6 +345,13 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" id="JKa-HR-XAN"/>
+                    <refreshControl key="refreshControl" opaque="NO" multipleTouchEnabled="YES" contentMode="center" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" id="YlP-cQ-sTc">
+                        <autoresizingMask key="autoresizingMask"/>
+                        <animations/>
+                        <connections>
+                            <action selector="refresh" destination="v64-cf-5oh" eventType="valueChanged" id="c0P-we-l7Q"/>
+                        </connections>
+                    </refreshControl>
                     <connections>
                         <outlet property="navItem" destination="JKa-HR-XAN" id="GhP-ll-nvK"/>
                     </connections>
