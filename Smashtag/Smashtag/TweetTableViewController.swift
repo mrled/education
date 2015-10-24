@@ -11,7 +11,8 @@ import UIKit
 class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     
     struct Constants {
-        static let DefaultTwitterSearch: String = "MicahXcodeTest"
+        //static let DefaultTwitterSearch: String = "MicahXcodeTest"
+        static let DefaultTwitterSearch: String = "xcode"
     }
     
     @IBOutlet weak var navItem: UINavigationItem! { didSet { navItem.title    = navItemTitle }}
@@ -60,23 +61,22 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     
     @IBAction func refresh() {
         refreshControl?.beginRefreshing()
-        if let request = nextRequest {
-            request.fetchTweets {
-                (newTweets) -> Void in
-                dispatch_async(dispatch_get_main_queue()) {
-                    () -> Void in
-                    print("Found \(newTweets.count) new tweets")
-                    if newTweets.count > 0 {
-                        self.lastSuccessfulRequest = request
-                        self.tweets.insert(newTweets, atIndex: 0)
-                        self.tableView.reloadData()
-                    }
-                    self.refreshControl?.endRefreshing()
-                }
-            }
-        }
-        else {
+        guard let request = nextRequest else {
             refreshControl?.endRefreshing()
+            return
+        }
+        
+        request.fetchTweets {
+            newTweets in
+            dispatch_async(dispatch_get_main_queue()) {
+                print("Found \(newTweets.count) new tweets")
+                if newTweets.count > 0 {
+                    self.lastSuccessfulRequest = request
+                    self.tweets.insert(newTweets, atIndex: 0)
+                    self.tableView.reloadData()
+                }
+                self.refreshControl?.endRefreshing()
+            }
         }
     }
     

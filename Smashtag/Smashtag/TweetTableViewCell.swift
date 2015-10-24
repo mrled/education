@@ -56,7 +56,6 @@ class TweetTableViewCell: UITableViewCell {
             ImageCache.fetchImageWithURL(userImageUrl) {
                 (image: UIImage) -> () in
                 self.userImageView.image = image
-                self.userImageView.setNeedsDisplay()
             }
         }
     }

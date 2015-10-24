@@ -30,8 +30,6 @@ class TweetDetailItem {
 class TweetDetailViewController: UITableViewController {
 
     @IBOutlet weak var navItem: UINavigationItem!
-    
-    var tweetImage: UIImage?
 
     var tweet: Tweet? {
         didSet { navItem.title = "Tweet Detail" }
@@ -120,14 +118,11 @@ class TweetDetailViewController: UITableViewController {
             cell.cellText = row.textData
             if let url = NSURL(string: row.textData) {
                 ImageCache.fetchImageWithURL(url, debugging: true) {
-                    (image: UIImage) -> () in
-                    // TODO: can I do this without having to save the image in 2 places?
-                    cell.cellImage = image
-                    self.tweetImage = image
-                    self.view.setNeedsDisplay()
-                    self.tableView.setNeedsDisplay()
-                    cell.setNeedsDisplay()
-                    cell.imageView?.setNeedsDisplay()
+                    image in
+                    if cell.cellImage != image {
+                        cell.cellImage = image
+                        self.tableView.reloadData()
+                    }
                 }
             }
             return cell
@@ -154,22 +149,21 @@ class TweetDetailViewController: UITableViewController {
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         guard let identifier = segue.identifier else { return }
+        guard let selectedIndexPath = tableView.indexPathForSelectedRow else { return }
  
         switch identifier {
 
         case IBConstants.DetailImageSegueId:
             print(IBConstants.DetailImageSegueId)
-            guard let tweetImage = self.tweetImage else { return }
+            guard let cell = tableView.cellForRowAtIndexPath(selectedIndexPath) as? TweetDetailMediaCell else { return }
+            guard let img = cell.cellImage else { return }
             let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetDetailImageViewController())
-            destination?.image = tweetImage
+            destination?.image = img
 
         case IBConstants.SearchFromDetailSegueId:
+            guard let cell = tableView.cellForRowAtIndexPath(selectedIndexPath) as? TweetDetailTextCell else { return }
             let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetTableViewController())
-            if let selectedIndexPath = tableView.indexPathForSelectedRow {
-                if let cell = tableView.cellForRowAtIndexPath(selectedIndexPath) as? TweetDetailTextCell {
-                    destination?.searchText = cell.cellText
-                }
-            }
+            destination?.searchText = cell.cellText
 
         default:
             return
