@@ -90,6 +90,17 @@ class TweetDetailViewController: UITableViewController {
         return tweetDetails[section].count
     }
     
+    override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String {
+        //TODO: Seems like it would be better to refactor the TweetDetailItemType enum to hold on to these labels itself
+        switch tweetDetails[section][0].type {
+        case .Hashtag:   return "Hashtags"
+        case .Media:     return "Media"
+        case .Mention:   return "Mentions"
+        case .Url:       return "URLs"
+        case .TweetText: return "Tweet"
+        }
+    }
+    
     override func tableView(
         tableView: UITableView,
         cellForRowAtIndexPath indexPath: NSIndexPath)
