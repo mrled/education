@@ -8,40 +8,33 @@
 
 import UIKit
 
-class TweetDetailImageViewController: UIViewController {
+class TweetDetailImageViewController: UIViewController, UIScrollViewDelegate {
     
-    @IBOutlet weak var imageView: TweetDetailImageView! {
+    @IBOutlet weak var scrollView: UIScrollView! {
         didSet {
-            imageView.image = self.image
+            self.setupScrollingImage()
+            scrollView.delegate = self
         }
     }
-    var image: UIImage? {
-        didSet {
-            print ("IMAGE DONE SET BEEN YA \(self.image)")
-            imageView?.image = image
+    
+    var imageView: UIImageView?
+    var image: UIImage? { didSet { self.setupScrollingImage() }}
+    
+    func setupScrollingImage() {
+        self.imageView = nil
+        guard let scrollView = self.scrollView else { return }
+        for view in scrollView.subviews {
+            view.removeFromSuperview()
         }
-    }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        guard let image = self.image else { return }
+        self.imageView = UIImageView(image: image)
+        scrollView.addSubview(self.imageView!)
+        scrollView.contentSize = self.imageView!.bounds.size
+        scrollView.minimumZoomScale = 0.5
+        scrollView.maximumZoomScale = 2.0
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    func viewForZoomingInScrollView(scrollView: UIScrollView) -> UIView? {
+        return self.imageView
     }
-    */
-
 }
