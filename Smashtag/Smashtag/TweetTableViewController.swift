@@ -26,7 +26,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
                 if let idx = searchTextHistory.indexOf(searchText) {
                     searchTextHistory.removeAtIndex(idx)
                 }
-                searchTextHistory += [searchText]
+                searchTextHistory.insert(searchText, atIndex: 0)
             }
             navItem?.title = navItemTitle
             searchField?.text = searchFieldText

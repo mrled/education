@@ -19,12 +19,10 @@ class HistoryTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+        self.navigationItem.rightBarButtonItem = self.editButtonItem()
+    }
+    override func viewWillAppear(animated: Bool) {
+        tableView.reloadData()
     }
 
     // MARK: - Table view data source
@@ -49,15 +47,40 @@ class HistoryTableViewController: UITableViewController {
             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
         }
     }
-
-    /*
+    
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        guard let selectedCell = tableView.cellForRowAtIndexPath(indexPath) else { logFailedGuard(); return }
+        guard let cellText = selectedCell.textLabel?.text else { logFailedGuard(); return }
+        guard let tabBC = self.tabBarController else { logFailedGuard(); return }
+        guard let navVC = tabBC.viewControllers?[0] as? UINavigationController else { logFailedGuard(); return }
+        guard let searchVC = navVC.visibleViewController as? TweetTableViewController else { logFailedGuard(); return }
+        searchVC.searchText = cellText
+        tabBC.selectedIndex = 0
+    }
+    
     // MARK: - Navigation
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
+//    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+//        guard let identifier = segue.identifier else { return }
+//        switch identifier {
+//        case GlobalConstants.SearchFromHistoryTabSegueId:
+//            
+//            guard let tabBC = segue.destinationViewController as? SmashtagTabBarController else { logFailedGuard(); return }
+//            guard let navVC = tabBC.viewControllers?[0] as? UINavigationController else { logFailedGuard(); return }
+//            guard let searchVC = navVC.visibleViewController as? TweetTableViewController else { logFailedGuard(); return }
+//            
+//            guard let selectedIndexPath = tableView.indexPathForSelectedRow else { logFailedGuard(); return }
+//            guard let selectedCell = tableView.cellForRowAtIndexPath(selectedIndexPath) else { logFailedGuard(); return }
+//            guard let cellText = selectedCell.textLabel?.text else { logFailedGuard(); return }
+//            
+//            searchVC.searchText = cellText
+//            //tabBC.selectedViewController = navVC
+//            tabBC.selectedIndex = 0
+//            
+//        default:
+//            return
+//        }
+//
+//    }
 
 }

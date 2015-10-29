@@ -24,6 +24,27 @@ func macrolog(
     print("\(message) - in \(function) @ \(uFile.lastPathComponent):\(line)")
 }
 
+func logFailedGuard(
+    function: String = __FUNCTION__,
+    file: String = __FILE__,
+    line: Int = __LINE__)
+{
+    macrolog("Guard failure", function: function, file: file, line: line)
+}
+
+func unwrapNavigationController<ControllerType>(
+    navigationController: UINavigationController,
+    ofType: ControllerType)
+    -> ControllerType?
+{
+    if let destination = navigationController.visibleViewController as? ControllerType {
+        return destination
+    }
+    else {
+        return nil
+    }
+}
+
 func unwrapNavigationControllerForSegue<ControllerType>(
     segue: UIStoryboardSegue,
     ofType: ControllerType)

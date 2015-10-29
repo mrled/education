@@ -21,4 +21,5 @@ struct GlobalConstants {
     static let TweetDetailMediaTextItemCell: String = "TweetDetailMediaTextItemCell"
     static let SearchHistoryItemCellId: String = "TweetSearchHistoryCell"
     static let HistoryDefaultsKey: String = "TweetSearchHistory"
+    static let SearchFromHistoryTabSegueId = "ShowSearchFromHistoryTab"
 }
