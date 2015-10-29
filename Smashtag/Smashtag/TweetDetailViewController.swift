@@ -115,12 +115,12 @@ class TweetDetailViewController: UITableViewController {
         switch row.type {
 
         case .TweetText:
-            let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetCellReuseId, forIndexPath: indexPath) as! TweetTableViewCell
+            let cell = tableView.dequeueReusableCellWithIdentifier(GlobalConstants.TweetCellReuseId, forIndexPath: indexPath) as! TweetTableViewCell
             cell.tweet = tweet
             return cell
 
         case .Media:
-            let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailMediaItemCell, forIndexPath: indexPath) as! TweetDetailMediaCell
+            let cell = tableView.dequeueReusableCellWithIdentifier(GlobalConstants.TweetDetailMediaItemCell, forIndexPath: indexPath) as! TweetDetailMediaCell
             cell.cellText = row.textData
             let indexSet = NSIndexSet.init(index: indexPath.section)
             if let url = NSURL(string: row.textData) {
@@ -137,17 +137,17 @@ class TweetDetailViewController: UITableViewController {
             return cell
 
         case .Hashtag:
-            let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailHashtagCell, forIndexPath: indexPath) as! TweetDetailTextCell
+            let cell = tableView.dequeueReusableCellWithIdentifier(GlobalConstants.TweetDetailHashtagCell, forIndexPath: indexPath) as! TweetDetailTextCell
             cell.cellText = row.textData
             return cell
             
         case .Url:
-            let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailUrlCell, forIndexPath: indexPath) as! TweetDetailTextCell
+            let cell = tableView.dequeueReusableCellWithIdentifier(GlobalConstants.TweetDetailUrlCell, forIndexPath: indexPath) as! TweetDetailTextCell
             cell.cellText = row.textData
             return cell
             
         case .Mention:
-            let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetDetailMentionCell, forIndexPath: indexPath) as! TweetDetailTextCell
+            let cell = tableView.dequeueReusableCellWithIdentifier(GlobalConstants.TweetDetailMentionCell, forIndexPath: indexPath) as! TweetDetailTextCell
             cell.cellText = row.textData
             return cell
 
@@ -162,14 +162,14 @@ class TweetDetailViewController: UITableViewController {
  
         switch identifier {
 
-        case IBConstants.DetailImageSegueId:
-            print(IBConstants.DetailImageSegueId)
+        case GlobalConstants.DetailImageSegueId:
+            print(GlobalConstants.DetailImageSegueId)
             guard let cell = tableView.cellForRowAtIndexPath(selectedIndexPath) as? TweetDetailMediaCell else { return }
             guard let img = cell.cellImage else { return }
             let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetDetailImageViewController())
             destination?.image = img
 
-        case IBConstants.SearchFromDetailSegueId:
+        case GlobalConstants.SearchFromDetailSegueId:
             guard let cell = tableView.cellForRowAtIndexPath(selectedIndexPath) as? TweetDetailTextCell else { return }
             let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetTableViewController())
             destination?.searchText = cell.cellText

@@ -1,5 +1,5 @@
 //
-//  IBConstants.swift
+//  GlobalConstants.swift
 //  Smashtag
 //
 //  Created by Micah R Ledbetter on 2015-09-28.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct IBConstants {
+struct GlobalConstants {
     static let TweetCellReuseId: String = "TweetCell"
     static let DetailSegueId = "ShowTweetDetail"
     static let DetailImageSegueId = "ShowDetailImage"
@@ -19,4 +19,6 @@ struct IBConstants {
     static let TweetDetailMentionCell: String = "TweetDetailMentionCell"
     static let TweetDetailTweetTextItemCell: String = "TweetDetailTweetTextItemCell"
     static let TweetDetailMediaTextItemCell: String = "TweetDetailMediaTextItemCell"
+    static let SearchHistoryItemCellId: String = "TweetSearchHistoryCell"
+    static let HistoryDefaultsKey: String = "TweetSearchHistory"
 }

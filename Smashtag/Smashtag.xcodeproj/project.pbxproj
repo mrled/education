@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		301E0B111BC1C47A00B24734 /* TweetDetailImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 301E0B101BC1C47A00B24734 /* TweetDetailImageViewController.swift */; settings = {ASSET_TAGS = (); }; };
+		3038D1391BE0A29800FF9C98 /* HistoryTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3038D1381BE0A29800FF9C98 /* HistoryTableViewController.swift */; settings = {ASSET_TAGS = (); }; };
+		303A08671BDDE5260067B4F5 /* SmashtagTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 303A08661BDDE5260067B4F5 /* SmashtagTabBarController.swift */; settings = {ASSET_TAGS = (); }; };
 		3063F59A1B994A03001DDDCB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F5991B994A03001DDDCB /* AppDelegate.swift */; };
 		3063F59C1B994A03001DDDCB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F59B1B994A03001DDDCB /* ViewController.swift */; };
 		3063F59F1B994A03001DDDCB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3063F59D1B994A03001DDDCB /* Main.storyboard */; };
@@ -24,7 +26,7 @@
 		3063F5CD1BA674F4001DDDCB /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F5CC1BA674F4001DDDCB /* ImageCache.swift */; };
 		3063F5D11BA7CF58001DDDCB /* TweetDetailViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F5D01BA7CF58001DDDCB /* TweetDetailViewCell.swift */; };
 		3063F5D31BA7D8D8001DDDCB /* TweetDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3063F5D21BA7D8D8001DDDCB /* TweetDetailViewController.swift */; };
-		309333CF1BB9110C003C49EC /* IBConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309333CE1BB9110C003C49EC /* IBConstants.swift */; };
+		309333CF1BB9110C003C49EC /* GlobalConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 309333CE1BB9110C003C49EC /* GlobalConstants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +41,8 @@
 
 /* Begin PBXFileReference section */
 		301E0B101BC1C47A00B24734 /* TweetDetailImageViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TweetDetailImageViewController.swift; sourceTree = "<group>"; };
+		3038D1381BE0A29800FF9C98 /* HistoryTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryTableViewController.swift; sourceTree = "<group>"; };
+		303A08661BDDE5260067B4F5 /* SmashtagTabBarController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmashtagTabBarController.swift; sourceTree = "<group>"; };
 		3063F5941B994A03001DDDCB /* Smashtag.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Smashtag.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3063F5981B994A03001DDDCB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3063F5991B994A03001DDDCB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -59,7 +63,7 @@
 		3063F5CC1BA674F4001DDDCB /* ImageCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		3063F5D01BA7CF58001DDDCB /* TweetDetailViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TweetDetailViewCell.swift; sourceTree = "<group>"; };
 		3063F5D21BA7D8D8001DDDCB /* TweetDetailViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TweetDetailViewController.swift; sourceTree = "<group>"; };
-		309333CE1BB9110C003C49EC /* IBConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IBConstants.swift; sourceTree = "<group>"; };
+		309333CE1BB9110C003C49EC /* GlobalConstants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GlobalConstants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,13 +108,15 @@
 				3063F59D1B994A03001DDDCB /* Main.storyboard */,
 				3063F59B1B994A03001DDDCB /* ViewController.swift */,
 				3063F5CC1BA674F4001DDDCB /* ImageCache.swift */,
-				309333CE1BB9110C003C49EC /* IBConstants.swift */,
+				309333CE1BB9110C003C49EC /* GlobalConstants.swift */,
 				3063F5C81BA662BD001DDDCB /* ququtility.swift */,
+				303A08661BDDE5260067B4F5 /* SmashtagTabBarController.swift */,
 				3063F5C41B99526C001DDDCB /* TweetTableViewController.swift */,
 				3063F5C61B9E4427001DDDCB /* TweetTableViewCell.swift */,
 				3063F5D21BA7D8D8001DDDCB /* TweetDetailViewController.swift */,
 				3063F5D01BA7CF58001DDDCB /* TweetDetailViewCell.swift */,
 				301E0B101BC1C47A00B24734 /* TweetDetailImageViewController.swift */,
+				3038D1381BE0A29800FF9C98 /* HistoryTableViewController.swift */,
 				3063F5BB1B994B37001DDDCB /* Twitter Swift 1.2 */,
 				3063F5971B994A03001DDDCB /* Supporting Files */,
 			);
@@ -264,10 +270,12 @@
 				301E0B111BC1C47A00B24734 /* TweetDetailImageViewController.swift in Sources */,
 				3063F59C1B994A03001DDDCB /* ViewController.swift in Sources */,
 				3063F5C21B994B37001DDDCB /* TwitterRequest.swift in Sources */,
+				303A08671BDDE5260067B4F5 /* SmashtagTabBarController.swift in Sources */,
 				3063F5D31BA7D8D8001DDDCB /* TweetDetailViewController.swift in Sources */,
+				3038D1391BE0A29800FF9C98 /* HistoryTableViewController.swift in Sources */,
 				3063F5C31B994B37001DDDCB /* User.swift in Sources */,
 				3063F5C91BA662BD001DDDCB /* ququtility.swift in Sources */,
-				309333CF1BB9110C003C49EC /* IBConstants.swift in Sources */,
+				309333CF1BB9110C003C49EC /* GlobalConstants.swift in Sources */,
 				3063F59A1B994A03001DDDCB /* AppDelegate.swift in Sources */,
 				3063F5C01B994B37001DDDCB /* MediaItem.swift in Sources */,
 				3063F5C11B994B37001DDDCB /* Tweet.swift in Sources */,

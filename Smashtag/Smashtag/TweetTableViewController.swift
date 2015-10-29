@@ -10,6 +10,8 @@ import UIKit
 
 class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     
+    private let defaults = NSUserDefaults.standardUserDefaults()
+    
     struct Constants {
         //static let DefaultTwitterSearch: String = "MicahXcodeTest"
         static let DefaultTwitterSearch: String = "xcode"
@@ -20,6 +22,12 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
 
     var searchText: String? {
         didSet {
+            if let searchText = searchText {
+                if let idx = searchTextHistory.indexOf(searchText) {
+                    searchTextHistory.removeAtIndex(idx)
+                }
+                searchTextHistory += [searchText]
+            }
             navItem?.title = navItemTitle
             searchField?.text = searchFieldText
             tweets.removeAll()
@@ -27,6 +35,10 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
             lastSuccessfulRequest = nil
             refresh()
         }
+    }
+    var searchTextHistory: [String] {
+        get { return defaults.objectForKey(GlobalConstants.HistoryDefaultsKey) as? [String] ?? [] }
+        set { defaults.setObject(newValue, forKey: GlobalConstants.HistoryDefaultsKey) }
     }
     var searchFieldText: String { return searchText == nil ? "" : searchText! }
     var navItemTitle:    String { return searchText == nil ? "" : "Search: \(searchText!)" }
@@ -97,7 +109,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier(IBConstants.TweetCellReuseId, forIndexPath: indexPath) as! TweetTableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier(GlobalConstants.TweetCellReuseId, forIndexPath: indexPath) as! TweetTableViewCell
         cell.tweet = tweets[indexPath.section][indexPath.row]
         return cell
     }
@@ -109,7 +121,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
 
             switch identifier {
 
-            case IBConstants.DetailSegueId:
+            case GlobalConstants.DetailSegueId:
                 let destination = unwrapNavigationControllerForSegue(segue, ofType: TweetDetailViewController())
                 if let selectedIndexPath = tableView.indexPathForSelectedRow {
                     if let cell = tableView.cellForRowAtIndexPath(selectedIndexPath) as? TweetTableViewCell {
