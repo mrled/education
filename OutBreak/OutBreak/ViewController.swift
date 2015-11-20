@@ -12,14 +12,13 @@ class ViewController: UIViewController {
     
     // - MARK: Outlets
     
-    @IBOutlet weak var gameView: GameView!
+    @IBOutlet weak var gameView: UIView!
     
     // - MARK: View Controller Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        animator.addBehavior(gravity)
-        animator.addBehavior(collider)
+        animator.addBehavior(outBreakBehavior)
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -40,15 +39,13 @@ class ViewController: UIViewController {
     
     // - MARK: Animation
     
-    lazy var animator: UIDynamicAnimator = { return UIDynamicAnimator(referenceView: self.gameView) }()
     
-    lazy var collider: UICollisionBehavior = {
-        let lazyColi = UICollisionBehavior()
-        lazyColi.translatesReferenceBoundsIntoBoundary = true
-        return lazyColi
+    lazy var animator: UIDynamicAnimator = {
+        [unowned self] in
+        return UIDynamicAnimator(referenceView: self.gameView)
     }()
     
-    let gravity = UIGravityBehavior()
+    let outBreakBehavior = OutBreakBehavior()
     
     // - MARK: Constants
     
@@ -75,7 +72,7 @@ class ViewController: UIViewController {
             y: gameView.bounds.height - (Constants.BrickSize.height * CGFloat(0.5) ))
         newPaddle.backgroundColor = Constants.PaddleColor
         gameView.addSubview(newPaddle)
-        collider.addItem(newPaddle)
+        outBreakBehavior.addPaddle(newPaddle)
         paddle = newPaddle
     }
     
@@ -85,7 +82,7 @@ class ViewController: UIViewController {
             // gameView.center = ???
             brick.backgroundColor = Constants.BrickColor
             brick.layer.borderColor = Constants.BrickBorderColor
-            collider.addItem(brick)
+            outBreakBehavior.addBrick(brick)
             gameView.addSubview(brick)
         }
         bricks = newBricks
@@ -98,8 +95,7 @@ class ViewController: UIViewController {
             y: gameView.center.y + (Constants.BallSize.height * 5))
         newBall.backgroundColor = Constants.BallColor
         gameView.addSubview(newBall)
-        gravity.addItem(newBall)
-        collider.addItem(newBall)
+        outBreakBehavior.addBall(newBall)
         ball = newBall
     }
 

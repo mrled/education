@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		300F77E11BFECD5000098E84 /* OutBreakBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */; };
 		30F5BD861BFD654F00A4308E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BD851BFD654F00A4308E /* AppDelegate.swift */; };
 		30F5BD881BFD654F00A4308E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BD871BFD654F00A4308E /* ViewController.swift */; };
 		30F5BD8B1BFD654F00A4308E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 30F5BD891BFD654F00A4308E /* Main.storyboard */; };
@@ -14,7 +15,6 @@
 		30F5BD901BFD654F00A4308E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 30F5BD8E1BFD654F00A4308E /* LaunchScreen.storyboard */; };
 		30F5BD9B1BFD655000A4308E /* OutBreakTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BD9A1BFD655000A4308E /* OutBreakTests.swift */; };
 		30F5BDA61BFD655000A4308E /* OutBreakUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BDA51BFD655000A4308E /* OutBreakUITests.swift */; };
-		30F5BDB41BFD67CA00A4308E /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BDB31BFD67CA00A4308E /* GameView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +35,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutBreakBehavior.swift; sourceTree = "<group>"; };
 		30F5BD821BFD654F00A4308E /* OutBreak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OutBreak.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		30F5BD851BFD654F00A4308E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		30F5BD871BFD654F00A4308E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -48,7 +49,6 @@
 		30F5BDA11BFD655000A4308E /* OutBreakUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OutBreakUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		30F5BDA51BFD655000A4308E /* OutBreakUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutBreakUITests.swift; sourceTree = "<group>"; };
 		30F5BDA71BFD655000A4308E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		30F5BDB31BFD67CA00A4308E /* GameView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,7 +101,7 @@
 			children = (
 				30F5BD851BFD654F00A4308E /* AppDelegate.swift */,
 				30F5BD871BFD654F00A4308E /* ViewController.swift */,
-				30F5BDB31BFD67CA00A4308E /* GameView.swift */,
+				300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */,
 				30F5BD891BFD654F00A4308E /* Main.storyboard */,
 				30F5BD8C1BFD654F00A4308E /* Assets.xcassets */,
 				30F5BD8E1BFD654F00A4308E /* LaunchScreen.storyboard */,
@@ -260,7 +260,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				30F5BD881BFD654F00A4308E /* ViewController.swift in Sources */,
-				30F5BDB41BFD67CA00A4308E /* GameView.swift in Sources */,
+				300F77E11BFECD5000098E84 /* OutBreakBehavior.swift in Sources */,
 				30F5BD861BFD654F00A4308E /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -488,6 +488,7 @@
 				30F5BDAC1BFD655000A4308E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		30F5BDAD1BFD655000A4308E /* Build configuration list for PBXNativeTarget "OutBreakTests" */ = {
 			isa = XCConfigurationList;
@@ -496,6 +497,7 @@
 				30F5BDAF1BFD655000A4308E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		30F5BDB01BFD655000A4308E /* Build configuration list for PBXNativeTarget "OutBreakUITests" */ = {
 			isa = XCConfigurationList;
@@ -504,6 +506,7 @@
 				30F5BDB21BFD655000A4308E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -17,7 +17,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="gHF-pO-FSf" customClass="GameView" customModule="OutBreak" customModuleProvider="target">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="gHF-pO-FSf">
                                 <rect key="frame" x="0.0" y="0.0" width="600" height="551"/>
                                 <animations/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -32,7 +32,7 @@
                             <constraint firstItem="gHF-pO-FSf" firstAttribute="bottom" secondItem="wfy-db-euE" secondAttribute="top" id="bF6-OY-D5N"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="OutBreak!" id="SYu-2H-aFB"/>
+                    <tabBarItem key="tabBarItem" title="OutBreak!" image="OutBreakSquareIcon" id="SYu-2H-aFB"/>
                     <connections>
                         <outlet property="gameView" destination="gHF-pO-FSf" id="76y-UV-5Ej"/>
                     </connections>
@@ -55,7 +55,7 @@
                         <animations/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Settings" id="I1w-la-43G"/>
+                    <tabBarItem key="tabBarItem" title="Settings" image="SettingsCogIcon" id="I1w-la-43G"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="xLm-mH-D5B" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -81,4 +81,8 @@
             <point key="canvasLocation" x="305" y="387"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="OutBreakSquareIcon" width="30" height="30"/>
+        <image name="SettingsCogIcon" width="30" height="30"/>
+    </resources>
 </document>
