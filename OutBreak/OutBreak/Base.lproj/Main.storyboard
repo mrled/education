@@ -34,7 +34,7 @@
                     </view>
                     <tabBarItem key="tabBarItem" title="OutBreak!" image="OutBreakSquareIcon" id="SYu-2H-aFB"/>
                     <connections>
-                        <outlet property="gameView" destination="gHF-pO-FSf" id="76y-UV-5Ej"/>
+                        <outlet property="gameView" destination="gHF-pO-FSf" id="6uG-dC-WSF"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
