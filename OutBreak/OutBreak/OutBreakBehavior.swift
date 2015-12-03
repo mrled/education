@@ -14,7 +14,7 @@ class OutBreakBehavior: UIDynamicBehavior {
         super.init()
         addChildBehavior(collider)
         addChildBehavior(ballBehavior)
-        addChildBehavior(gravity)
+        //addChildBehavior(gravity)
     }
     
     // MARK: - Behaviors
@@ -27,7 +27,7 @@ class OutBreakBehavior: UIDynamicBehavior {
     
     lazy var ballBehavior: UIDynamicItemBehavior = {
         let behave = UIDynamicItemBehavior()
-        //behave.allowsRotation = true //? nah
+        behave.allowsRotation = false
         behave.elasticity = 1
         behave.friction = 0
         behave.resistance = 0
@@ -52,5 +52,26 @@ class OutBreakBehavior: UIDynamicBehavior {
         dynamicAnimator?.referenceView?.addSubview(brick)
         collider.addItem(brick)
     }
+    func pushRandomly(object: UIView) {
+        let randomPush = UIPushBehavior(items: [], mode: .Instantaneous)
 
+        randomPush.magnitude = CGFloat.random(min: 0.1, max: 0.4)
+        randomPush.angle = CGFloat.random(min: 0, max: 360)
+        randomPush.active = true
+        randomPush.action = {
+            [unowned self] in
+            self.removeChildBehavior(randomPush)
+        }
+        randomPush.addItem(object)
+        addChildBehavior(randomPush)
+    }
+}
+
+private extension CGFloat {
+    private static func random() -> CGFloat {
+        return CGFloat(Float(arc4random()) / 0xFFFFFFFF)
+    }
+    private static func random(min min: CGFloat, max: CGFloat) -> CGFloat {
+        return CGFloat.random() * (max - min) + min
+    }
 }

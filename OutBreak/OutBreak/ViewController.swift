@@ -18,11 +18,12 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        animator.addBehavior(outBreakBehavior)
     }
     
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
+        animator.addBehavior(outBreakBehavior)
+
         if paddle == nil { addPaddle() }
         if bricks == nil { addBricks() }
         if ball == nil { addBall() }
@@ -30,11 +31,19 @@ class ViewController: UIViewController {
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
+        animator.removeBehavior(outBreakBehavior)
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    // - MARK: Gestures
+    
+    @IBAction func pushBall(sender: UITapGestureRecognizer) {
+        guard let ball = ball else { return } 
+        outBreakBehavior.pushRandomly(ball)
     }
     
     // - MARK: Animation
@@ -64,7 +73,12 @@ class ViewController: UIViewController {
     var ball: UIView?
     var paddle: UIView?
     var bricks: [UIView]?
-
+    
+    var brickColumns: Int {
+        return Int(gameView.bounds.width / Constants.BrickSize.width)
+    }
+    var brickRows = 4
+    
     func addPaddle() {
         let newPaddle = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.PaddleSize))
         newPaddle.center = CGPoint(
@@ -77,14 +91,31 @@ class ViewController: UIViewController {
     }
     
     func addBricks() {
-        let newBricks = [UIView]()
-        for brick in newBricks {
-            // gameView.center = ???
-            brick.backgroundColor = Constants.BrickColor
-            brick.layer.borderColor = Constants.BrickBorderColor
-            outBreakBehavior.addBrick(brick)
-            gameView.addSubview(brick)
+        var newBricks = [UIView]()
+        
+        let initialBrickOriginX = ((gameView.bounds.width - (CGFloat(brickColumns) * Constants.BrickSize.width)) / 2)
+        let initialBrickOriginY = Constants.BrickSize.height * 2
+        var nextBrickOrigin = CGPoint(x: initialBrickOriginX, y: initialBrickOriginY)
+        
+        for _ in 0..<brickRows {
+            for _ in 0..<brickColumns {
+                print("nextBrickOrigin = \(nextBrickOrigin)")
+                
+                let newBrick = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.BrickSize))
+                newBrick.center = CGPoint(
+                    x: nextBrickOrigin.x + (Constants.BrickSize.width / 2),
+                    y: nextBrickOrigin.y + (Constants.BrickSize.height / 2))
+                newBrick.backgroundColor = Constants.BrickColor
+                newBrick.layer.borderColor = Constants.BrickBorderColor
+                gameView.addSubview(newBrick)
+                outBreakBehavior.addBrick(newBrick)
+                newBricks.append(newBrick)
+                nextBrickOrigin.x += Constants.BrickSize.width
+            }
+            nextBrickOrigin.x  = initialBrickOriginX
+            nextBrickOrigin.y += Constants.BrickSize.height
         }
+
         bricks = newBricks
     }
     
