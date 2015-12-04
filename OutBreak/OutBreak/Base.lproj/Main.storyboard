@@ -24,6 +24,7 @@
                                 <gestureRecognizers/>
                                 <connections>
                                     <outletCollection property="gestureRecognizers" destination="gcg-6I-1Cv" appends="YES" id="7GA-bb-AXW"/>
+                                    <outletCollection property="gestureRecognizers" destination="YbT-VA-IWk" appends="YES" id="KQI-4w-C5L"/>
                                 </connections>
                             </view>
                         </subviews>
@@ -47,6 +48,11 @@
                         <action selector="pushBall:" destination="BYZ-38-t0r" id="3NA-0A-opK"/>
                     </connections>
                 </tapGestureRecognizer>
+                <panGestureRecognizer minimumNumberOfTouches="1" id="YbT-VA-IWk">
+                    <connections>
+                        <action selector="movePaddle:" destination="BYZ-38-t0r" id="uyV-Mj-Ysg"/>
+                    </connections>
+                </panGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="1107" y="116"/>
         </scene>

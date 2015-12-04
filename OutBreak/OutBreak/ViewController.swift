@@ -41,6 +41,21 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         guard let ball = ball else { return } 
         outBreakBehavior.pushRandomly(ball)
     }
+    @IBAction func movePaddle(gesture: UIPanGestureRecognizer) {
+        guard let paddle = paddle else { return }
+        
+        switch gesture.state {
+        case .Ended: fallthrough
+        case.Changed:
+            let xChange = gesture.translationInView(gameView).x
+            if xChange != 0 {
+                paddle.center.x += xChange
+                outBreakBehavior.addOrMovePaddle(paddle)
+                gesture.setTranslation(CGPointZero, inView: gameView)
+            }
+        default: break
+        }
+    }
     
     // - MARK: Animation
     
@@ -100,7 +115,7 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
             y: gameView.bounds.height - (Constants.BrickSize.height * CGFloat(0.5) ))
         newPaddle.backgroundColor = Constants.PaddleColor
         gameView.addSubview(newPaddle)
-        outBreakBehavior.addPaddle(newPaddle)
+        outBreakBehavior.addOrMovePaddle(newPaddle)
         paddle = newPaddle
     }
     

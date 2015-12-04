@@ -16,6 +16,10 @@ class OutBreakBehavior: UIDynamicBehavior {
         addChildBehavior(ballBehavior)
     }
     
+    struct Constants {
+        static let PaddleBoundaryId = "Paddle"
+    }
+    
     // MARK: - Member variables
     var viewController: UIViewController? {
         didSet {
@@ -51,12 +55,11 @@ class OutBreakBehavior: UIDynamicBehavior {
         collider.addItem(ball)
         ballBehavior.addItem(ball)
     }
-    func addPaddle(paddle: UIView) {
-        dynamicAnimator?.referenceView?.addSubview(paddle)
-        collider.addItem(paddle)
+    func addOrMovePaddle(paddle: UIView) {
+        collider.removeBoundaryWithIdentifier(Constants.PaddleBoundaryId)
+        collider.addBoundaryWithIdentifier(Constants.PaddleBoundaryId, forPath: UIBezierPath(ovalInRect: paddle.frame))
     }
     func addBrick(brick: UIView, withId brickId: Int) {
-        dynamicAnimator?.referenceView?.addSubview(brick)
         removeBrickWithId(brickId)
         collider.addBoundaryWithIdentifier(brickId, forPath: UIBezierPath(rect: brick.frame))
     }
@@ -66,7 +69,7 @@ class OutBreakBehavior: UIDynamicBehavior {
     func pushRandomly(object: UIView) {
         let randomPush = UIPushBehavior(items: [], mode: .Instantaneous)
 
-        randomPush.magnitude = CGFloat.random(min: 0.1, max: 0.4)
+        randomPush.magnitude = CGFloat.random(min: 0.05, max: 0.25)
         randomPush.angle = CGFloat.random(min: 0, max: 360)
         randomPush.active = true
         randomPush.action = {
