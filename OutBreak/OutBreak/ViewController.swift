@@ -80,9 +80,12 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         if (item != ball) { return }
 
         let brick = bricks[identifier]
-        brick.removeFromSuperview()
         outBreakBehavior.removeBrickWithId(identifier)
-        gameView.setNeedsDisplay()
+        UIView.transitionWithView(brick, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil) {
+            [unowned self] finished in
+            brick.removeFromSuperview()
+            self.gameView.setNeedsDisplay()
+        }
     }
 
     // - MARK: Constants
