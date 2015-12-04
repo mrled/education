@@ -14,7 +14,14 @@ class OutBreakBehavior: UIDynamicBehavior {
         super.init()
         addChildBehavior(collider)
         addChildBehavior(ballBehavior)
-        //addChildBehavior(gravity)
+    }
+    
+    // MARK: - Member variables
+    var viewController: UIViewController? {
+        didSet {
+            guard let viewController = viewController as? UICollisionBehaviorDelegate else { return }
+            collider.collisionDelegate = viewController
+        }
     }
     
     // MARK: - Behaviors
@@ -48,9 +55,13 @@ class OutBreakBehavior: UIDynamicBehavior {
         dynamicAnimator?.referenceView?.addSubview(paddle)
         collider.addItem(paddle)
     }
-    func addBrick(brick: UIView) {
+    func addBrick(brick: UIView, withId brickId: Int) {
         dynamicAnimator?.referenceView?.addSubview(brick)
-        collider.addItem(brick)
+        removeBrickWithId(brickId)
+        collider.addBoundaryWithIdentifier(brickId, forPath: UIBezierPath(rect: brick.frame))
+    }
+    func removeBrickWithId(brickId: Int) {
+        collider.removeBoundaryWithIdentifier(brickId)
     }
     func pushRandomly(object: UIView) {
         let randomPush = UIPushBehavior(items: [], mode: .Instantaneous)

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UICollisionBehaviorDelegate {
     
     // - MARK: Outlets
     
@@ -23,6 +23,7 @@ class ViewController: UIViewController {
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         animator.addBehavior(outBreakBehavior)
+        outBreakBehavior.viewController = self
 
         if paddle == nil { addPaddle() }
         if bricks == nil { addBricks() }
@@ -34,11 +35,6 @@ class ViewController: UIViewController {
         animator.removeBehavior(outBreakBehavior)
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
     // - MARK: Gestures
     
     @IBAction func pushBall(sender: UITapGestureRecognizer) {
@@ -56,6 +52,24 @@ class ViewController: UIViewController {
     
     let outBreakBehavior = OutBreakBehavior()
     
+    func collisionBehavior(
+        behavior: UICollisionBehavior,
+        beganContactForItem item: UIDynamicItem,
+        withBoundaryIdentifier identifier: NSCopying?,
+        atPoint p: CGPoint)
+    {
+        guard let ball = ball else { return }
+        guard let item = item as? UIView else { return }
+        guard let identifier = identifier as? Int else { return }
+        guard let bricks = bricks else { return }
+        if (item != ball) { return }
+
+        let brick = bricks[identifier]
+        brick.removeFromSuperview()
+        outBreakBehavior.removeBrickWithId(identifier)
+        gameView.setNeedsDisplay()
+    }
+
     // - MARK: Constants
     
     struct Constants {
@@ -96,11 +110,10 @@ class ViewController: UIViewController {
         let initialBrickOriginX = ((gameView.bounds.width - (CGFloat(brickColumns) * Constants.BrickSize.width)) / 2)
         let initialBrickOriginY = Constants.BrickSize.height * 2
         var nextBrickOrigin = CGPoint(x: initialBrickOriginX, y: initialBrickOriginY)
+        var brickId: Int = 0
         
         for _ in 0..<brickRows {
             for _ in 0..<brickColumns {
-                print("nextBrickOrigin = \(nextBrickOrigin)")
-                
                 let newBrick = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.BrickSize))
                 newBrick.center = CGPoint(
                     x: nextBrickOrigin.x + (Constants.BrickSize.width / 2),
@@ -108,9 +121,10 @@ class ViewController: UIViewController {
                 newBrick.backgroundColor = Constants.BrickColor
                 newBrick.layer.borderColor = Constants.BrickBorderColor
                 gameView.addSubview(newBrick)
-                outBreakBehavior.addBrick(newBrick)
+                outBreakBehavior.addBrick(newBrick, withId: brickId)
                 newBricks.append(newBrick)
                 nextBrickOrigin.x += Constants.BrickSize.width
+                ++brickId
             }
             nextBrickOrigin.x  = initialBrickOriginX
             nextBrickOrigin.y += Constants.BrickSize.height
