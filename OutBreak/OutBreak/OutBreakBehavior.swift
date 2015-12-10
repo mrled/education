@@ -16,15 +16,12 @@ class OutBreakBehavior: UIDynamicBehavior {
         addChildBehavior(ballBehavior)
     }
     
-    struct Constants {
-        static let PaddleBoundaryId = "Paddle"
-    }
-    
     // MARK: - Member variables
-    var viewController: UIViewController? {
+    var obViewController: OutBreakViewController? {
         didSet {
-            guard let viewController = viewController as? UICollisionBehaviorDelegate else { return }
-            collider.collisionDelegate = viewController
+            guard let obViewController = obViewController as? UICollisionBehaviorDelegate else { return }
+            collider.collisionDelegate = obViewController
+            erectWallsInGameView()
         }
     }
     
@@ -32,7 +29,6 @@ class OutBreakBehavior: UIDynamicBehavior {
     
     lazy var collider: UICollisionBehavior = {
         let lazyColi = UICollisionBehavior()
-        lazyColi.translatesReferenceBoundsIntoBoundary = true
         return lazyColi
     }()
     
@@ -50,14 +46,19 @@ class OutBreakBehavior: UIDynamicBehavior {
     // MARK: - Adding objects
     
     func addBall(ball: UIView) {
-        dynamicAnimator?.referenceView?.addSubview(ball)
+        //dynamicAnimator?.referenceView?.addSubview(ball)
         gravity.addItem(ball)
         collider.addItem(ball)
         ballBehavior.addItem(ball)
     }
+    func removeBall(ball: UIView) {
+        gravity.removeItem(ball)
+        collider.removeItem(ball)
+        ballBehavior.removeItem(ball)
+    }
     func addOrMovePaddle(paddle: UIView) {
-        collider.removeBoundaryWithIdentifier(Constants.PaddleBoundaryId)
-        collider.addBoundaryWithIdentifier(Constants.PaddleBoundaryId, forPath: UIBezierPath(ovalInRect: paddle.frame))
+        collider.removeBoundaryWithIdentifier(AppConstants.PaddleBoundaryId)
+        collider.addBoundaryWithIdentifier(AppConstants.PaddleBoundaryId, forPath: UIBezierPath(ovalInRect: paddle.frame))
     }
     func addBrick(brick: UIView, withId brickId: Int) {
         removeBrickWithId(brickId)
@@ -78,6 +79,19 @@ class OutBreakBehavior: UIDynamicBehavior {
         }
         randomPush.addItem(object)
         addChildBehavior(randomPush)
+    }
+    func erectWallsInGameView() {
+        guard let gameView = obViewController?.gameView else { return }
+        
+        let upperLeft = CGPoint(x:0, y:0)
+        let lowerLeft = CGPoint(x:0, y:gameView.bounds.size.height)
+        let upperRight = CGPoint(x:gameView.bounds.size.width, y:0)
+        let lowerRight = CGPoint(x:gameView.bounds.size.width, y:gameView.bounds.size.height)
+        
+        collider.addBoundaryWithIdentifier(AppConstants.LeftSideBoundaryId,   fromPoint: upperLeft,  toPoint: lowerLeft)
+        collider.addBoundaryWithIdentifier(AppConstants.RightSideBoundaryId,  fromPoint: upperRight, toPoint: lowerRight)
+        collider.addBoundaryWithIdentifier(AppConstants.TopSideBoundaryId,    fromPoint: upperLeft,  toPoint: upperRight)
+        collider.addBoundaryWithIdentifier(AppConstants.BottomSideBoundaryId, fromPoint: lowerLeft,  toPoint: lowerRight)
     }
 }
 

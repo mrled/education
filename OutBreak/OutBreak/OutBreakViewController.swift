@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController, UICollisionBehaviorDelegate {
+class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     
     // - MARK: Outlets
     
@@ -23,7 +23,7 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
         animator.addBehavior(outBreakBehavior)
-        outBreakBehavior.viewController = self
+        outBreakBehavior.obViewController = self
 
         if paddle == nil { addPaddle() }
         if bricks == nil { addBricks() }
@@ -75,17 +75,38 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     {
         guard let ball = ball else { return }
         guard let item = item as? UIView else { return }
-        guard let identifier = identifier as? Int else { return }
         guard let bricks = bricks else { return }
         if (item != ball) { return }
 
-        let brick = bricks[identifier]
-        outBreakBehavior.removeBrickWithId(identifier)
-        UIView.transitionWithView(brick, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil) {
-            [unowned self] finished in
-            brick.removeFromSuperview()
-            self.gameView.setNeedsDisplay()
+        if let brickId = identifier as? Int {
+            let brick = bricks[brickId]
+            outBreakBehavior.removeBrickWithId(brickId)
+            UIView.transitionWithView(brick, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil) {
+                [unowned self] finished in
+                brick.removeFromSuperview()
+                self.gameView.setNeedsDisplay()
+            }
         }
+        else if let otherId = identifier as? String {
+            if otherId == AppConstants.BottomSideBoundaryId {
+                outBreakBehavior.removeBall(ball)
+                ball.backgroundColor = Constants.BallColorDying
+                UIView.transitionWithView(ball, duration: 1.0, options: .TransitionCrossDissolve, animations: nil) {
+                    [unowned self] finished in
+                    self.addBall()
+                    self.gameView.setNeedsDisplay()
+                }
+            }
+        }
+    }
+    
+    func collisionBehavior(
+        behavior: UICollisionBehavior,
+        beganContactForItem item1: UIDynamicItem,
+        withItem item2: UIDynamicItem,
+        atPoint p: CGPoint)
+    {
+        print("Got a collision lol")
     }
 
     // - MARK: Constants
@@ -96,7 +117,8 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
         static let BallSize   = CGSize(width: 20, height: 20)
         static let PaddleColor = UIColor.grayColor()
         static let BrickColor  = UIColor.blueColor()
-        static let BallColor   = UIColor.greenColor()
+        static let BallColorNormal = UIColor.greenColor()
+        static let BallColorDying  = UIColor.redColor()
         static let BrickBorderColor = UIColor.blackColor().CGColor
     }
     
@@ -152,11 +174,15 @@ class ViewController: UIViewController, UICollisionBehaviorDelegate {
     }
     
     func addBall() {
+        if let oldBall = self.ball {
+            outBreakBehavior.removeBall(oldBall)
+            oldBall.removeFromSuperview()
+        }
         let newBall = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.BallSize))
         newBall.center = CGPoint(
             x: gameView.center.x,
             y: gameView.center.y + (Constants.BallSize.height * 5))
-        newBall.backgroundColor = Constants.BallColor
+        newBall.backgroundColor = Constants.BallColorNormal
         gameView.addSubview(newBall)
         outBreakBehavior.addBall(newBall)
         ball = newBall

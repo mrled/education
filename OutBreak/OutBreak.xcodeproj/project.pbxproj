@@ -8,8 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		300F77E11BFECD5000098E84 /* OutBreakBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */; };
+		30B0DACA1C1915C00000480E /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B0DAC91C1915C00000480E /* Constants.swift */; };
+		30B342DC1C114C2A0061A6DD /* readme.markdown in Sources */ = {isa = PBXBuildFile; fileRef = 30B342DB1C114C2A0061A6DD /* readme.markdown */; };
 		30F5BD861BFD654F00A4308E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BD851BFD654F00A4308E /* AppDelegate.swift */; };
-		30F5BD881BFD654F00A4308E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BD871BFD654F00A4308E /* ViewController.swift */; };
+		30F5BD881BFD654F00A4308E /* OutBreakViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BD871BFD654F00A4308E /* OutBreakViewController.swift */; };
 		30F5BD8B1BFD654F00A4308E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 30F5BD891BFD654F00A4308E /* Main.storyboard */; };
 		30F5BD8D1BFD654F00A4308E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 30F5BD8C1BFD654F00A4308E /* Assets.xcassets */; };
 		30F5BD901BFD654F00A4308E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 30F5BD8E1BFD654F00A4308E /* LaunchScreen.storyboard */; };
@@ -36,9 +38,11 @@
 
 /* Begin PBXFileReference section */
 		300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutBreakBehavior.swift; sourceTree = "<group>"; };
+		30B0DAC91C1915C00000480E /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		30B342DB1C114C2A0061A6DD /* readme.markdown */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = readme.markdown; sourceTree = "<group>"; };
 		30F5BD821BFD654F00A4308E /* OutBreak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OutBreak.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		30F5BD851BFD654F00A4308E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		30F5BD871BFD654F00A4308E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		30F5BD871BFD654F00A4308E /* OutBreakViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutBreakViewController.swift; sourceTree = "<group>"; };
 		30F5BD8A1BFD654F00A4308E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		30F5BD8C1BFD654F00A4308E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		30F5BD8F1BFD654F00A4308E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -100,12 +104,14 @@
 			isa = PBXGroup;
 			children = (
 				30F5BD851BFD654F00A4308E /* AppDelegate.swift */,
-				30F5BD871BFD654F00A4308E /* ViewController.swift */,
+				30B0DAC91C1915C00000480E /* Constants.swift */,
+				30F5BD871BFD654F00A4308E /* OutBreakViewController.swift */,
 				300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */,
 				30F5BD891BFD654F00A4308E /* Main.storyboard */,
 				30F5BD8C1BFD654F00A4308E /* Assets.xcassets */,
 				30F5BD8E1BFD654F00A4308E /* LaunchScreen.storyboard */,
 				30F5BD911BFD654F00A4308E /* Info.plist */,
+				30B342DB1C114C2A0061A6DD /* readme.markdown */,
 			);
 			path = OutBreak;
 			sourceTree = "<group>";
@@ -260,8 +266,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				30F5BD881BFD654F00A4308E /* ViewController.swift in Sources */,
+				30B0DACA1C1915C00000480E /* Constants.swift in Sources */,
+				30F5BD881BFD654F00A4308E /* OutBreakViewController.swift in Sources */,
 				300F77E11BFECD5000098E84 /* OutBreakBehavior.swift in Sources */,
+				30B342DC1C114C2A0061A6DD /* readme.markdown in Sources */,
 				30F5BD861BFD654F00A4308E /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
