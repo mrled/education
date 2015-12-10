@@ -46,7 +46,7 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         
         switch gesture.state {
         case .Ended: fallthrough
-        case.Changed:
+        case .Changed:
             let xChange = gesture.translationInView(gameView).x
             if xChange != 0 {
                 paddle.center.x += xChange
@@ -75,40 +75,18 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     {
         guard let ball = ball else { return }
         guard let item = item as? UIView else { return }
-        guard let bricks = bricks else { return }
         if (item != ball) { return }
 
         if let brickId = identifier as? Int {
-            let brick = bricks[brickId]
-            outBreakBehavior.removeBrickWithId(brickId)
-            UIView.transitionWithView(brick, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil) {
-                [unowned self] finished in
-                brick.removeFromSuperview()
-                self.gameView.setNeedsDisplay()
-            }
+            removeBrickById(brickId)
         }
         else if let otherId = identifier as? String {
             if otherId == AppConstants.BottomSideBoundaryId {
-                outBreakBehavior.removeBall(ball)
-                ball.backgroundColor = Constants.BallColorDying
-                UIView.transitionWithView(ball, duration: 1.0, options: .TransitionCrossDissolve, animations: nil) {
-                    [unowned self] finished in
-                    self.addBall()
-                    self.gameView.setNeedsDisplay()
-                }
+                killBall()
             }
         }
     }
     
-    func collisionBehavior(
-        behavior: UICollisionBehavior,
-        beganContactForItem item1: UIDynamicItem,
-        withItem item2: UIDynamicItem,
-        atPoint p: CGPoint)
-    {
-        print("Got a collision lol")
-    }
-
     // - MARK: Constants
     
     struct Constants {
@@ -126,12 +104,14 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     
     var ball: UIView?
     var paddle: UIView?
-    var bricks: [UIView]?
+    //var bricks: [UIView]?
+    var bricks: [Int: UIView]?
     
     var brickColumns: Int {
         return Int(gameView.bounds.width / Constants.BrickSize.width)
     }
-    var brickRows = 4
+    //var brickRows = 4
+    var brickRows = 1
     
     func addPaddle() {
         let newPaddle = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.PaddleSize))
@@ -145,7 +125,7 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     }
     
     func addBricks() {
-        var newBricks = [UIView]()
+        var newBricks = [Int: UIView]()
         
         let initialBrickOriginX = ((gameView.bounds.width - (CGFloat(brickColumns) * Constants.BrickSize.width)) / 2)
         let initialBrickOriginY = Constants.BrickSize.height * 2
@@ -162,9 +142,11 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
                 newBrick.layer.borderColor = Constants.BrickBorderColor
                 gameView.addSubview(newBrick)
                 outBreakBehavior.addBrick(newBrick, withId: brickId)
-                newBricks.append(newBrick)
+                newBricks[brickId] = newBrick
+                //newBricks.append(newBrick)
                 nextBrickOrigin.x += Constants.BrickSize.width
-                ++brickId
+                //++brickId
+                brickId += 1
             }
             nextBrickOrigin.x  = initialBrickOriginX
             nextBrickOrigin.y += Constants.BrickSize.height
@@ -186,6 +168,48 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         gameView.addSubview(newBall)
         outBreakBehavior.addBall(newBall)
         ball = newBall
+    }
+    
+    func killBall() {
+        guard let ball = ball else { return }
+        outBreakBehavior.removeBall(ball)
+        ball.backgroundColor = Constants.BallColorDying
+        UIView.transitionWithView(ball, duration: 1.0, options: .TransitionCrossDissolve, animations: nil) {
+            [unowned self] finished in
+            self.addBall()
+            self.gameView.setNeedsDisplay()
+        }
+    }
+    
+    func removeBrickById(brickId: Int) {
+        guard let brick = bricks?[brickId] else { return }
+        if bricks == nil { return }
+        
+        outBreakBehavior.removeBrickWithId(brickId)
+        bricks!.removeValueForKey(brickId)
+        UIView.transitionWithView(brick, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil) {
+            [unowned self] _ in
+            brick.removeFromSuperview()
+            self.gameView.setNeedsDisplay()
+        }
+        if bricks!.count == 0 {
+            winGame()
+        }
+    }
+    
+    func winGame() {
+        let alertController = UIAlertController(
+            title: "YOU WIN!",
+            message: "Your score was 0 because there is no score in this game, or in life. In the end, you and your score - like all of us - are nothing.",
+            preferredStyle: .Alert)
+        if let ball = ball { outBreakBehavior.removeBall(ball) }
+        let acceptanceAction = UIAlertAction(title: "I accept this", style: .Default) {
+            [unowned self] _ in
+            self.addBall()
+            self.addBricks()
+        }
+        alertController.addAction(acceptanceAction)
+        self.presentViewController(alertController, animated: true, completion: nil)
     }
 
 }
