@@ -78,7 +78,7 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         if (item != ball) { return }
 
         if let brickId = identifier as? Int {
-            removeBrickById(brickId)
+            hitBrick(brickId)
         }
         else if let otherId = identifier as? String {
             if otherId == AppConstants.BottomSideBoundaryId {
@@ -102,16 +102,44 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     
     // - MARK: Game UI
     
+    typealias Brick = (view: UIView, hitCount: Int)
+
     var ball: UIView?
     var paddle: UIView?
     //var bricks: [UIView]?
-    var bricks: [Int: UIView]?
+    var bricks: [Int:Brick]?
     
     var brickColumns: Int {
         return Int(gameView.bounds.width / Constants.BrickSize.width)
     }
-    //var brickRows = 4
-    var brickRows = 1
+    
+    var brickRows: Int {
+        get {
+            if let c = NSUserDefaults.standardUserDefaults().objectForKey(DefaultsKey.BrickRowCount) as? Int {
+                return c
+            }
+            else {
+                return 4
+            }
+        }
+        set {
+            NSUserDefaults.standardUserDefaults().setObject(brickRows, forKey: DefaultsKey.BrickRowCount)
+        }
+    }
+    
+    var brickMaxHitCount: Int {
+        get {
+            if let d = NSUserDefaults.standardUserDefaults().objectForKey(DefaultsKey.BrickMaxHitCount) as? Int {
+                return d
+            }
+            else {
+                return 4
+            }
+        }
+        set {
+            NSUserDefaults.standardUserDefaults().setObject(brickMaxHitCount, forKey: DefaultsKey.BrickMaxHitCount)
+        }
+    }
     
     func addPaddle() {
         let newPaddle = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.PaddleSize))
@@ -125,7 +153,7 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     }
     
     func addBricks() {
-        var newBricks = [Int: UIView]()
+        var newBricks = [Int: Brick]()
         
         let initialBrickOriginX = ((gameView.bounds.width - (CGFloat(brickColumns) * Constants.BrickSize.width)) / 2)
         let initialBrickOriginY = Constants.BrickSize.height * 2
@@ -134,15 +162,15 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         
         for _ in 0..<brickRows {
             for _ in 0..<brickColumns {
-                let newBrick = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.BrickSize))
-                newBrick.center = CGPoint(
+                let newBrickView = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.BrickSize))
+                newBrickView.center = CGPoint(
                     x: nextBrickOrigin.x + (Constants.BrickSize.width / 2),
                     y: nextBrickOrigin.y + (Constants.BrickSize.height / 2))
-                newBrick.backgroundColor = Constants.BrickColor
-                newBrick.layer.borderColor = Constants.BrickBorderColor
-                gameView.addSubview(newBrick)
-                outBreakBehavior.addBrick(newBrick, withId: brickId)
-                newBricks[brickId] = newBrick
+                newBrickView.backgroundColor = Constants.BrickColor
+                newBrickView.layer.borderColor = Constants.BrickBorderColor
+                gameView.addSubview(newBrickView)
+                outBreakBehavior.addBrick(newBrickView, withId: brickId)
+                newBricks[brickId] = (view: newBrickView, hitCount: 0)
                 //newBricks.append(newBrick)
                 nextBrickOrigin.x += Constants.BrickSize.width
                 //++brickId
@@ -181,15 +209,25 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         }
     }
     
-    func removeBrickById(brickId: Int) {
+    func hitBrick(brickId: Int) {
+        bricks?[brickId]?.hitCount += 1
+        if let brickView = bricks?[brickId]?.view {
+            UIView.transitionWithView(brickView, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil, completion:  nil)
+        }
+        if bricks?[brickId]?.hitCount == brickMaxHitCount {
+            removeBrick(brickId)
+        }
+    }
+    
+    func removeBrick(brickId: Int) {
         guard let brick = bricks?[brickId] else { return }
         if bricks == nil { return }
         
         outBreakBehavior.removeBrickWithId(brickId)
         bricks!.removeValueForKey(brickId)
-        UIView.transitionWithView(brick, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil) {
+        UIView.transitionWithView(brick.view, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil) {
             [unowned self] _ in
-            brick.removeFromSuperview()
+            brick.view.removeFromSuperview()
             self.gameView.setNeedsDisplay()
         }
         if bricks!.count == 0 {
