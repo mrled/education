@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		300F77E11BFECD5000098E84 /* OutBreakBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */; };
 		30A4B3CF1C1942EA000D2FB6 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30A4B3CE1C1942EA000D2FB6 /* SettingsViewController.swift */; };
+		30A4B3D11C1A08BA000D2FB6 /* ququtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30A4B3D01C1A08BA000D2FB6 /* ququtility.swift */; };
 		30B0DACA1C1915C00000480E /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B0DAC91C1915C00000480E /* Constants.swift */; };
-		30B342DC1C114C2A0061A6DD /* readme.markdown in Sources */ = {isa = PBXBuildFile; fileRef = 30B342DB1C114C2A0061A6DD /* readme.markdown */; };
 		30F5BD861BFD654F00A4308E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BD851BFD654F00A4308E /* AppDelegate.swift */; };
 		30F5BD881BFD654F00A4308E /* OutBreakViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30F5BD871BFD654F00A4308E /* OutBreakViewController.swift */; };
 		30F5BD8B1BFD654F00A4308E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 30F5BD891BFD654F00A4308E /* Main.storyboard */; };
@@ -40,6 +40,7 @@
 /* Begin PBXFileReference section */
 		300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OutBreakBehavior.swift; sourceTree = "<group>"; };
 		30A4B3CE1C1942EA000D2FB6 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		30A4B3D01C1A08BA000D2FB6 /* ququtility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ququtility.swift; sourceTree = "<group>"; };
 		30B0DAC91C1915C00000480E /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		30B342DB1C114C2A0061A6DD /* readme.markdown */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = readme.markdown; sourceTree = "<group>"; };
 		30F5BD821BFD654F00A4308E /* OutBreak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OutBreak.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -108,6 +109,7 @@
 				30F5BD851BFD654F00A4308E /* AppDelegate.swift */,
 				30B0DAC91C1915C00000480E /* Constants.swift */,
 				30F5BD871BFD654F00A4308E /* OutBreakViewController.swift */,
+				30A4B3D01C1A08BA000D2FB6 /* ququtility.swift */,
 				30A4B3CE1C1942EA000D2FB6 /* SettingsViewController.swift */,
 				300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */,
 				30F5BD891BFD654F00A4308E /* Main.storyboard */,
@@ -272,7 +274,7 @@
 				30B0DACA1C1915C00000480E /* Constants.swift in Sources */,
 				30F5BD881BFD654F00A4308E /* OutBreakViewController.swift in Sources */,
 				300F77E11BFECD5000098E84 /* OutBreakBehavior.swift in Sources */,
-				30B342DC1C114C2A0061A6DD /* readme.markdown in Sources */,
+				30A4B3D11C1A08BA000D2FB6 /* ququtility.swift in Sources */,
 				30F5BD861BFD654F00A4308E /* AppDelegate.swift in Sources */,
 				30A4B3CF1C1942EA000D2FB6 /* SettingsViewController.swift in Sources */,
 			);

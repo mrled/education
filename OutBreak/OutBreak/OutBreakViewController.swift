@@ -98,6 +98,8 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         static let BallColorNormal = UIColor.greenColor()
         static let BallColorDying  = UIColor.redColor()
         static let BrickBorderColor = UIColor.blackColor().CGColor
+        static let BrickRowsDefault = 6
+        static let BrickMaxHitCountDefault = 2
     }
     
     // - MARK: Game UI
@@ -114,31 +116,13 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     }
     
     var brickRows: Int {
-        get {
-            if let c = NSUserDefaults.standardUserDefaults().objectForKey(DefaultsKey.BrickRowCount) as? Int {
-                return c
-            }
-            else {
-                return 4
-            }
-        }
-        set {
-            NSUserDefaults.standardUserDefaults().setObject(brickRows, forKey: DefaultsKey.BrickRowCount)
-        }
+        get { return Defaults.objectForKey(DefaultsKey.BrickRowCount, withDefault: Constants.BrickRowsDefault) }
+        set { Defaults.setObject(brickRows, forKey: DefaultsKey.BrickRowCount) }
     }
     
     var brickMaxHitCount: Int {
-        get {
-            if let d = NSUserDefaults.standardUserDefaults().objectForKey(DefaultsKey.BrickMaxHitCount) as? Int {
-                return d
-            }
-            else {
-                return 4
-            }
-        }
-        set {
-            NSUserDefaults.standardUserDefaults().setObject(brickMaxHitCount, forKey: DefaultsKey.BrickMaxHitCount)
-        }
+        get { return Defaults.objectForKey(DefaultsKey.BrickMaxHitCount, withDefault: Constants.BrickMaxHitCountDefault) }
+        set { Defaults.setObject(brickRows, forKey: DefaultsKey.BrickMaxHitCount) }
     }
     
     func addPaddle() {

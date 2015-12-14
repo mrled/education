@@ -84,9 +84,17 @@
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4fm-wJ-9hD">
                                                     <rect key="frame" x="543" y="6" width="51" height="31"/>
                                                 </switch>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tappable ball" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hXa-ux-W4d">
+                                                    <rect key="frame" x="8" y="11.5" width="102" height="20.5"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
                                             </subviews>
                                             <constraints>
                                                 <constraint firstItem="4fm-wJ-9hD" firstAttribute="top" secondItem="XVa-gx-Ddp" secondAttribute="topMargin" constant="-2" id="142-jc-hnU"/>
+                                                <constraint firstItem="hXa-ux-W4d" firstAttribute="centerY" secondItem="XVa-gx-Ddp" secondAttribute="centerY" id="2d0-Kp-SMI"/>
+                                                <constraint firstAttribute="leadingMargin" secondItem="hXa-ux-W4d" secondAttribute="leading" id="Vth-ES-06Z"/>
                                                 <constraint firstAttribute="trailingMargin" secondItem="4fm-wJ-9hD" secondAttribute="trailing" id="bRf-rP-fUQ"/>
                                                 <constraint firstItem="4fm-wJ-9hD" firstAttribute="centerY" secondItem="XVa-gx-Ddp" secondAttribute="centerY" id="em8-lh-rW4"/>
                                             </constraints>
@@ -104,18 +112,35 @@
                                             <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="DA6-fB-QBA">
-                                                    <rect key="frame" x="471" y="8" width="121" height="29"/>
-                                                    <segments>
-                                                        <segment title="First"/>
-                                                        <segment title="Second"/>
-                                                    </segments>
-                                                </segmentedControl>
+                                                <stepper opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minimumValue="1" maximumValue="4" translatesAutoresizingMaskIntoConstraints="NO" id="38z-wR-Zah">
+                                                    <rect key="frame" x="498" y="7" width="94" height="29"/>
+                                                    <connections>
+                                                        <action selector="brickHitMaxValueChanged:" destination="nCE-9V-VHw" eventType="valueChanged" id="2Q2-hQ-Rps"/>
+                                                    </connections>
+                                                </stepper>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="275" verticalHuggingPriority="251" text="Max brick hits: 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2vt-54-ER8">
+                                                    <rect key="frame" x="8" y="11" width="126" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstAttribute="trailingMargin" secondItem="DA6-fB-QBA" secondAttribute="trailing" id="5X8-rx-Fsh"/>
-                                                <constraint firstItem="DA6-fB-QBA" firstAttribute="centerY" secondItem="5sT-d5-5bv" secondAttribute="centerY" id="CGl-BL-VPh"/>
+                                                <constraint firstItem="2vt-54-ER8" firstAttribute="centerY" secondItem="5sT-d5-5bv" secondAttribute="centerY" id="1a0-WP-8bi"/>
+                                                <constraint firstItem="38z-wR-Zah" firstAttribute="centerY" secondItem="5sT-d5-5bv" secondAttribute="centerY" id="6rO-0i-HNy"/>
+                                                <constraint firstAttribute="leadingMargin" secondItem="2vt-54-ER8" secondAttribute="leading" id="Ajy-1e-fIi"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="38z-wR-Zah" secondAttribute="trailing" id="KhV-ig-ctc"/>
+                                                <constraint firstItem="38z-wR-Zah" firstAttribute="centerX" secondItem="5sT-d5-5bv" secondAttribute="centerX" id="Qfp-AQ-gQN"/>
+                                                <constraint firstItem="38z-wR-Zah" firstAttribute="leading" secondItem="2vt-54-ER8" secondAttribute="trailing" priority="800" id="XbH-Gr-c8r"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="38z-wR-Zah" secondAttribute="trailing" id="aqT-XV-DhE"/>
                                             </constraints>
+                                            <variation key="default">
+                                                <mask key="constraints">
+                                                    <exclude reference="Qfp-AQ-gQN"/>
+                                                    <exclude reference="XbH-Gr-c8r"/>
+                                                    <exclude reference="aqT-XV-DhE"/>
+                                                </mask>
+                                            </variation>
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="iib-YK-oPc">
@@ -124,15 +149,6 @@
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="iib-YK-oPc" id="9di-06-RgM">
                                             <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
-                                            <subviews>
-                                                <slider opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="X2a-70-5rA">
-                                                    <rect key="frame" x="476" y="7" width="118" height="31"/>
-                                                </slider>
-                                            </subviews>
-                                            <constraints>
-                                                <constraint firstAttribute="trailingMargin" secondItem="X2a-70-5rA" secondAttribute="trailing" id="7Il-Cv-9IW"/>
-                                                <constraint firstItem="X2a-70-5rA" firstAttribute="centerY" secondItem="9di-06-RgM" secondAttribute="centerY" id="hWX-aE-Xlm"/>
-                                            </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="OEd-xH-vBQ">
@@ -141,6 +157,15 @@
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="OEd-xH-vBQ" id="hrV-L1-Yqf">
                                             <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <segmentedControl opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="DA6-fB-QBA">
+                                                    <rect key="frame" x="471" y="7" width="121" height="29"/>
+                                                    <segments>
+                                                        <segment title="First"/>
+                                                        <segment title="Second"/>
+                                                    </segments>
+                                                </segmentedControl>
+                                            </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                 </cells>
@@ -152,6 +177,11 @@
                         </connections>
                     </tableView>
                     <tabBarItem key="tabBarItem" title="Settings" image="SettingsCogIcon" id="hrO-2v-Dqu"/>
+                    <connections>
+                        <outlet property="brickHitMaxLabel" destination="2vt-54-ER8" id="ExZ-Em-78O"/>
+                        <outlet property="brickHitMaxStepper" destination="38z-wR-Zah" id="vO7-Fn-MMp"/>
+                        <outlet property="enableBallTapping" destination="4fm-wJ-9hD" id="bHA-FU-XV0"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cWJ-Ri-MtZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
