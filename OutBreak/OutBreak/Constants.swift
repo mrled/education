@@ -15,7 +15,12 @@ struct AppConstants {
     static let RightSideBoundaryId = "RightSide"
     static let TopSideBoundaryId = "TopSide"
     static let BottomSideBoundaryId = "BottomSide"
+    static let BrickMaxHitCountDefault = 2
+    static let BrickMaxHitCountMax = 4
+    static let BrickRowCountDefault = 6
+    static let BrickRowCountMax = 8
 }
+
 struct DefaultsKey {
     static let BrickMaxHitCount = "BrickMaxHitCount"
     static let BrickRowCount = "BrickRowCount"

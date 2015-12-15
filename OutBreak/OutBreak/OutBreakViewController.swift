@@ -98,8 +98,6 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         static let BallColorNormal = UIColor.greenColor()
         static let BallColorDying  = UIColor.redColor()
         static let BrickBorderColor = UIColor.blackColor().CGColor
-        static let BrickRowsDefault = 6
-        static let BrickMaxHitCountDefault = 2
     }
     
     // - MARK: Game UI
@@ -108,21 +106,10 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
 
     var ball: UIView?
     var paddle: UIView?
-    //var bricks: [UIView]?
     var bricks: [Int:Brick]?
     
     var brickColumns: Int {
         return Int(gameView.bounds.width / Constants.BrickSize.width)
-    }
-    
-    var brickRows: Int {
-        get { return Defaults.objectForKey(DefaultsKey.BrickRowCount, withDefault: Constants.BrickRowsDefault) }
-        set { Defaults.setObject(brickRows, forKey: DefaultsKey.BrickRowCount) }
-    }
-    
-    var brickMaxHitCount: Int {
-        get { return Defaults.objectForKey(DefaultsKey.BrickMaxHitCount, withDefault: Constants.BrickMaxHitCountDefault) }
-        set { Defaults.setObject(brickRows, forKey: DefaultsKey.BrickMaxHitCount) }
     }
     
     func addPaddle() {
@@ -144,7 +131,7 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         var nextBrickOrigin = CGPoint(x: initialBrickOriginX, y: initialBrickOriginY)
         var brickId: Int = 0
         
-        for _ in 0..<brickRows {
+        for _ in 0..<Defaults.objectForKey(DefaultsKey.BrickRowCount, withDefault: AppConstants.BrickRowCountDefault) {
             for _ in 0..<brickColumns {
                 let newBrickView = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.BrickSize))
                 newBrickView.center = CGPoint(
@@ -198,7 +185,7 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         if let brickView = bricks?[brickId]?.view {
             UIView.transitionWithView(brickView, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil, completion:  nil)
         }
-        if bricks?[brickId]?.hitCount == brickMaxHitCount {
+        if bricks?[brickId]?.hitCount == Defaults.objectForKey(DefaultsKey.BrickMaxHitCount, withDefault: AppConstants.BrickMaxHitCountDefault) {
             removeBrick(brickId)
         }
     }

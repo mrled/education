@@ -149,6 +149,26 @@
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="iib-YK-oPc" id="9di-06-RgM">
                                             <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <stepper opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" maximumValue="100" translatesAutoresizingMaskIntoConstraints="NO" id="dN3-P4-bXJ">
+                                                    <rect key="frame" x="498" y="8" width="94" height="29"/>
+                                                    <connections>
+                                                        <action selector="rowCountValueChanged:" destination="nCE-9V-VHw" eventType="valueChanged" id="188-4m-E3x"/>
+                                                    </connections>
+                                                </stepper>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Row count: 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FP7-qO-Gbf">
+                                                    <rect key="frame" x="8" y="11" width="100" height="20.5"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="FP7-qO-Gbf" firstAttribute="centerY" secondItem="9di-06-RgM" secondAttribute="centerY" id="0zF-8E-1yQ"/>
+                                                <constraint firstItem="FP7-qO-Gbf" firstAttribute="leading" secondItem="9di-06-RgM" secondAttribute="leadingMargin" id="QkL-qe-uSE"/>
+                                                <constraint firstItem="dN3-P4-bXJ" firstAttribute="centerY" secondItem="9di-06-RgM" secondAttribute="centerY" id="os3-Ds-1VX"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="dN3-P4-bXJ" secondAttribute="trailing" id="zCV-Jr-Iqo"/>
+                                            </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="OEd-xH-vBQ">
@@ -181,6 +201,8 @@
                         <outlet property="brickHitMaxLabel" destination="2vt-54-ER8" id="ExZ-Em-78O"/>
                         <outlet property="brickHitMaxStepper" destination="38z-wR-Zah" id="vO7-Fn-MMp"/>
                         <outlet property="enableBallTapping" destination="4fm-wJ-9hD" id="bHA-FU-XV0"/>
+                        <outlet property="rowCountLabel" destination="FP7-qO-Gbf" id="CQq-zp-kcc"/>
+                        <outlet property="rowCountStepper" destination="dN3-P4-bXJ" id="5tx-bB-OhY"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cWJ-Ri-MtZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
