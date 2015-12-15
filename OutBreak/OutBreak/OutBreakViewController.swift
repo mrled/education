@@ -25,9 +25,9 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         animator.addBehavior(outBreakBehavior)
         outBreakBehavior.obViewController = self
 
-        if paddle == nil { addPaddle() }
-        if bricks == nil { addBricks() }
-        if ball == nil { addBall() }
+        addPaddle()
+        addBricks()
+        addBall()
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -113,45 +113,59 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     }
     
     func addPaddle() {
-        let newPaddle = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.PaddleSize))
-        newPaddle.center = CGPoint(
-            x: gameView.center.x,
-            y: gameView.bounds.height - (Constants.BrickSize.height * CGFloat(0.5) ))
-        newPaddle.backgroundColor = Constants.PaddleColor
-        gameView.addSubview(newPaddle)
-        outBreakBehavior.addOrMovePaddle(newPaddle)
-        paddle = newPaddle
+        if let paddle = self.paddle {
+            // Paddle already exists but I have to re-add boundaries to OutBreakBehavior
+            outBreakBehavior.addOrMovePaddle(paddle)
+        }
+        else {
+            let newPaddle = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.PaddleSize))
+            newPaddle.center = CGPoint(
+                x: gameView.center.x,
+                y: gameView.bounds.height - (Constants.BrickSize.height * CGFloat(0.5) ))
+            newPaddle.backgroundColor = Constants.PaddleColor
+            gameView.addSubview(newPaddle)
+            outBreakBehavior.addOrMovePaddle(newPaddle)
+            paddle = newPaddle
+        }
     }
     
     func addBricks() {
-        var newBricks = [Int: Brick]()
-        
-        let initialBrickOriginX = ((gameView.bounds.width - (CGFloat(brickColumns) * Constants.BrickSize.width)) / 2)
-        let initialBrickOriginY = Constants.BrickSize.height * 2
-        var nextBrickOrigin = CGPoint(x: initialBrickOriginX, y: initialBrickOriginY)
-        var brickId: Int = 0
-        
-        for _ in 0..<Defaults.objectForKey(DefaultsKey.BrickRowCount, withDefault: AppConstants.BrickRowCountDefault) {
-            for _ in 0..<brickColumns {
-                let newBrickView = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.BrickSize))
-                newBrickView.center = CGPoint(
-                    x: nextBrickOrigin.x + (Constants.BrickSize.width / 2),
-                    y: nextBrickOrigin.y + (Constants.BrickSize.height / 2))
-                newBrickView.backgroundColor = Constants.BrickColor
-                newBrickView.layer.borderColor = Constants.BrickBorderColor
-                gameView.addSubview(newBrickView)
-                outBreakBehavior.addBrick(newBrickView, withId: brickId)
-                newBricks[brickId] = (view: newBrickView, hitCount: 0)
-                //newBricks.append(newBrick)
-                nextBrickOrigin.x += Constants.BrickSize.width
-                //++brickId
-                brickId += 1
+        if let bricks = self.bricks {
+            // These bricks were already initialized once, but we need to re-add the boundaries to our OutBreakBehavior
+            for brickId in bricks.keys {
+                let brick = bricks[brickId]!
+                outBreakBehavior.addBrick(brick.view, withId: brickId)
             }
-            nextBrickOrigin.x  = initialBrickOriginX
-            nextBrickOrigin.y += Constants.BrickSize.height
         }
-
-        bricks = newBricks
+        else {
+            // We have not initialized our bricks - start a new game
+            var newBricks = [Int: Brick]()
+            
+            let initialBrickOriginX = ((gameView.bounds.width - (CGFloat(brickColumns) * Constants.BrickSize.width)) / 2)
+            let initialBrickOriginY = Constants.BrickSize.height * 2
+            var nextBrickOrigin = CGPoint(x: initialBrickOriginX, y: initialBrickOriginY)
+            var brickId: Int = 0
+            
+            for _ in 0..<Defaults.objectForKey(DefaultsKey.BrickRowCount, withDefault: AppConstants.BrickRowCountDefault) {
+                for _ in 0..<brickColumns {
+                    let newBrickView = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.BrickSize))
+                    newBrickView.center = CGPoint(
+                        x: nextBrickOrigin.x + (Constants.BrickSize.width / 2),
+                        y: nextBrickOrigin.y + (Constants.BrickSize.height / 2))
+                    newBrickView.backgroundColor = Constants.BrickColor
+                    newBrickView.layer.borderColor = Constants.BrickBorderColor
+                    gameView.addSubview(newBrickView)
+                    outBreakBehavior.addBrick(newBrickView, withId: brickId)
+                    newBricks[brickId] = (view: newBrickView, hitCount: 0)
+                    nextBrickOrigin.x += Constants.BrickSize.width
+                    brickId += 1
+                }
+                nextBrickOrigin.x  = initialBrickOriginX
+                nextBrickOrigin.y += Constants.BrickSize.height
+            }
+            
+            bricks = newBricks
+        }
     }
     
     func addBall() {
