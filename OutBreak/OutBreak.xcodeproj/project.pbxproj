@@ -108,10 +108,10 @@
 			children = (
 				30F5BD851BFD654F00A4308E /* AppDelegate.swift */,
 				30B0DAC91C1915C00000480E /* Constants.swift */,
-				30F5BD871BFD654F00A4308E /* OutBreakViewController.swift */,
 				30A4B3D01C1A08BA000D2FB6 /* ququtility.swift */,
-				30A4B3CE1C1942EA000D2FB6 /* SettingsViewController.swift */,
 				300F77E01BFECD4F00098E84 /* OutBreakBehavior.swift */,
+				30F5BD871BFD654F00A4308E /* OutBreakViewController.swift */,
+				30A4B3CE1C1942EA000D2FB6 /* SettingsViewController.swift */,
 				30F5BD891BFD654F00A4308E /* Main.storyboard */,
 				30F5BD8C1BFD654F00A4308E /* Assets.xcassets */,
 				30F5BD8E1BFD654F00A4308E /* LaunchScreen.storyboard */,

@@ -19,10 +19,11 @@ struct AppConstants {
     static let BrickMaxHitCountMax = 4
     static let BrickRowCountDefault = 6
     static let BrickRowCountMax = 8
+    static let BallIsTappableDefault = true
 }
 
 struct DefaultsKey {
     static let BrickMaxHitCount = "BrickMaxHitCount"
     static let BrickRowCount = "BrickRowCount"
-    //static let
+    static let BallIsTappable = "BallIsTappable"
 }

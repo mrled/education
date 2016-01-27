@@ -56,9 +56,15 @@ class OutBreakBehavior: UIDynamicBehavior {
         collider.removeItem(ball)
         ballBehavior.removeItem(ball)
     }
-    func addOrMovePaddle(paddle: UIView) {
-        collider.removeBoundaryWithIdentifier(AppConstants.PaddleBoundaryId)
+    func addPaddle(paddle: UIView) {
         collider.addBoundaryWithIdentifier(AppConstants.PaddleBoundaryId, forPath: UIBezierPath(ovalInRect: paddle.frame))
+    }
+    func removePaddle(paddle: UIView) {
+        collider.removeBoundaryWithIdentifier(AppConstants.PaddleBoundaryId)
+    }
+    func movePaddle(paddle: UIView) {
+        removePaddle(paddle)
+        addPaddle(paddle)
     }
     func addBrick(brick: UIView, withId brickId: Int) {
         removeBrickWithId(brickId)

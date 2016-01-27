@@ -14,6 +14,31 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     
     @IBOutlet weak var gameView: UIView!
     
+    // - MARK: Public API
+    
+    func resetGame() {
+        
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        appDelegate.gameShouldReset = false
+        appDelegate.gameInProgress = false
+        
+        removePaddle()
+        removeBricks()
+        removeBall()
+
+        self.paddle = nil
+        self.bricks = nil
+        self.ball = nil
+
+        unpauseGame()
+    }
+    
+    func unpauseGame() {
+        addPaddle()
+        addBricks()
+        addBall()
+    }
+    
     // - MARK: View Controller Lifecycle
 
     override func viewDidLoad() {
@@ -24,10 +49,16 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         super.viewDidAppear(animated)
         animator.addBehavior(outBreakBehavior)
         outBreakBehavior.obViewController = self
-
-        addPaddle()
-        addBricks()
-        addBall()
+        
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        if appDelegate.gameShouldReset {
+            resetGame()
+        }
+        else {
+            addPaddle()
+            addBricks()
+            addBall()
+        }
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -38,7 +69,16 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     // - MARK: Gestures
     
     @IBAction func pushBall(sender: UITapGestureRecognizer) {
-        guard let ball = ball else { return } 
+        guard let ball = ball else { return }
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        if !Defaults.objectForKey(DefaultsKey.BallIsTappable, withDefault: AppConstants.BallIsTappableDefault) {
+            if appDelegate.gameInProgress {
+                return
+            }
+            else {
+                appDelegate.gameInProgress = true
+            }
+        }
         outBreakBehavior.pushRandomly(ball)
     }
     @IBAction func movePaddle(gesture: UIPanGestureRecognizer) {
@@ -50,7 +90,7 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
             let xChange = gesture.translationInView(gameView).x
             if xChange != 0 {
                 paddle.center.x += xChange
-                outBreakBehavior.addOrMovePaddle(paddle)
+                outBreakBehavior.movePaddle(paddle)
                 gesture.setTranslation(CGPointZero, inView: gameView)
             }
         default: break
@@ -60,14 +100,15 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     // - MARK: Animation
     
     
-    lazy var animator: UIDynamicAnimator = {
+    private lazy var animator: UIDynamicAnimator = {
         [unowned self] in
         return UIDynamicAnimator(referenceView: self.gameView)
     }()
     
-    let outBreakBehavior = OutBreakBehavior()
+    private let outBreakBehavior = OutBreakBehavior()
     
-    func collisionBehavior(
+    // TODO: understand the difference between private and internal, and why do I have to use internal for this delegate method?
+    internal func collisionBehavior(
         behavior: UICollisionBehavior,
         beganContactForItem item: UIDynamicItem,
         withBoundaryIdentifier identifier: NSCopying?,
@@ -89,7 +130,7 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     
     // - MARK: Constants
     
-    struct Constants {
+    private struct Constants {
         static let PaddleSize = CGSize(width: 80, height: 20)
         static let BrickSize  = CGSize(width: 40, height: 20)
         static let BallSize   = CGSize(width: 20, height: 20)
@@ -102,34 +143,36 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
     
     // - MARK: Game UI
     
-    typealias Brick = (view: UIView, hitCount: Int)
+    private typealias Brick = (view: UIView, hitCount: Int)
 
-    var ball: UIView?
-    var paddle: UIView?
-    var bricks: [Int:Brick]?
+    private var ball: UIView?
+    private var paddle: UIView?
+    private var bricks: [Int:Brick]?
     
-    var brickColumns: Int {
+    private var brickColumns: Int {
         return Int(gameView.bounds.width / Constants.BrickSize.width)
     }
     
-    func addPaddle() {
+    private func addPaddle() {
+        removePaddle()
+        let newPaddle = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.PaddleSize))
+        newPaddle.center = CGPoint(
+            x: gameView.center.x,
+            y: gameView.bounds.height - (Constants.BrickSize.height * CGFloat(0.5) ))
+        newPaddle.backgroundColor = Constants.PaddleColor
+        gameView.addSubview(newPaddle)
+        outBreakBehavior.addPaddle(newPaddle)
+        paddle = newPaddle
+    }
+    private func removePaddle() {
         if let paddle = self.paddle {
-            // Paddle already exists but I have to re-add boundaries to OutBreakBehavior
-            outBreakBehavior.addOrMovePaddle(paddle)
-        }
-        else {
-            let newPaddle = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.PaddleSize))
-            newPaddle.center = CGPoint(
-                x: gameView.center.x,
-                y: gameView.bounds.height - (Constants.BrickSize.height * CGFloat(0.5) ))
-            newPaddle.backgroundColor = Constants.PaddleColor
-            gameView.addSubview(newPaddle)
-            outBreakBehavior.addOrMovePaddle(newPaddle)
-            paddle = newPaddle
+            paddle.removeFromSuperview()
+            outBreakBehavior.removePaddle(paddle)
+            self.paddle = nil
         }
     }
     
-    func addBricks() {
+    private func addBricks() {
         if let bricks = self.bricks {
             // These bricks were already initialized once, but we need to re-add the boundaries to our OutBreakBehavior
             for brickId in bricks.keys {
@@ -168,11 +211,15 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         }
     }
     
-    func addBall() {
-        if let oldBall = self.ball {
-            outBreakBehavior.removeBall(oldBall)
-            oldBall.removeFromSuperview()
+    private func removeBricks() {
+        if self.bricks != nil {
+            for brickId in self.bricks!.keys { removeBrick(brickId) }
+            self.bricks = nil
         }
+    }
+    
+    private func addBall() {
+        removeBall()
         let newBall = UIView(frame: CGRect(origin: CGPoint.zero, size: Constants.BallSize))
         newBall.center = CGPoint(
             x: gameView.center.x,
@@ -182,8 +229,16 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         outBreakBehavior.addBall(newBall)
         ball = newBall
     }
+    private func removeBall() {
+        if let oldBall = self.ball {
+            outBreakBehavior.removeBall(oldBall)
+            oldBall.removeFromSuperview()
+            self.ball = nil
+        }
+    }
     
-    func killBall() {
+    // TODO: refactor this as removeBall(kill: Bool)
+    private func killBall() {
         guard let ball = ball else { return }
         outBreakBehavior.removeBall(ball)
         ball.backgroundColor = Constants.BallColorDying
@@ -194,45 +249,57 @@ class OutBreakViewController: UIViewController, UICollisionBehaviorDelegate {
         }
     }
     
-    func hitBrick(brickId: Int) {
-        bricks?[brickId]?.hitCount += 1
-        if let brickView = bricks?[brickId]?.view {
-            UIView.transitionWithView(brickView, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil, completion:  nil)
-        }
-        if bricks?[brickId]?.hitCount == Defaults.objectForKey(DefaultsKey.BrickMaxHitCount, withDefault: AppConstants.BrickMaxHitCountDefault) {
-            removeBrick(brickId)
+    // TODO: refactor hitBrick and removeBrick into one function
+    //       determine if it was hit by a ball or not and if so, do animation and check for win conditions; if not, just remove
+    private func hitBrick(brickId: Int) {
+        print("Hit brick with id \(brickId)")
+        bricks![brickId]!.hitCount += 1
+        
+        let brickView = bricks![brickId]!.view
+        UIView.transitionWithView(brickView, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil) {
+            [unowned self] animationFinished in
+            if self.bricks == nil { return }
+            
+            let brickMaxHitCount = Defaults.objectForKey(DefaultsKey.BrickMaxHitCount, withDefault: AppConstants.BrickMaxHitCountDefault)
+            if self.bricks![brickId]?.hitCount >= brickMaxHitCount {
+                self.removeBrick(brickId)
+            }
+            if self.bricks!.count == 0 {
+                self.winGame()
+            }
         }
     }
     
-    func removeBrick(brickId: Int) {
+    private func removeBrick(brickId: Int) {
+        print("Removing brick with id \(brickId)")
         guard let brick = bricks?[brickId] else { return }
-        if bricks == nil { return }
         
         outBreakBehavior.removeBrickWithId(brickId)
         bricks!.removeValueForKey(brickId)
-        UIView.transitionWithView(brick.view, duration: 0.25, options: .TransitionFlipFromLeft, animations: nil) {
-            [unowned self] _ in
-            brick.view.removeFromSuperview()
-            self.gameView.setNeedsDisplay()
-        }
-        if bricks!.count == 0 {
-            winGame()
-        }
+        brick.view.removeFromSuperview()
+        //self.gameView.setNeedsDisplay()
+
     }
     
-    func winGame() {
+    private func winGame() {
+        removeBall()
+        removeBricks()
+        removePaddle()
+
         let alertController = UIAlertController(
             title: "YOU WIN!",
             message: "Your score was 0 because there is no score in this game, or in life. In the end, you and your score - like all of us - are nothing.",
             preferredStyle: .Alert)
-        if let ball = ball { outBreakBehavior.removeBall(ball) }
         let acceptanceAction = UIAlertAction(title: "I accept this", style: .Default) {
             [unowned self] _ in
             self.addBall()
             self.addBricks()
         }
         alertController.addAction(acceptanceAction)
-        self.presentViewController(alertController, animated: true, completion: nil)
+        self.presentViewController(alertController, animated: true) {
+            [unowned self] in
+            self.resetGame()
+        }
     }
 
 }

@@ -10,7 +10,12 @@ import UIKit
 
 class SettingsViewController: UITableViewController {
 
-    @IBOutlet weak var enableBallTapping: UISwitch!
+    @IBOutlet weak var enableBallTapping: UISwitch! { didSet {
+        enableBallTapping.on = Defaults.objectForKey(DefaultsKey.BallIsTappable, withDefault: AppConstants.BallIsTappableDefault)
+    }}
+    @IBAction func enableBallTappingChanged(sender: UISwitch) {
+        Defaults.setObject(sender.on, forKey: DefaultsKey.BallIsTappable)
+    }
 
     @IBOutlet weak var brickHitMaxStepper: UIStepper! { didSet {
         let brickHitMax = Defaults.objectForKey(DefaultsKey.BrickMaxHitCount, withDefault: AppConstants.BrickMaxHitCountDefault)
@@ -23,8 +28,9 @@ class SettingsViewController: UITableViewController {
     @IBAction func brickHitMaxValueChanged(sender: UIStepper) {
         brickHitMaxLabel.text = "Max brick hits: \(Int(brickHitMaxStepper.value))"
         Defaults.setObject(Int(brickHitMaxStepper.value), forKey: DefaultsKey.BrickMaxHitCount)
+        resetGame()
     }
-    
+
     @IBOutlet weak var rowCountLabel: UILabel!
     @IBOutlet weak var rowCountStepper: UIStepper! { didSet {
         let rowCount = Defaults.objectForKey(DefaultsKey.BrickRowCount, withDefault: AppConstants.BrickRowCountDefault)
@@ -36,6 +42,16 @@ class SettingsViewController: UITableViewController {
     @IBAction func rowCountValueChanged(sender: UIStepper) {
         rowCountLabel.text = "Row count: \(Int(rowCountStepper.value))"
         Defaults.setObject(Int(rowCountStepper.value), forKey: DefaultsKey.BrickRowCount)
+        resetGame()
+    }
+
+    @IBAction func restartGameButtonPress(sender: UIButton) {
+        resetGame()
+    }
+    
+    private func resetGame() {
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        appDelegate.gameShouldReset = true
     }
     
     override func viewDidLoad() {
