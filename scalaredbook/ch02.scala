@@ -98,7 +98,7 @@ object ChapterTwo {
 
     //def main(args: Array[String]): Unit = {
     def demo(): Unit = {
-        println("==== Chapter Two ====")
+        println("\n\n==== Chapter Two ====")
         fibDemo()
         isSortedDemo()
         curryUncurryDemo()
