@@ -1,5 +1,4 @@
-
-
+package ch02
 
 object ChapterTwo {
 
@@ -97,10 +96,12 @@ object ChapterTwo {
         (a: A) => f(g(a))
     }
 
-    def main(args: Array[String]): Unit = {
+    //def main(args: Array[String]): Unit = {
+    def demo(): Unit = {
+        println("==== Chapter Two ====")
         fibDemo()
         isSortedDemo()
         curryUncurryDemo()
     }
-
 }
+
