@@ -154,10 +154,6 @@ object FPISList {
         foldLeft(reverse(inList), default)( (a,b) => accFunc(b,a) )
     }
 
-    // def foldRightReadable[A,B](inList: FPISList[A], emptyVal: B)(accumulateFunc: (A,B) => B): B = inList match {
-    //     case Nil => emptyVal
-    //     case FPISCons(head, tail) => accumulateFunc(head, foldRight(tail, emptyVal)(accumulateFunc))
-    // }
     def appendViaFoldRight[A](list1: FPISList[A], list2: FPISList[A]): FPISList[A] = {
         foldRightReadable(list1, list2)(FPISCons(_,_))
     }
@@ -217,9 +213,143 @@ object FPISList {
             FPISCons(zip(head1, head2), zipWith(tail1, tail2)(zip) )
     }
 
-    // def hasSubsequence[A](list: FPISList[A], subsequence: FPISList[A]): Boolean = {
-    // 
+    def startsWith [A] (list: FPISList[A], prefix: FPISList[A]): Boolean = {
+
+        /* Probably a more Scala-like way to do this function, but I feel like it's less clear
+        def sw [A] (list: FPISList[A], sublist: FPISList[A], acc: Boolean): Boolean = (list, sublist, acc) match {
+            case (Nil, _, _) => true
+            case (FPISCons(h1, t1), FPISCons(h2, t2), acc) if (h1 == h2) => sw(t1, t2, acc)
+            case (_, _, _) => false
+        }
+        */
+
+        @annotation.tailrec
+        def sw [A] (list: FPISList[A], sublist: FPISList[A], acc: Boolean): Boolean = (list, sublist, acc) match {
+
+            // must be true or all inputs will be false. 
+            // implication: any FPISList.startsWith(<any list>, Nil) == true
+            case (Nil, _, _) => true
+
+            case (_, _, false) => false
+            case (_, Nil, _) => false
+            case (FPISCons(head1, tail1), FPISCons(head2, tail2), acc) => {
+                if (head1 == head2) sw(tail1, tail2, acc)
+                else false
+            }
+        }
+        sw(list, prefix, true)
+
+    }
+
+    /* doubleFoldRight: A foldRight that works over *two* lists
+     * Realized that my startsWith function was basically doing this in a non-reusable manner so I refactored
+     * I think I can use this for hasSubsequence also? 
+     * For the record, this is foldRightReadable: 
+        def foldRightReadable[A,B](inList: FPISList[A], emptyVal: B)(accumulateFunc: (A,B) => B): B = inList match {
+            case Nil => emptyVal
+            case FPISCons(head, tail) => accumulateFunc(head, foldRight(tail, emptyVal)(accumulateFunc))
+        }
+     */
+    def doubleFoldRight [A,B] (list1: FPISList[A], list2: FPISList[A], default: B) (accFunc: (A,A,B) => B ): B =
+    (list1, list2, default) match {
+        case (Nil, _, _) => default
+        case (_, Nil, _) => default
+        case (FPISCons(head1, tail1), FPISCons(head2, tail2), default) =>
+            accFunc(head1, head2, doubleFoldRight(tail1, tail2, default)(accFunc) )
+    }
+
+    def startsWith2[A](list: FPISList[A], subsequence: FPISList[A]): Boolean = {
+        if (FPISList.length(subsequence) > FPISList.length(list)) false
+        val dfrAcc = (head1: A, head2: A, truth: Boolean) => { truth && (head1 == head2) }
+        doubleFoldRight(list, subsequence, true)(dfrAcc)
+    }
+
+    // I keep trying to make hasSubsequence functions and I keep making startsWith functions instead
+    // This one turns out to look exactly like the one in the answer key for hasSubsequence though, so there's that
+    @annotation.tailrec
+    def startsWith3 [A] (list: FPISList[A], subsequence: FPISList[A]): Boolean = 
+    (list, subsequence) match {
+        case (_, Nil) => true   // NOTE: also covers the case where the first is Nil! 
+        case (Nil, _) => false
+        case (FPISCons(head1, tail1), FPISCons(head2, tail2)) => {
+            if (head1 == head2) startsWith3(tail1, tail2)
+            else false
+        }
+    }
+
+    // OK, I'm giving up a little bit
+    // Looking at the signature from the answer key b/c I can't figure it out
+    // After seeing the signature was able to figure it out really quick tho!
+    //def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = sup match {
+    def hasSubsequence [A] (list: FPISList[A], subsequence: FPISList[A]): Boolean = list match {
+        // case Nil => subsequence == Nil // their answer
+        // case Nil => false              // my answer - doesn't seem to be any different?
+        case Nil => false
+        case _ if startsWith3(list, subsequence) => true
+        case FPISCons(_, tail) => hasSubsequence(tail, subsequence)
+    }
+}
+
+sealed trait Tree[+A]
+case class Leaf   [A] (value: A) extends Tree[A]
+case class Branch [A] (left: Tree[A], right: Tree[A]) extends Tree[A]
+
+object Tree {
+
+    def size [A] (tree: Tree[A]): Int = tree match {
+        case Leaf(_) => 1
+        case Branch(left, right) => size(left) + size(right) + 1
+    }
+
+    def maximum (tree: Tree[Int]): Int = tree match {
+        case Leaf(lval) => lval
+        case Branch(left, right) => maximum(left) max maximum(right)
+    }
+
+    def depthBad [A] (tree: Tree[A]): Int = {
+        def innerdepth [A] (tree: Tree[A], acc: Int): Int = tree match {
+            case Leaf(_) => acc +1
+            case Branch(left, right) => innerdepth(left, acc+1) max innerdepth(right, acc+1)
+        }
+        innerdepth(tree, 0)
+    }
+
+    def depth [A] (tree: Tree[A]): Int = tree match {
+        case Leaf(_) => 1
+        case Branch(left, right) => (depth(left) +1) max (depth(right) +1)
+    }
+
+    def map [A, B] (tree: Tree[A]) (transmogrify: A => B): Tree[B] = tree match {
+        case Leaf(lval) => Leaf(transmogrify(lval))
+        case Branch(left, right) => Branch(map(left)(transmogrify), map(right)(transmogrify))
+    }
+
+    // def foldRightReadable[A,B](inList: FPISList[A], emptyVal: B)(accumulateFunc: (A,B) => B): B = inList match {
+    //     case Nil => emptyVal
+    //     case FPISCons(head, tail) => accumulateFunc(head, foldRight(tail, emptyVal)(accumulateFunc))
     // }
+    def fold [A, B] (tree: Tree[A]) (leafAcc: A => B) (branchAcc: (B, B) => B) : B = tree match {
+        case Leaf(leafVal) => leafAcc(leafVal)
+        case Branch(bLeft, bRight) => branchAcc(
+            fold(bLeft)  (leafAcc) (branchAcc) ,
+            fold(bRight) (leafAcc) (branchAcc) )
+    }
+
+    def foldSize [A] (tree: Tree[A]): Int = {
+        fold (tree) (_ => 1) (_ + _ + 1)
+    }
+    def foldMaximum (tree: Tree[Int]): Int = {
+        fold (tree) (_ +0) (_ max _)
+    }
+    def foldDepth [A] (tree: Tree[A]): Int = {
+        val branchAcc = (lAcc: Int, rAcc: Int) => (lAcc +1) max (rAcc +1)
+        fold (tree) (_ => 1) (branchAcc)
+    }
+    def foldMap [A, B] (tree: Tree[A]) (transmogrify: A => B): Tree[B] = {
+        val leafAcc = (lval: A) => Leaf(transmogrify(lval)): Tree[B]
+        val branchAcc = (lBranch: Tree[B], rBranch: Tree[B]) => Branch(lBranch, rBranch): Tree[B]
+        fold (tree) (leafAcc) (branchAcc)
+    }
 }
 
 object ChapterThree {
@@ -311,7 +441,52 @@ object ChapterThree {
             3, 23, "zipWith", 
             "zipWith(longerList, longerList)(_+_) = " + FPISList.zipWith(longerList, longerList)(_+_))
         Utility.printex(
-            3, 24, "hasSubsequence", "UNIMPLEMENTED")
-    }
+            3, 24, "hasSubsequence",
+            "startsWith(longerList, FPISList(1, 2, 3))      = " + FPISList.startsWith(longerList, FPISList(1, 2, 3)),
+            "startsWith(longerList, FPISList(2, 3))         = " + FPISList.startsWith(longerList, FPISList(2, 3)),
+            "startsWith(longerList, Nil)                    = " + FPISList.startsWith(longerList, Nil: FPISList[Int]),
+            "startsWith2(longerList, FPISList(1, 2, 3))     = " + FPISList.startsWith2(longerList, FPISList(1, 2, 3)),
+            "startsWith2(longerList, FPISList(2, 3))        = " + FPISList.startsWith2(longerList, FPISList(2, 3)),
+            "startsWith2(longerList, Nil)                   = " + FPISList.startsWith2(longerList, Nil: FPISList[Int]),
+            "hasSubsequence(longerList, FPISList(1, 2, 3))  = " + FPISList.hasSubsequence(longerList, FPISList(1, 2, 3)),
+            "hasSubsequence(longerList, FPISList(2, 3))     = " + FPISList.hasSubsequence(longerList, FPISList(2, 3)),
+            "hasSubsequence(longerList, Nil)                = " + FPISList.hasSubsequence(longerList, Nil: FPISList[Int]),
+            "hasSubsequence(longerList, longerList)         = " + FPISList.hasSubsequence(longerList, longerList),
+            "hasSubsequence(longerList, evenLongerList)     = " + FPISList.hasSubsequence(longerList, evenLongerList),
+            "hasSubsequence(longerList, FPISList(7))        = " + FPISList.hasSubsequence(longerList, FPISList(7)))
 
+        val exTree1 = Branch(Branch(Leaf(1), Leaf(2)), Branch(Leaf(3), Leaf(4)))
+        val exTree2 = Branch(Branch(Leaf(18), Leaf(37)), Branch(Leaf(54), Leaf(4)))
+        Utility.printex(
+            3, 25, "size"
+            , "Tree.size(exTree1)    = " + Tree.size(exTree1)
+            , "Tree.size(exTree2)    = " + Tree.size(exTree2)
+            )
+        Utility.printex(
+            3, 26, "maximum"
+            , "Tree.maximum(exTree1)  = " + Tree.maximum(exTree1)
+            , "Tree.maximum(exTree2)  = " + Tree.maximum(exTree2)
+            )
+        Utility.printex(
+            3, 27, "depth"
+            , "Tree.depth(exTree1)  = " + Tree.depth(exTree1)
+            , "Tree.depth(exTree2)  = " + Tree.depth(exTree2)
+            )
+        Utility.printex(
+            3, 28, "map"
+            , "Tree.map(exTree1)(_+1)  = " + Tree.map(exTree1)(_+1)
+            , "Tree.map(exTree2)(_+1)  = " + Tree.map(exTree2)(_+1)
+            )
+        Utility.printex(
+            3, 29, "fold"
+            , "Tree.foldSize(exTree1)       = " + Tree.foldSize(exTree1)
+            , "Tree.foldSize(exTree2)       = " + Tree.foldSize(exTree2)
+            , "Tree.foldMaximum(exTree1)    = " + Tree.foldMaximum(exTree1)
+            , "Tree.foldMaximum(exTree2)    = " + Tree.foldMaximum(exTree2)
+            , "Tree.foldDepth(exTree1)      = " + Tree.foldDepth(exTree1)
+            , "Tree.foldDepth(exTree2)      = " + Tree.foldDepth(exTree2)
+            , "Tree.foldMap(exTree1)(_+1)   = " + Tree.foldMap(exTree1)(_+1)
+            , "Tree.foldMap(exTree2)(_+1)   = " + Tree.foldMap(exTree2)(_+1)
+            )
+    }
 }
