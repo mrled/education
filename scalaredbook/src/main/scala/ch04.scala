@@ -66,43 +66,50 @@ object RedOption {
 
   // This is just me copying the answer
   // This is so fucking confusing I'm fucking going fucking crazy FUCK
-  def sequenceFromAnswer [A] (list: List[RedOption[A]]): RedOption[List[A]] = list match {
-    case Nil => RedNone
-    case Cons(head, tail) => head flatMap (unwrappedhead => sequence(tail) map Cons(unwrappedhead, _))
+  // Given a list of option-wrapped values, return an option-wrapped list of values. If any value is RedNone, the resulting option should be RedNone also; otherwise, it should be RedSome(List[A])
+  def sequence [A] (list: List[RedOption[A]]): RedOption[List[A]] = list match {
+    case Nil => RedSome(Nil)
+    case head :: tail => head flatMap (unwrappedhead => sequence(tail) map (unwrappedhead :: _))
   }
 
-  def sequenceExplicitRecursive [A] (list: List[RedOption[A]]): RedOption[List[A]] = list match {
-    case Nil => Some(Nil)
-    case Cons(head, tail) => {
-      head flatMap (unwrappedHead => {
-        sequence(tail) map Cons(unwrappedhead, _)
-      })
-    }
+  // map over a list using a function that might fail, returning None if applying it to any elment of the input list returns None
+  // This version goes over the list twice, using map and sequence
+  def traverseSlow [A, B] (list: List[A]) (mogrify: A => RedOption[B]) : RedOption[List[B]] = {
+    sequence(list map mogrify)
   }
 
-  def sequence [A] (list: List[RedOption[A]]): RedOption[List[A]] = {
-    def mogrify(item: RedOption[A], acc: List[A]): List[A] = item match {
-      case RedNone => throw "whatever"
-      case RedSome(value) => value
-    }
-    try {
-      RedSome(list.foldRight(RedNone)(mogrify))
-    }
-    catch {
-      RedNone
-    }
+  // map over a list using a function that might fail, returning None if applying it to any elment of the input list returns None
+  // This version made me do extra work so I only go over the input list once
+  // You can see how sequence() could be written in terms of this version of traverse() - they're almost the same
+  def traverse [A, B] (list: List[A]) (mogrify: A => RedOption[B]) : RedOption[List[B]] = list match {
+    case Nil => RedSome(Nil)
+    case head :: tail => mogrify(head) flatMap (mogrifiedhead => traverse(tail)(mogrify) map (mogrifiedhead :: _))
   }
 
-  def sequenceNonfunctional [A] (list: List[RedOption[A]]): RedOption[List[A]] = {
-    var newList: List[A]
-    try {
-      for (item <- list) newList += item.getOrElse(throw "whatever")
-      return RedSome(newList)
-    }
-    catch {
-      return RedNone
-    }
-  }
+
+  // def sequence [A] (list: List[RedOption[A]]): RedOption[List[A]] = {
+  //   def mogrify(item: RedOption[A], acc: List[A]): List[A] = item match {
+  //     case RedNone => throw "whatever"
+  //     case RedSome(value) => value
+  //   }
+  //   try {
+  //     RedSome(list.foldRight(RedNone)(mogrify))
+  //   }
+  //   catch {
+  //     RedNone
+  //   }
+  // }
+
+  // def sequenceNonfunctional [A] (list: List[RedOption[A]]): RedOption[List[A]] = {
+  //   var newList: List[A]
+  //   try {
+  //     for (item <- list) newList += item.getOrElse(throw "whatever")
+  //     return RedSome(newList)
+  //   }
+  //   catch {
+  //     return RedNone
+  //   }
+  // }
 }
 
 object ChapterFour {
@@ -129,6 +136,7 @@ object ChapterFour {
       )
     val someSeq = Seq(1.0, 5.0, 2.0, 4.0)
     val emptySeq = Seq()
+    val someList = List(1, 2, 3)
     val mogrify = (x: Int, y: Int) => x + y
     Utility.printex(4, 2, "variance"
       , "variance(someSeq) = " + RedOption.variance(someSeq)
@@ -139,7 +147,12 @@ object ChapterFour {
       , "map2(RedNone, RedSome(2))(mogrify) = " + RedOption.map2(RedNone, RedSome(2))(mogrify)
       , "map2(RedSome(1), RedNone)(mogrify) = " + RedOption.map2(RedSome(1), RedNone)(mogrify)
       )
-    Utility.printex(4, 4, "sequence",
+    Utility.printex(4, 4, "sequence", "I hate myself")
+    Utility.printex(4, 5, "traverse"
+      , "RedOption.traverse(someList)(item => if (item < 5) RedSome(item) else RedNone) = " + 
+         RedOption.traverse(someList)(item => if (item < 5) RedSome(item) else RedNone)
+      , "RedOption.traverse(someList)(item => if (item < 2) RedSome(item) else RedNone) = " + 
+         RedOption.traverse(someList)(item => if (item < 2) RedSome(item) else RedNone)
       )
   }
 }
