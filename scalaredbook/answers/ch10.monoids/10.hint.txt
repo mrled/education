@@ -1,0 +1,2 @@
+A `Stub` should never contain any whitespace.
+
