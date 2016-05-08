@@ -110,3 +110,31 @@ Interestingly, when I come up with possibilities and sort them by normalized Ham
     most significant digits were zeroes. 
 
 Now I'm producing shitty plaintext for challenge 06, but I am hoping I can just fix that by tweaking the winnowing algorithm. 
+
+
+# stack
+
+⁃   do challenge 08
+⁃   create the same system as for 06: MCC, Tchunk, SCC.
+⁃   run into a problem. In chal 08 we know the keylen is 16 bytes (aka 16 ascii chars). The possible ciphertexts are 160 characters long; this means there will be 16 tchunks of 10 characters each. for Xor, this means you'd have a fullkey of xorchar*10, but AES apparently requires keys of 16, 24, or 32 bytes, meaning we have a 16 char minimum for len(fullkey).
+⁃   not sure what to do now? 
+⁃   Maybe I can do something similar but kinda hacky. Don't break it into tchunks. Just iterate one of the characters at a time. 
+
+
+HEAP
+clean up old code, check make sure all functions are used
+PEP8 compliant
+
+
+IDEAS on how to proceed: 
+
+⁃   divide each hex into 16 byte chunks and see if any are repeated within a given hex
+⁃   brute force generate all possible 16 byte keys and then decrypt all the ciphertexts using them.
+⁃   is this 128**16 (128 ascii values times 16 places)? 5.19229685853483E33
+⁃   is it 2**128 (16 byte keys are 128 bit keys)?            3.40282366920938E38
+⁃   the fact that I know it's a 128 bit / 16 byte AES key means I can break it into tchunks
+⁃   and the fact that it's ECB mode means that if I have a ciphertext with one character, and the same character elsewhere in the ciphertext, the same character from the key must have encrypted that ciphertext character. 
+⁃   Combining that, though, it means that characters 16 bytes apart must have been encrypted with the same key. 
+⁃   All of the hexes are encoded from 160 ascii characters, meaning 16 tchunks of 10 characters each
+
+How can I prove that a given hex ISN'T encrypted with 128 bit aes ecb? 

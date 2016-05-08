@@ -6,6 +6,7 @@ import string
 import sys
 import math
 import binascii
+import itertools
 
 # requires pycrypto
 from Crypto.Cipher import AES
@@ -22,7 +23,7 @@ def safeprint(text, unprintable=False, newlines=False, maxwidth=None):
     will throw a UnicodeEncodeError if you try to print a character it can't 
     print or something, and your program will stop.
 
-    If the appropriate options are passed, it will also filter the text through 
+    If the appropriate options are passed, it will also filter the text through
     safefilter().
 
     """
@@ -36,13 +37,14 @@ def safeprint(text, unprintable=False, newlines=False, maxwidth=None):
         print(filtered)
     except UnicodeEncodeError:
         # this (usually?) only happens on Windows
-        wt = "WARNING: Tried to print characters that could not be displayed on "
-        wt+= "this terminal. Skipping..."
+        wt = "WARNING: Tried to print characters that could not be displayed "
+        wt+= "on this terminal. Skipping..."
         print(wt)
 
 def safefilter(text, unprintable=False, newlines=False, maxwidth=None):
     """
-    Filter out undesirable characters from input text. (Intended for debugging.)
+    Filter out undesirable characters from input text. 
+    (Intended for debugging.)
 
     If `unprintable` is set to True, any character not printable
     be rendered as an underscore. Note that of course you may have actual 
@@ -76,7 +78,13 @@ def safefilter(text, unprintable=False, newlines=False, maxwidth=None):
 
     return output2
 
-        
+def split_len(seq, length):
+    """
+    Take any sequence and split it evenly into sequences that are each <length>
+    long. 
+    """
+    return [seq[i:i+length] for i in range(0, len(seq), length)]
+
 # idk if these are like cheating or something because they're using the base64 
 # module? 
 def base64_to_hex(x):
@@ -130,11 +138,12 @@ def xor_hexstrings(plaintext, key):
     are of equal length. 
     """
 
-    # repeat the key as many times as necessary to be >= length of the plaintext
+    # repeat the key as many times as necessary to be >= len of the plaintext
     repcount = math.ceil(len(plaintext)/len(key))
     fullkey = key * repcount
 
-    # make sure the key didnt end up longer than the plaintext by the repetition
+    # make sure the key didnt end up longer than the plaintext by the 
+    # repetition
     fullkey = fullkey[0:len(plaintext)]
     
     xorbin = int(plaintext, 16) ^ int(fullkey, 16)
@@ -157,11 +166,11 @@ def xor_strings(plaintext, key):
     necessary.
     """
 
-    # repeat the key as many times as necessary to be >= length of the plaintext
+    # repeat the key as many times as necessary to be >= len of the plaintext
     repcount = math.ceil(len(plaintext)/len(key))
     fullkey = key * repcount
 
-    # make sure the key didnt end up longer than the plaintext by the repetition
+    # make sure the key didnt end up longer than the plaintext by repetition
     fullkey = fullkey[0:len(plaintext)]
 
     phex = binascii.hexlify(plaintext.encode())
@@ -227,8 +236,8 @@ def winnow_wordlength(text):
 
 def winnow_unprintable_ascii(text):
     """
-    Return False if a text contains any non-ascii (or non-printable ascii) characters; 
-    True otherwise.
+    Return False if a text contains any non-ascii (or non-printable ascii) 
+    characters; True otherwise.
     """
     cc = char_counts(text)
 
@@ -265,8 +274,9 @@ def winnow_vowel_ratio(text):
     else:
         return False
 
-# TODO: fix all the callers of this function so that they don't pass SCC objets,
-# they should just pass a plaintext now
+
+# TODO: fix all the callers of this function so that they don't pass SCC 
+# objects, they should just pass a plaintext now
 def winnow_plaintexts(candidates):
 
     # if CRYPTOPALS_DEBUG:
@@ -280,8 +290,8 @@ def winnow_plaintexts(candidates):
             can2 += [c]
     if len(can2) == 0:
         et = "Unprintable ASCII winnowing failed. "
-        et+= "Found no candidates which didn't result in unprintableascii characters "
-        et+= "for this hexstring: \n    '{}'".format(
+        et+= "Found no candidates which didn't result in unprintableascii "
+        et+= "characters for this hexstring: \n    '{}'".format(
             candidates[0].hexstring[0:72] + "...")
         raise MCPWinnowingError(et)
     candidates = can2
@@ -300,7 +310,8 @@ def winnow_plaintexts(candidates):
             candidates = can2
             break
         elif len(can2) is 0:
-            # ... and you don't actually have to roll back, you just have to ignore can2
+            # ... and you don't actually have to roll back, you just have to 
+            # ignore can2
             pass
         else:
             candidates = can2
@@ -310,7 +321,8 @@ def winnow_plaintexts(candidates):
     if len(candidates) == 0:
         return False
     elif len(candidates) > 1:
-        debugprint("WINNOWING COMPLETE BUT {} CANDIDATES REMAIN".format(len(candidates)))
+        debugprint("WINNOWING COMPLETE BUT {} CANDIDATES REMAIN".format(
+            len(candidates)))
 
     return candidates
 
@@ -479,8 +491,8 @@ class MultiCharCandidate(object):
         # divide the ciphertext into chunks
         self.chunks = []
         this_chunk = ""
-        # I have to use cipherlen+1 or this will stop on the second to last char
-        # ... This is ugly and should be fixed probably, but I'm too tired
+        # I have to use cipherlen+1 or this will stop on the second to last 
+        # char... This is ugly and should be fixed probably, but I'm too tired
         for i in range(0, self.cipherlen+1, 2):
             this_chunk += self.hexstring[i:i+2]
             if len(this_chunk) == self.keylen or i >= self.cipherlen:
@@ -551,42 +563,75 @@ class MultiCharCandidate(object):
                 repr += wrepr
         safeprint(repr)
 
-class AesEcbTchunk(object):
-    def __init__(self, ciphertext):
-        self.ciphertext = ciphertext
-        self.cipherlen = len(self.ciphertext)
-        self.candidates = []
-        for i in range(0, 128):
-            cipher = AES.new(chr(i)*self.cipherlen, AES.MODE_ECB)
-            pt = cipher.decrypt(self.ciphertext)
-            if winnow_plaintexts(pt):
-                scc = {'ciphertext': ciphertext,
-                       'keychar': chr(i),
-                       'length': len(ciphertext),
-                       'plantext': pt,
-                       'charcounts': char_counts(pt),}
-                self.candidates += scc
 
-class AesEcbCandidate(object):
-    def __init__(self, ciphertext, keylen):
-        self.keylen = keylen
-        self.ciphertext = ciphertext
+def winnow_aesecb_repetition(ciphertext, keylen):
+    """
+    Examine a string of text that is suspected to be encrypted with AES-128-ECB
 
-        self.tchunks = []
-        for tcindex in range(0, keylen):
-            this_tc = ""
-            for charindex in range(tcindex, len(ciphertext), keylen):
-                this_tc += chr(ciphertext[charindex])
-            self.tchunks += AesEcbTchunk(this_tc)
+    "Remember that the problem with ECB is that it is stateless and
+    deterministic; the same 16 byte plaintext block will always produce
+    the same 16 byte ciphertext."
 
-        strace()
+    If it has any repeated <keylen> byte segments, return true. 
+
+    (keylen must be 16, 24, or 32)
+    """
+    chunks = split_len(ciphertext, keylen)
+    if len(chunks) != len(set(chunks)):
+        debugprint(ciphertext)
+
+        # twins = []
+        # for idx1 in range(len(chunks)):
+        #     try:
+        #         for idx2 in range(idx1 + 1, len(chunks)):
+        #             if chunks[idx1] == chunks[idx2]:
+        #                 twins += chunks[idx1]
+        #                 debugprint("    " + str(chunks[idx1]))
+        #                 break
+        #     except IndexError:
+        #         pass
+
+        # debugprint("----")
+        # for c in chunks: 
+        #     debugprint("    " + str(c))
+
+        # return twins
+
+        return True
+    else:
+        return False
+
+def bruteforce_aesecb(ciphertext):
+    """
+    brute force an aes-ecb ciphertext string. 
+    """
+
+    keystring = ""
+    for c in ciphertext:
+        # a space is the lowest-valued printable character in ascii
+        keystring += " "
+
+    candidates = []
+
+    for keytup in itertools.combinations(string.printable, len(ciphertext)):
+        keystring = ''.join(keytup)
+        cipher = AES.new(keystring, AES.MODE_ECB)
+        plaintext = cipher.decrypt(ciphertext).decode()
+        for c in plaintext:
+            if c not in string.printable:
+                break
+        else:
+            candidates += [plaintext]
+    print("There are {} candidates.".format(len(candidates)))
+
+
 
 def hamming_code_distance(string1, string2):
     """
     Compute the Hamming Code distance between two strings
     """
     if len(string1) is not len(string2):
-        # If strings are different lengths, truncate the longer one so that you 
+        # If strings are different lengths, truncate the longer one so that you
         # can do the compare
         string1 = string1[0:len(string2)]
         string2 = string2[0:len(string1)]
@@ -656,10 +701,12 @@ def find_multichar_xor(hexstring):
 
 
 ########################################################################
-## Challenge functions - one per challnge, plus maybe more for the extra credit sections
+## Challenge functions - one per challnge, plus maybe more for the extra credit
+## sections
 
-# this way I can just create a new function called chalX, and call challenger("chalX"), and it calls 
-# my new function. I use this in conjuunction with argparse
+# this way I can just create a new function called chalX, and call 
+# challenger("chalX"), and it calls my new function. I use this in conjuunction
+# with argparse
 def challenger(args):
     print("Running challenge {}...".format(args.chalnum))
     globals()["chal"+args.chalnum]()
@@ -732,7 +779,6 @@ def chal06b():
 
 def chal07():
     # note: requires pycrypto
-    from Crypto.Cipher import AES
     key = b'YELLOW SUBMARINE'
     cipher = AES.new(key, AES.MODE_ECB)
 
@@ -750,10 +796,20 @@ def chal08():
     f.close()
 
     candidates = []
+    idx = 0
     for h in hexes:
         asc = binascii.unhexlify(h)
-        #safeprint(h, unprintable=True, maxwidth=80)
-        candidates += AesEcbCandidate(asc, 16)
+        chunks = split_len(asc, 16)
+        if len(chunks) != len(set(chunks)):
+            #print("hexes[{}] has identical chunks")
+            candidates += [asc]
+        idx +=1
+
+
+    print(candidates[0])
+    bruteforce_aesecb(candidates[0])
+
+
 
 
 ########################################################################
@@ -801,7 +857,7 @@ class DebugAction(argparse.Action):
             def fallback_debug_trap(type, value, tb):
                 """
                 Print some diagnostics, colorize the important bits, and then 
-                automatically drop into the debugger when there is an unhandled 
+                automatically drop into the debugger when there is an unhandled
                 exception.
 
                 NOTE: If IPython is installed, this is never used! 
